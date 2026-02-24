@@ -4,7 +4,6 @@ import {
   TEST_USER_ID,
   TEST_CONSENT_ID,
   TEST_CONSENT,
-  TEST_ORG_ID,
 } from '@/__tests__/helpers/fixtures';
 
 // ---- Mocks ----

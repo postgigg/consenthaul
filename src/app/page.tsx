@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { LogoFull } from '@/components/brand/Logo';
 import { DashboardPreview } from '@/components/landing/DashboardPreview';
 import { LandingNav } from '@/components/landing/LandingNav';
+import { ComingSoonBanner } from '@/components/landing/ComingSoonBanner';
 
 // ---------------------------------------------------------------------------
 // Data
@@ -63,7 +64,7 @@ const FAQS = [
   },
   {
     q: 'Do you have an API?',
-    a: 'Yes. ConsentHaul offers a REST API so you can integrate consent creation directly into your TMS, dispatch system, or onboarding workflow. API keys are managed from your dashboard settings.',
+    a: 'Yes. ConsentHaul offers a REST API and an MCP (Model Context Protocol) server for AI agents. Integrate consent creation directly into your TMS, dispatch system, or onboarding workflow — or let AI agents like Claude manage drivers, send consents, and check billing through natural language. API keys are managed from your dashboard settings.',
   },
 ];
 
@@ -85,8 +86,8 @@ const FEATURES = [
     desc: 'CSV upload your entire fleet. Create consent requests for hundreds of drivers in minutes.',
   },
   {
-    title: 'API access',
-    desc: 'Integrate consent creation into your TMS or dispatch system with our REST API.',
+    title: 'API + MCP for AI agents',
+    desc: 'Integrate via REST API or our MCP server — let AI agents manage drivers, consents, and billing directly.',
   },
   {
     title: 'Real-time status',
@@ -101,6 +102,11 @@ const FEATURES = [
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#f8f8f6]">
+      {/* ================================================================= */}
+      {/* COMING SOON BANNER */}
+      {/* ================================================================= */}
+      <ComingSoonBanner />
+
       {/* ================================================================= */}
       {/* NAV */}
       {/* ================================================================= */}
@@ -149,15 +155,14 @@ export default function LandingPage() {
             </p>
 
             <div className="mt-10 flex flex-wrap items-center gap-4">
-              <Link
-                href="/signup"
-                className="bg-[#0c0f14] text-white font-bold text-sm uppercase tracking-wider px-8 py-4 hover:bg-[#1a1e27] active:bg-[#000] transition-colors inline-flex items-center gap-2"
+              <span
+                className="bg-[#0c0f14]/50 text-white/70 font-bold text-sm uppercase tracking-wider px-8 py-4 inline-flex items-center gap-2 cursor-not-allowed"
               >
-                START FREE
+                COMING SOON
                 <svg width="16" height="16" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
-              </Link>
+              </span>
               <span className="text-sm text-[#8b919a]">3 free credits on signup</span>
             </div>
           </div>
@@ -340,15 +345,14 @@ export default function LandingPage() {
           </div>
 
           <div className="mt-8 text-center">
-            <Link
-              href="/signup"
-              className="inline-flex items-center gap-2 bg-[#0c0f14] text-white font-bold text-sm uppercase tracking-wider px-10 py-4 hover:bg-[#1a1e27] transition-colors"
+            <span
+              className="inline-flex items-center gap-2 bg-[#0c0f14]/50 text-white/70 font-bold text-sm uppercase tracking-wider px-10 py-4 cursor-not-allowed"
             >
-              GET 3 FREE CREDITS
+              COMING SOON
               <svg width="16" height="16" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
-            </Link>
+            </span>
           </div>
         </div>
       </section>
@@ -425,15 +429,14 @@ export default function LandingPage() {
 
             {/* CTA buttons */}
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link
-                href="/signup"
-                className="inline-flex items-center gap-2 bg-[#C8A75E] text-[#0c0f14] font-bold text-sm uppercase tracking-wider px-10 py-4 hover:bg-[#d4b33e] active:bg-[#c0a038] transition-colors"
+              <span
+                className="inline-flex items-center gap-2 bg-[#C8A75E]/50 text-[#0c0f14]/50 font-bold text-sm uppercase tracking-wider px-10 py-4 cursor-not-allowed"
               >
-                START FREE — 3 CREDITS INCLUDED
+                COMING SOON
                 <svg width="16" height="16" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
-              </Link>
+              </span>
             </div>
 
             {/* Trust signals */}
@@ -475,8 +478,8 @@ export default function LandingPage() {
             <div>
               <p className="text-[0.65rem] font-bold text-[#5c6370] uppercase tracking-[0.15em] mb-4">Product</p>
               <ul className="space-y-2.5">
-                <li><Link href="/signup" className="text-sm text-[#8b919a] hover:text-[#C8A75E] transition-colors">Get Started</Link></li>
-                <li><Link href="/login" className="text-sm text-[#8b919a] hover:text-[#C8A75E] transition-colors">Sign In</Link></li>
+                <li><span className="text-sm text-[#8b919a]/50 cursor-not-allowed">Get Started</span></li>
+                <li><span className="text-sm text-[#8b919a]/50 cursor-not-allowed">Sign In</span></li>
                 <li><span className="text-sm text-[#3a3f49]">API Documentation</span></li>
               </ul>
             </div>

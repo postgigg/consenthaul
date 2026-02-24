@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createHash } from 'crypto';
 
 // We'll mock createAdminClient before importing authenticateApiKey
 const mockSingle = vi.fn();
@@ -123,8 +122,6 @@ describe('authenticateApiKey', () => {
 
   it('passes correct prefix and hash to query', async () => {
     const rawKey = 'ch_test_1234567890abcdef1234567890abcdef';
-    const expectedPrefix = rawKey.slice(0, 16);
-    const expectedHash = createHash('sha256').update(rawKey).digest('hex');
 
     mockSingle.mockReturnValue({ data: null, error: { message: 'not found' } });
 

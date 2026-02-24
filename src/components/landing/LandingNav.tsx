@@ -77,18 +77,16 @@ export function LandingNav() {
 
           {/* Right side */}
           <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="hidden sm:inline-block text-sm font-semibold text-[#3a3f49] hover:text-[#0c0f14] transition-colors"
+            <span
+              className="hidden sm:inline-block text-sm font-semibold text-[#3a3f49]/50 cursor-not-allowed"
             >
               Sign in
-            </Link>
-            <Link
-              href="/signup"
-              className="bg-[#0c0f14] text-white text-[0.8rem] font-semibold px-5 py-2 hover:bg-[#1a1e27] transition-colors"
+            </span>
+            <span
+              className="bg-[#0c0f14]/50 text-white/70 text-[0.8rem] font-semibold px-5 py-2 cursor-not-allowed"
             >
               Get started
-            </Link>
+            </span>
 
             {/* Hamburger */}
             <button
@@ -128,20 +126,16 @@ export function LandingNav() {
               ))}
 
               <div className="pt-3 flex flex-col gap-2">
-                <Link
-                  href="/login"
-                  onClick={() => setMobileOpen(false)}
-                  className="block py-3 text-sm font-semibold text-[#6b6f76] text-center border border-[#e8e8e3] hover:bg-[#fafaf8] transition-colors"
+                <span
+                  className="block py-3 text-sm font-semibold text-[#6b6f76]/50 text-center border border-[#e8e8e3] cursor-not-allowed"
                 >
                   Sign in
-                </Link>
-                <Link
-                  href="/signup"
-                  onClick={() => setMobileOpen(false)}
-                  className="block py-3 text-sm font-bold text-white text-center bg-[#0c0f14] hover:bg-[#1a1e27] transition-colors"
+                </span>
+                <span
+                  className="block py-3 text-sm font-bold text-white/70 text-center bg-[#0c0f14]/50 cursor-not-allowed"
                 >
                   Get started free
-                </Link>
+                </span>
               </div>
             </div>
           </div>
