@@ -4,10 +4,12 @@ import twilio from 'twilio';
 // Twilio WhatsApp service for consent delivery
 // ---------------------------------------------------------------------------
 
-const client = twilio(
-  process.env.TWILIO_ACCOUNT_SID!,
-  process.env.TWILIO_AUTH_TOKEN!,
-);
+function getClient() {
+  return twilio(
+    process.env.TWILIO_ACCOUNT_SID!,
+    process.env.TWILIO_AUTH_TOKEN!,
+  );
+}
 
 interface SendConsentWhatsAppParams {
   /** E.164 formatted phone number (without whatsapp: prefix) */
@@ -54,7 +56,7 @@ export async function sendConsentWhatsApp({
     '3': signingUrl,
   });
 
-  const message = await client.messages.create({
+  const message = await getClient().messages.create({
     to: `whatsapp:${to}`,
     from: `whatsapp:${process.env.TWILIO_WHATSAPP_NUMBER!}`,
     contentSid,

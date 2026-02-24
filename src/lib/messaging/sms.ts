@@ -4,10 +4,12 @@ import twilio from 'twilio';
 // Twilio SMS service for consent delivery
 // ---------------------------------------------------------------------------
 
-const client = twilio(
-  process.env.TWILIO_ACCOUNT_SID!,
-  process.env.TWILIO_AUTH_TOKEN!,
-);
+function getClient() {
+  return twilio(
+    process.env.TWILIO_ACCOUNT_SID!,
+    process.env.TWILIO_AUTH_TOKEN!,
+  );
+}
 
 interface SendConsentSMSParams {
   /** E.164 formatted phone number */
@@ -51,7 +53,7 @@ export async function sendConsentSMS({
         `Sign here / Firme aqui: ${signingUrl}\n\n` +
         `This link expires in 7 days. / Este enlace expira en 7 dias.`;
 
-  const message = await client.messages.create({
+  const message = await getClient().messages.create({
     to,
     from: process.env.TWILIO_PHONE_NUMBER!,
     body,

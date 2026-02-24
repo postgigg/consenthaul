@@ -4,7 +4,9 @@ import { Resend } from 'resend';
 // Resend email service for consent delivery
 // ---------------------------------------------------------------------------
 
-const resend = new Resend(process.env.RESEND_API_KEY!);
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY!);
+}
 
 interface SendConsentEmailParams {
   /** Recipient email address */
@@ -50,7 +52,7 @@ export async function sendConsentEmail({
     isSpanish,
   });
 
-  const { data, error } = await resend.emails.send({
+  const { data, error } = await getResend().emails.send({
     from: 'ConsentHaul <noreply@consenthaul.com>',
     to,
     subject,
