@@ -65,7 +65,7 @@ export default function AuthLayout({
             &copy; {new Date().getFullYear()} ConsentHaul
           </p>
           <p className="text-[#3a3f49] text-[0.7rem] mt-1">
-            Operated by Flotac Ltd
+            Operated by Workbird LLC
           </p>
           <div className="flex gap-4 mt-3">
             <Link href="/terms" className="text-[#5c6370] text-[0.7rem] hover:text-[#C8A75E] transition-colors">Terms</Link>
@@ -95,7 +95,7 @@ export default function AuthLayout({
         <div className="lg:hidden px-6 pb-6">
           <div className="border-t border-[#e8e8e3] pt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <p className="text-[#b5b5ae] text-[0.7rem]">
-              &copy; {new Date().getFullYear()} ConsentHaul &middot; Flotac Ltd
+              &copy; {new Date().getFullYear()} ConsentHaul &middot; Workbird LLC
             </p>
             <div className="flex gap-4">
               <Link href="/terms" className="text-[#8b919a] text-[0.7rem] hover:text-[#0c0f14] transition-colors">Terms</Link>

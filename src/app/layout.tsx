@@ -53,9 +53,9 @@ export const metadata: Metadata = {
     'mobile driver consent',
     'digital consent form trucking',
   ],
-  authors: [{ name: 'Flotac Ltd' }],
-  creator: 'Flotac Ltd',
-  publisher: 'Flotac Ltd',
+  authors: [{ name: 'Workbird LLC' }],
+  creator: 'Workbird LLC',
+  publisher: 'Workbird LLC',
   applicationName: 'ConsentHaul',
   category: 'Transportation Compliance Software',
   classification: 'Business Software',
@@ -127,7 +127,7 @@ const jsonLd = {
       url: SITE_URL,
       author: {
         '@type': 'Organization',
-        name: 'Flotac Ltd',
+        name: 'Workbird LLC',
         url: SITE_URL,
       },
       offers: {
@@ -185,11 +185,11 @@ const jsonLd = {
     {
       '@type': 'Organization',
       name: 'ConsentHaul',
-      legalName: 'Flotac Ltd',
+      legalName: 'Workbird LLC',
       url: SITE_URL,
       logo: `${SITE_URL}/logo.png`,
       description:
-        'ConsentHaul is operated by Flotac Ltd. We provide digital FMCSA Clearinghouse consent management for trucking carriers and fleet operators.',
+        'ConsentHaul is operated by Workbird LLC. We provide digital FMCSA Clearinghouse consent management for trucking carriers and fleet operators.',
       contactPoint: {
         '@type': 'ContactPoint',
         contactType: 'customer support',
