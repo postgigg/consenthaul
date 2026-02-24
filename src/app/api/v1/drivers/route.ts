@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { authenticateApiKey } from '@/lib/api-auth';
 import { createDriverSchema, paginationSchema } from '@/lib/validators';
+import { apiLimiter } from '@/lib/rate-limiters';
+import { getClientIp } from '@/lib/rate-limit';
 import type { Database } from '@/types/database';
 
 type DriverRow = Database['public']['Tables']['drivers']['Row'];
@@ -11,6 +13,16 @@ type DriverRow = Database['public']['Tables']['drivers']['Row'];
 // ---------------------------------------------------------------------------
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit
+    const ip = getClientIp(request);
+    const rl = apiLimiter.check(ip);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Too Many Requests', message: 'Rate limit exceeded. Try again later.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } },
+      );
+    }
+
     // 1. Authenticate via API key
     const auth = await authenticateApiKey(request);
     if (!auth) {
@@ -129,6 +141,16 @@ export async function POST(request: NextRequest) {
 // ---------------------------------------------------------------------------
 export async function GET(request: NextRequest) {
   try {
+    // Rate limit
+    const ip = getClientIp(request);
+    const rl = apiLimiter.check(ip);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Too Many Requests', message: 'Rate limit exceeded. Try again later.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } },
+      );
+    }
+
     // 1. Authenticate via API key
     const auth = await authenticateApiKey(request);
     if (!auth) {

@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { validateRequest } from 'twilio';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { webhookLimiter } from '@/lib/rate-limiters';
+import { getClientIp } from '@/lib/rate-limit';
 import type { Database, NotificationStatus, ConsentStatus } from '@/types/database';
 
 type NotificationRow = Database['public']['Tables']['notifications']['Row'];
@@ -32,10 +35,38 @@ const TWILIO_TO_CONSENT_STATUS: Record<string, ConsentStatus | null> = {
 // ---------------------------------------------------------------------------
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createAdminClient();
+    // Rate limit
+    const ip = getClientIp(request);
+    const rl = webhookLimiter.check(ip);
+    if (!rl.allowed) {
+      return new NextResponse('<Response></Response>', {
+        status: 429,
+        headers: { 'Content-Type': 'text/xml' },
+      });
+    }
 
-    // Twilio sends form-encoded data
-    const formData = await request.formData();
+    // Twilio sends form-encoded data — clone request so we can read body twice
+    const rawBody = await request.text();
+    const formData = new URLSearchParams(rawBody);
+
+    // Verify Twilio signature if auth token is configured
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    if (authToken) {
+      const signature = request.headers.get('x-twilio-signature') ?? '';
+      const url = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/twilio`;
+      const params: Record<string, string> = {};
+      formData.forEach((value, key) => { params[key] = value; });
+
+      if (!validateRequest(authToken, signature, url, params)) {
+        console.error('[Twilio webhook] Invalid signature');
+        return new NextResponse('<Response></Response>', {
+          status: 403,
+          headers: { 'Content-Type': 'text/xml' },
+        });
+      }
+    }
+
+    const supabase = createAdminClient();
 
     const messageSid = formData.get('MessageSid') as string | null;
     const messageStatus = formData.get('MessageStatus') as string | null;

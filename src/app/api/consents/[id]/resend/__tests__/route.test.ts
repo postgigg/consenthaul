@@ -102,6 +102,7 @@ describe('POST /api/consents/[id]/resend', () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: TEST_USER_ID } }, error: null });
     mockSingle
       .mockReturnValueOnce({ data: consentWithDriver, error: null }) // consent lookup
+      .mockReturnValueOnce({ data: { name: 'Test Co' }, error: null }) // org lookup
       .mockReturnValueOnce({ data: { id: 'notif-1', attempts: 1 }, error: null }); // existing notification
     const res = await POST(makeReq(), params);
     expect(res.status).toBe(200);
@@ -115,6 +116,7 @@ describe('POST /api/consents/[id]/resend', () => {
         data: { ...consentWithDriver, delivery_method: 'email', delivery_address: 'john@test.com' },
         error: null,
       })
+      .mockReturnValueOnce({ data: { name: 'Test Co' }, error: null }) // org lookup
       .mockReturnValueOnce({ data: null, error: { message: 'not found' } }); // no existing notification
     const res = await POST(makeReq(), params);
     expect(res.status).toBe(200);
@@ -123,7 +125,9 @@ describe('POST /api/consents/[id]/resend', () => {
 
   it('returns 502 on delivery failure', async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: TEST_USER_ID } }, error: null });
-    mockSingle.mockReturnValueOnce({ data: consentWithDriver, error: null });
+    mockSingle
+      .mockReturnValueOnce({ data: consentWithDriver, error: null })
+      .mockReturnValueOnce({ data: { name: 'Test Co' }, error: null }); // org lookup
     mockSendSMS.mockRejectedValueOnce(new Error('Twilio down'));
     const res = await POST(makeReq(), params);
     expect(res.status).toBe(502);

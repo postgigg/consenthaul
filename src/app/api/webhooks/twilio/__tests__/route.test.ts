@@ -18,6 +18,10 @@ vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: vi.fn(() => mockSupabase),
 }));
 
+vi.mock('twilio', () => ({
+  validateRequest: vi.fn(() => true),
+}));
+
 const { POST } = await import('../route');
 
 function makeReq(formFields: Record<string, string>) {

@@ -7,6 +7,8 @@ import { SIGNING_TOKEN_DEFAULT_TTL_HOURS } from '@/lib/constants';
 import { sendConsentSMS } from '@/lib/messaging/sms';
 import { sendConsentWhatsApp } from '@/lib/messaging/whatsapp';
 import { sendConsentEmail } from '@/lib/messaging/email';
+import { apiLimiter } from '@/lib/rate-limiters';
+import { getClientIp } from '@/lib/rate-limit';
 import type { Database } from '@/types/database';
 
 type DriverRow = Database['public']['Tables']['drivers']['Row'];
@@ -17,6 +19,16 @@ type ConsentRow = Database['public']['Tables']['consents']['Row'];
 // ---------------------------------------------------------------------------
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit
+    const ip = getClientIp(request);
+    const rl = apiLimiter.check(ip);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Too Many Requests', message: 'Rate limit exceeded. Try again later.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } },
+      );
+    }
+
     // 1. Authenticate via API key
     const auth = await authenticateApiKey(request);
     if (!auth) {
@@ -36,6 +48,14 @@ export async function POST(request: NextRequest) {
 
     const supabase = createAdminClient();
     const orgId = auth.orgId;
+
+    // Fetch organization name for messaging
+    const { data: orgData } = await supabase
+      .from('organizations')
+      .select('name')
+      .eq('id', orgId)
+      .single();
+    const companyName = orgData?.name ?? undefined;
 
     // 2. Parse & validate body
     const body = await request.json();
@@ -154,6 +174,7 @@ export async function POST(request: NextRequest) {
             to: deliveryAddress,
             driverName: driverFullName,
             signingUrl,
+            companyName,
             language: consent.language,
           });
           deliverySid = result.sid;
@@ -162,6 +183,7 @@ export async function POST(request: NextRequest) {
             to: deliveryAddress,
             driverName: driverFullName,
             signingUrl,
+            companyName,
             language: consent.language,
           });
           deliverySid = result.sid;
@@ -170,6 +192,7 @@ export async function POST(request: NextRequest) {
             to: deliveryAddress,
             driverName: driverFullName,
             signingUrl,
+            companyName,
             language: consent.language,
           });
           deliverySid = result.messageId;
@@ -253,6 +276,16 @@ export async function POST(request: NextRequest) {
 // ---------------------------------------------------------------------------
 export async function GET(request: NextRequest) {
   try {
+    // Rate limit
+    const ip = getClientIp(request);
+    const rl = apiLimiter.check(ip);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Too Many Requests', message: 'Rate limit exceeded. Try again later.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } },
+      );
+    }
+
     // 1. Authenticate via API key
     const auth = await authenticateApiKey(request);
     if (!auth) {

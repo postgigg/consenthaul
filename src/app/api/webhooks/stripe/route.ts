@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import Stripe from 'stripe';
 import { CREDIT_PACKS } from '@/lib/stripe/credits';
+import { webhookLimiter } from '@/lib/rate-limiters';
+import { getClientIp } from '@/lib/rate-limit';
 import type { Database } from '@/types/database';
 
 type CreditTransactionRow = Database['public']['Tables']['credit_transactions']['Row'];
@@ -19,6 +21,16 @@ export async function POST(request: NextRequest) {
   let event: Stripe.Event;
 
   try {
+    // Rate limit
+    const ip = getClientIp(request);
+    const rl = webhookLimiter.check(ip);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Too Many Requests' },
+        { status: 429 },
+      );
+    }
+
     const stripe = getStripe();
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 

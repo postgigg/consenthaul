@@ -4,6 +4,8 @@ import { submitSignatureSchema } from '@/lib/validators';
 import { hashSignature } from '@/lib/tokens';
 import { generateConsentPDF } from '@/lib/pdf/generate-consent-pdf';
 import { createHash } from 'crypto';
+import { signLimiter } from '@/lib/rate-limiters';
+import { getClientIp } from '@/lib/rate-limit';
 import type { Database } from '@/types/database';
 
 type ConsentRow = Database['public']['Tables']['consents']['Row'];
@@ -115,6 +117,16 @@ export async function POST(
   { params }: { params: { token: string } },
 ) {
   try {
+    // Rate limit signature submissions
+    const ip = getClientIp(request);
+    const rl = signLimiter.check(ip);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Too Many Requests', message: 'Too many signature attempts. Try again later.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } },
+      );
+    }
+
     const supabase = createAdminClient();
     const { token } = params;
 

@@ -90,13 +90,16 @@ describe('POST /api/v1/consents', () => {
 
   it('returns 422 on validation error', async () => {
     mockAuth.mockResolvedValue({ orgId: TEST_ORG_ID, keyId: TEST_KEY_ID, scopes: ['consents:write'] });
+    mockSingle.mockReturnValueOnce({ data: { name: 'Test Co' }, error: null }); // org lookup
     const res = await POST(makeReq({ method: 'POST', body: {} }));
     expect(res.status).toBe(422);
   });
 
   it('returns 404 when driver not found', async () => {
     mockAuth.mockResolvedValue({ orgId: TEST_ORG_ID, keyId: TEST_KEY_ID, scopes: ['consents:write'] });
-    mockSingle.mockReturnValueOnce({ data: null, error: { message: 'not found' } }); // driver lookup
+    mockSingle
+      .mockReturnValueOnce({ data: { name: 'Test Co' }, error: null }) // org lookup
+      .mockReturnValueOnce({ data: null, error: { message: 'not found' } }); // driver lookup
 
     const res = await POST(makeReq({
       method: 'POST',
@@ -107,7 +110,9 @@ describe('POST /api/v1/consents', () => {
 
   it('returns 402 when insufficient credits', async () => {
     mockAuth.mockResolvedValue({ orgId: TEST_ORG_ID, keyId: TEST_KEY_ID, scopes: ['consents:write'] });
-    mockSingle.mockReturnValueOnce({ data: TEST_DRIVER, error: null }); // driver found
+    mockSingle
+      .mockReturnValueOnce({ data: { name: 'Test Co' }, error: null }) // org lookup
+      .mockReturnValueOnce({ data: TEST_DRIVER, error: null }); // driver found
     mockRpc.mockReturnValueOnce({ data: false, error: null }); // credit deduction fails
 
     const res = await POST(makeReq({
@@ -120,7 +125,8 @@ describe('POST /api/v1/consents', () => {
   it('returns 201 on success with SMS', async () => {
     mockAuth.mockResolvedValue({ orgId: TEST_ORG_ID, keyId: TEST_KEY_ID, scopes: ['consents:write'] });
     mockSingle
-      .mockReturnValueOnce({ data: TEST_DRIVER, error: null }) // driver found
+      .mockReturnValueOnce({ data: { name: 'Test Co' }, error: null }) // org lookup
+      .mockReturnValueOnce({ data: TEST_DRIVER, error: null }); // driver found
     mockRpc.mockReturnValueOnce({ data: true, error: null }); // credit deducted
     mockSingle.mockReturnValueOnce({ data: TEST_CONSENT, error: null }); // consent inserted
 
@@ -135,7 +141,9 @@ describe('POST /api/v1/consents', () => {
   it('calls sendConsentEmail for email delivery', async () => {
     mockAuth.mockResolvedValue({ orgId: TEST_ORG_ID, keyId: TEST_KEY_ID, scopes: ['consents:write'] });
     const emailDriver = { ...TEST_DRIVER, email: 'test@example.com' };
-    mockSingle.mockReturnValueOnce({ data: emailDriver, error: null });
+    mockSingle
+      .mockReturnValueOnce({ data: { name: 'Test Co' }, error: null }) // org lookup
+      .mockReturnValueOnce({ data: emailDriver, error: null }); // driver found
     mockRpc.mockReturnValueOnce({ data: true, error: null });
     mockSingle.mockReturnValueOnce({ data: { ...TEST_CONSENT, delivery_method: 'email' }, error: null });
 
@@ -149,7 +157,9 @@ describe('POST /api/v1/consents', () => {
 
   it('returns 502 on delivery failure', async () => {
     mockAuth.mockResolvedValue({ orgId: TEST_ORG_ID, keyId: TEST_KEY_ID, scopes: ['consents:write'] });
-    mockSingle.mockReturnValueOnce({ data: TEST_DRIVER, error: null });
+    mockSingle
+      .mockReturnValueOnce({ data: { name: 'Test Co' }, error: null }) // org lookup
+      .mockReturnValueOnce({ data: TEST_DRIVER, error: null }); // driver found
     mockRpc.mockReturnValueOnce({ data: true, error: null });
     mockSingle.mockReturnValueOnce({ data: TEST_CONSENT, error: null });
     mockSendSMS.mockRejectedValueOnce(new Error('Twilio error'));
