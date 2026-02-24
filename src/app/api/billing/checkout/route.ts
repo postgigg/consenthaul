@@ -7,15 +7,18 @@ import type { Database } from '@/types/database';
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
 type OrganizationRow = Database['public']['Tables']['organizations']['Row'];
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2026-01-28.clover',
-});
+function getStripe() {
+  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2026-01-28.clover',
+  });
+}
 
 // ---------------------------------------------------------------------------
 // POST /api/billing/checkout — Create a Stripe checkout session
 // ---------------------------------------------------------------------------
 export async function POST(request: NextRequest) {
   try {
+    const stripe = getStripe();
     const supabase = createClient();
 
     // 1. Authenticate
