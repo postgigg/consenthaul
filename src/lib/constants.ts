@@ -84,6 +84,86 @@ interface ConsentTextBlock {
   acknowledgment: string;
 }
 
+// ---------------------------------------------------------------------------
+// E-Sign Act / UETA Disclosures (15 U.S.C. § 7001(c))
+// ---------------------------------------------------------------------------
+
+interface ESignDisclosure {
+  title: string;
+  disclosures: {
+    heading: string;
+    body: string;
+  }[];
+}
+
+export const ESIGN_DISCLOSURE_EN: ESignDisclosure = {
+  title: 'Electronic Transaction Disclosure',
+  disclosures: [
+    {
+      heading: 'Right to Paper Records',
+      body: 'You have the right to receive this consent document and all related records on paper. You may request a paper copy at any time at no charge by contacting your employer.',
+    },
+    {
+      heading: 'Right to Withdraw Consent to Electronic Transactions',
+      body: 'You may withdraw your consent to conduct this transaction electronically at any time. To withdraw, use the withdrawal link provided on your confirmation page or in your receipt email. Withdrawal of your consent to electronic transactions does not revoke any consent already signed.',
+    },
+    {
+      heading: 'Scope of Consent',
+      body: 'Your consent to transact electronically applies only to this specific FMCSA Drug & Alcohol Clearinghouse consent transaction. It does not apply to any other transactions or future transactions.',
+    },
+    {
+      heading: 'How to Update Your Contact Information',
+      body: 'If your email address or other contact information changes, please notify your employer directly so they can update your records and ensure you continue to receive important documents.',
+    },
+    {
+      heading: 'Paper Copy Request Process',
+      body: 'You may request a paper copy of your signed consent document at any time by contacting your employer. There is no fee for requesting a paper copy. Your employer will provide the paper copy within a reasonable time.',
+    },
+    {
+      heading: 'Hardware and Software Requirements',
+      body: 'To complete this electronic transaction, you need: a modern web browser (Chrome, Safari, Firefox, or Edge), an internet connection, and the ability to view and save PDF documents. Your device must be able to display the consent form and capture your electronic signature.',
+    },
+    {
+      heading: 'Consequences of Withdrawal',
+      body: 'If you withdraw your consent to electronic transactions, your employer will be required to provide you with the consent form on paper. This may delay the consent process. You will still be required to provide consent for FMCSA Clearinghouse queries as mandated by federal law.',
+    },
+  ],
+};
+
+export const ESIGN_DISCLOSURE_ES: ESignDisclosure = {
+  title: 'Divulgación de Transacción Electrónica',
+  disclosures: [
+    {
+      heading: 'Derecho a Registros en Papel',
+      body: 'Usted tiene derecho a recibir este documento de consentimiento y todos los registros relacionados en papel. Puede solicitar una copia en papel en cualquier momento sin cargo comunicándose con su empleador.',
+    },
+    {
+      heading: 'Derecho a Retirar el Consentimiento para Transacciones Electrónicas',
+      body: 'Puede retirar su consentimiento para realizar esta transacción electrónicamente en cualquier momento. Para retirarlo, use el enlace de retiro proporcionado en su página de confirmación o en su correo de recibo. El retiro de su consentimiento para transacciones electrónicas no revoca ningún consentimiento ya firmado.',
+    },
+    {
+      heading: 'Alcance del Consentimiento',
+      body: 'Su consentimiento para realizar transacciones electrónicamente se aplica únicamente a esta transacción específica de consentimiento del FMCSA Drug & Alcohol Clearinghouse. No se aplica a otras transacciones ni a transacciones futuras.',
+    },
+    {
+      heading: 'Cómo Actualizar Su Información de Contacto',
+      body: 'Si su dirección de correo electrónico u otra información de contacto cambia, notifique directamente a su empleador para que pueda actualizar sus registros y asegurar que continúe recibiendo documentos importantes.',
+    },
+    {
+      heading: 'Proceso de Solicitud de Copia en Papel',
+      body: 'Puede solicitar una copia en papel de su documento de consentimiento firmado en cualquier momento comunicándose con su empleador. No hay cargo por solicitar una copia en papel. Su empleador proporcionará la copia en papel dentro de un tiempo razonable.',
+    },
+    {
+      heading: 'Requisitos de Hardware y Software',
+      body: 'Para completar esta transacción electrónica, necesita: un navegador web moderno (Chrome, Safari, Firefox o Edge), una conexión a internet y la capacidad de ver y guardar documentos PDF. Su dispositivo debe poder mostrar el formulario de consentimiento y capturar su firma electrónica.',
+    },
+    {
+      heading: 'Consecuencias del Retiro',
+      body: 'Si retira su consentimiento para transacciones electrónicas, su empleador deberá proporcionarle el formulario de consentimiento en papel. Esto puede retrasar el proceso de consentimiento. Aún se le requerirá proporcionar consentimiento para consultas del FMCSA Clearinghouse según lo exige la ley federal.',
+    },
+  ],
+};
+
 export const CONSENT_TEXT_EN: ConsentTextBlock = {
   title: 'FMCSA Drug & Alcohol Clearinghouse Consent',
   body: (

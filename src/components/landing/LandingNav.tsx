@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { label: 'How It Works', href: '#how-it-works' },
   { label: 'Pricing', href: '#pricing' },
   { label: 'FAQ', href: '#faq' },
+  { label: 'TMS Partners', href: '/tms' },
 ];
 
 export function LandingNav() {
@@ -35,8 +36,9 @@ export function LandingNav() {
   }, [mobileOpen]);
 
   function handleNavClick(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
-    e.preventDefault();
     setMobileOpen(false);
+    if (!href.startsWith('#')) return; // allow normal navigation for page links
+    e.preventDefault();
     const id = href.replace('#', '');
     const el = document.getElementById(id);
     if (el) {

@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   Coins,
   ArrowRight,
+  CalendarClock,
 } from 'lucide-react';
 import type { Database } from '@/types/database';
 
@@ -54,6 +55,11 @@ export default async function DashboardPage() {
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const thirtyDaysAgoISO = thirtyDaysAgo.toISOString();
 
+  const today = new Date().toISOString().slice(0, 10);
+  const thirtyDaysFromNow = new Date();
+  thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+  const thirtyDaysFromNowISO = thirtyDaysFromNow.toISOString().slice(0, 10);
+
   const [
     driversResult,
     activeDriversResult,
@@ -63,6 +69,7 @@ export default async function DashboardPage() {
     expiredConsentsResult,
     creditBalanceResult,
     recentConsentsResult,
+    expiringConsentsResult,
   ] = await Promise.all([
     supabase
       .from('drivers')
@@ -107,6 +114,14 @@ export default async function DashboardPage() {
       .eq('organization_id', orgId)
       .order('created_at', { ascending: false })
       .limit(5),
+    supabase
+      .from('consents')
+      .select('*, driver:drivers(id, first_name, last_name)')
+      .eq('organization_id', orgId)
+      .eq('status', 'signed')
+      .gte('consent_end_date', today)
+      .lte('consent_end_date', thirtyDaysFromNowISO)
+      .order('consent_end_date', { ascending: true }),
   ]);
 
   const totalDrivers = driversResult.count ?? 0;
@@ -118,6 +133,7 @@ export default async function DashboardPage() {
   const creditBalanceData = creditBalanceResult.data as CreditBalanceRow | null;
   const creditBalance = creditBalanceData?.balance ?? 0;
   const recentConsents = (recentConsentsResult.data ?? []) as unknown as RecentConsent[];
+  const expiringConsents = (expiringConsentsResult.data ?? []) as unknown as RecentConsent[];
 
   const consentTypeLabel: Record<string, string> = {
     limited_query: 'Limited Query',
@@ -210,6 +226,72 @@ export default async function DashboardPage() {
           </Link>
         </div>
       )}
+
+      {/* Compliance Forecast */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <div className="flex items-center gap-2">
+            <CalendarClock className="h-4 w-4 text-[#8b919a]" />
+            <CardTitle>Compliance Forecast</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {expiringConsents.length === 0 ? (
+            <div className="flex items-center gap-3 border border-green-200 bg-green-50/50 px-4 py-3">
+              <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+              <p className="text-sm text-green-800">
+                All systems operational. No consents expiring in the next 30 days.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-3 border border-amber-200 bg-amber-50/50 px-4 py-3 mb-4">
+                <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+                <p className="text-sm text-amber-800">
+                  {expiringConsents.length} consent{expiringConsents.length !== 1 ? 's' : ''} expiring in the next 30 days.
+                </p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-[#e8e8e3]">
+                      <th className="pb-3 text-left text-[0.7rem] font-bold text-[#8b919a] uppercase tracking-wider">Driver</th>
+                      <th className="pb-3 text-left text-[0.7rem] font-bold text-[#8b919a] uppercase tracking-wider">Type</th>
+                      <th className="pb-3 text-left text-[0.7rem] font-bold text-[#8b919a] uppercase tracking-wider">Expires</th>
+                      <th className="pb-3 text-right">
+                        {/* Action column */}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#f0f0ec]">
+                    {expiringConsents.map((consent) => (
+                      <tr key={consent.id} className="group hover:bg-[#fafaf8]">
+                        <td className="py-3 font-medium text-[#0c0f14]">
+                          {consent.driver?.first_name} {consent.driver?.last_name}
+                        </td>
+                        <td className="py-3 text-[#6b6f76]">
+                          {consentTypeLabel[consent.consent_type] ?? consent.consent_type}
+                        </td>
+                        <td className="py-3 text-[#8b919a]">
+                          {formatDate(consent.consent_end_date)}
+                        </td>
+                        <td className="py-3 text-right">
+                          <Link
+                            href={`/consents/${consent.id}`}
+                            className="text-[#0c0f14] hover:text-[#C8A75E] text-xs font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            View
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Recent consents */}
       <Card>

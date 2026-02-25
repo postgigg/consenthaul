@@ -60,3 +60,60 @@ export const CREDIT_PACKS: CreditPack[] = [
 
 /** Number of free credits granted to every new organization on sign-up */
 export const SIGNUP_BONUS_CREDITS = 3;
+
+// ---------------------------------------------------------------------------
+// TMS Partner credit packs & fees
+// ---------------------------------------------------------------------------
+
+export interface TmsPartnerPack {
+  id: string;
+  name: string;
+  credits: number;
+  price_cents: number;
+  per_consent: string;
+  description: string;
+}
+
+export const TMS_PARTNER_PACKS: TmsPartnerPack[] = [
+  {
+    id: 'tms_starter',
+    name: 'Starter',
+    credits: 10_000,
+    price_cents: 1_000_000,
+    per_consent: '$1.00',
+    description: 'For TMS platforms onboarding their first carriers',
+  },
+  {
+    id: 'tms_growth',
+    name: 'Growth',
+    credits: 100_000,
+    price_cents: 7_500_000,
+    per_consent: '$0.75',
+    description: 'For growing platforms with 100+ carriers',
+  },
+  {
+    id: 'tms_scale',
+    name: 'Scale',
+    credits: 250_000,
+    price_cents: 12_500_000,
+    per_consent: '$0.50',
+    description: 'Best value for established TMS platforms',
+  },
+  {
+    id: 'tms_enterprise',
+    name: 'Enterprise',
+    credits: 500_000,
+    price_cents: 14_500_000,
+    per_consent: '$0.29',
+    description: 'Maximum volume — lowest per-consent cost',
+  },
+];
+
+/** One-time partner onboarding fee: $5,000 (includes 40hrs specialist + 15hrs custom dev) */
+export const TMS_ONBOARDING_FEE_CENTS = 500_000;
+
+/** Data migration fee per GB: $17/GB */
+export const MIGRATION_PRICE_PER_GB_CENTS = 1700;
+
+/** Flat fee to auto-create carrier sub-organizations: $500 */
+export const AUTO_CREATE_CARRIER_FEE_CENTS = 50_000;

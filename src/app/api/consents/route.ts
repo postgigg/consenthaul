@@ -145,7 +145,15 @@ export async function POST(request: NextRequest) {
         signing_token: signingToken,
         signing_token_expires_at: tokenExpiresAt,
         is_archived: false,
-        metadata: {},
+        metadata: {
+          company_name: input.company_name ?? null,
+          phone: input.phone ?? null,
+          cdl_number: input.cdl_number ?? null,
+          cdl_state: input.cdl_state ?? null,
+          hire_date: input.hire_date ?? null,
+          internal_note: input.internal_note ?? null,
+          require_cdl_photo: input.require_cdl_photo ?? false,
+        },
       })
       .select()
       .single();

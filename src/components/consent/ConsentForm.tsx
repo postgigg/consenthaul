@@ -56,11 +56,26 @@ export function ConsentForm({ onSuccess }: ConsentFormProps) {
   const [durationOfEmployment, setDurationOfEmployment] = useState(false);
   const [queryFrequency, setQueryFrequency] = useState<'annual' | 'unlimited'>('annual');
 
+  // New fields
+  const [companyName, setCompanyName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [cdlNumber, setCdlNumber] = useState('');
+  const [cdlState, setCdlState] = useState('');
+  const [hireDate, setHireDate] = useState('');
+  const [internalNote, setInternalNote] = useState('');
+  const [requireCdlPhoto, setRequireCdlPhoto] = useState(false);
+
   // Submission state
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [signingUrl, setSigningUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Hire date warning logic
+  const hireDateDaysAgo = hireDate
+    ? Math.floor((Date.now() - new Date(hireDate).getTime()) / 86400000)
+    : null;
+  const isRecentHire = hireDateDaysAgo !== null && hireDateDaysAgo >= 0 && hireDateDaysAgo <= 30;
 
   // Fetch drivers for search
   const fetchDrivers = useCallback(
@@ -108,6 +123,36 @@ export function ConsentForm({ onSuccess }: ConsentFormProps) {
     }
   }, [selectedDriver]);
 
+  // Auto-fill new fields from selected driver
+  useEffect(() => {
+    if (!selectedDriver) return;
+    setPhone(selectedDriver.phone ?? '');
+    setCdlNumber(selectedDriver.cdl_number ?? '');
+    setCdlState(selectedDriver.cdl_state ?? '');
+    setHireDate(selectedDriver.hire_date ?? '');
+  }, [selectedDriver]);
+
+  // Fetch org name on mount for company name field
+  useEffect(() => {
+    async function fetchOrgName() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('organization_id')
+        .eq('id', user.id)
+        .single();
+      if (!profile) return;
+      const { data: org } = await supabase
+        .from('organizations')
+        .select('name')
+        .eq('id', profile.organization_id)
+        .single();
+      if (org?.name) setCompanyName(org.name);
+    }
+    fetchOrgName();
+  }, [supabase]);
+
   function selectDriver(driver: DriverRow) {
     setSelectedDriver(driver);
     setDriverSearch(`${driver.first_name} ${driver.last_name}`);
@@ -147,6 +192,11 @@ export function ConsentForm({ onSuccess }: ConsentFormProps) {
       return;
     }
 
+    if (!phone.trim()) {
+      setError('Phone number is required.');
+      return;
+    }
+
     if (endDate && !durationOfEmployment && startDate && endDate < startDate) {
       setError('End date must be on or after the start date.');
       return;
@@ -169,6 +219,13 @@ export function ConsentForm({ onSuccess }: ConsentFormProps) {
           consent_start_date: startDate,
           consent_end_date: durationOfEmployment ? null : endDate || null,
           query_frequency: queryFrequency,
+          company_name: companyName || undefined,
+          phone: phone || undefined,
+          cdl_number: cdlNumber || undefined,
+          cdl_state: cdlState || undefined,
+          hire_date: hireDate || undefined,
+          internal_note: internalNote || undefined,
+          require_cdl_photo: requireCdlPhoto,
         }),
       });
 
@@ -346,6 +403,24 @@ export function ConsentForm({ onSuccess }: ConsentFormProps) {
               </Select>
             </div>
 
+            {/* FMCSA Warning: Recent hire with limited/blanket consent */}
+            {isRecentHire && consentType !== 'pre_employment' && (
+              <div className="sm:col-span-2 border border-yellow-300 bg-yellow-50 px-4 py-3 text-sm text-yellow-800" role="status">
+                <strong>FMCSA Note:</strong> This driver&apos;s hire date is {hireDate} &mdash; {hireDateDaysAgo} day{hireDateDaysAgo !== 1 ? 's' : ''} ago.
+                Drivers hired within 30 days typically require a <strong>pre-employment full query</strong> in the FMCSA Clearinghouse portal
+                (49 CFR 382.701). This limited query consent alone may not satisfy the pre-employment requirement.
+              </div>
+            )}
+
+            {/* FMCSA Warning: Pre-employment consent type selected */}
+            {consentType === 'pre_employment' && (
+              <div className="sm:col-span-2 border border-yellow-300 bg-yellow-50 px-4 py-3 text-sm text-yellow-800" role="status">
+                <strong>FMCSA Note:</strong> Pre-employment queries require a <strong>full query</strong> of the FMCSA Clearinghouse.
+                The driver must grant electronic consent directly in the Clearinghouse portal &mdash; this form collects limited query consent only.
+                You may still want this consent on file for future annual queries.
+              </div>
+            )}
+
             {/* Delivery address */}
             <div className="space-y-2">
               <label htmlFor="delivery-address" className="text-sm font-medium text-[#3a3f49]">
@@ -442,6 +517,100 @@ export function ConsentForm({ onSuccess }: ConsentFormProps) {
                   <SelectItem value="unlimited">Unlimited</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Company name */}
+            <div className="space-y-2">
+              <label htmlFor="company-name" className="text-sm font-medium text-[#3a3f49]">
+                Company Name
+              </label>
+              <Input
+                id="company-name"
+                placeholder="Your organization name"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+              />
+            </div>
+
+            {/* Phone */}
+            <div className="space-y-2">
+              <label htmlFor="phone" className="text-sm font-medium text-[#3a3f49]">
+                Phone <span className="text-red-500">*</span>
+              </label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="+1 (555) 000-0000"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
+
+            {/* CDL Number */}
+            <div className="space-y-2">
+              <label htmlFor="cdl-number" className="text-sm font-medium text-[#3a3f49]">
+                CDL #
+              </label>
+              <Input
+                id="cdl-number"
+                placeholder="CDL number"
+                value={cdlNumber}
+                onChange={(e) => setCdlNumber(e.target.value)}
+              />
+            </div>
+
+            {/* CDL State */}
+            <div className="space-y-2">
+              <label htmlFor="cdl-state" className="text-sm font-medium text-[#3a3f49]">
+                State
+              </label>
+              <Input
+                id="cdl-state"
+                placeholder="e.g. TX"
+                value={cdlState}
+                onChange={(e) => setCdlState(e.target.value)}
+                maxLength={2}
+              />
+            </div>
+
+            {/* Hire Date */}
+            <div className="space-y-2">
+              <label htmlFor="hire-date" className="text-sm font-medium text-[#3a3f49]">
+                Hire Date
+              </label>
+              <Input
+                id="hire-date"
+                type="date"
+                value={hireDate}
+                onChange={(e) => setHireDate(e.target.value)}
+              />
+            </div>
+
+            {/* Internal Note */}
+            <div className="space-y-2">
+              <label htmlFor="internal-note" className="text-sm font-medium text-[#3a3f49]">
+                Internal Note
+              </label>
+              <Input
+                id="internal-note"
+                placeholder="e.g. Employee ID #101"
+                value={internalNote}
+                onChange={(e) => setInternalNote(e.target.value)}
+              />
+            </div>
+
+            {/* Require CDL Photo */}
+            <div className="space-y-2 sm:col-span-2">
+              <label className="flex items-center gap-2 text-sm text-[#3a3f49]">
+                <input
+                  type="checkbox"
+                  checked={requireCdlPhoto}
+                  onChange={(e) => setRequireCdlPhoto(e.target.checked)}
+                  className="h-4 w-4 rounded border-[#d4d4cf] text-[#0c0f14] focus:ring-[#0c0f14]"
+                />
+                <span className="font-medium">Require CDL Photo?</span>
+                <span className="text-[#8b919a]">— Driver must upload photo</span>
+              </label>
             </div>
           </div>
 

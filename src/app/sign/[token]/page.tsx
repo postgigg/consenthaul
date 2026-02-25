@@ -5,6 +5,7 @@ import { ConsentDocument } from '@/components/signing/ConsentDocument';
 import { SignaturePad } from '@/components/signing/SignaturePad';
 import { LanguageToggle } from '@/components/signing/LanguageToggle';
 import { SigningComplete } from '@/components/signing/SigningComplete';
+import { ESignDisclosure } from '@/components/signing/ESignDisclosure';
 import type { ConsentType } from '@/types/database';
 import { LogoFull } from '@/components/brand/Logo';
 
@@ -31,7 +32,7 @@ type PageState =
   | { kind: 'error'; code: number; title: string; message: string }
   | { kind: 'form'; data: ConsentData }
   | { kind: 'submitting'; data: ConsentData }
-  | { kind: 'complete'; signedAt: string };
+  | { kind: 'complete'; signedAt: string; pdfDownloadUrl: string | null; signingToken: string };
 
 // ---------------------------------------------------------------------------
 // i18n labels
@@ -41,6 +42,8 @@ const labels = {
   en: {
     loading: 'Loading consent form',
     checkboxLabel: 'I have read and understand the above consent',
+    esignCheckboxLabel: 'I consent to conduct this transaction electronically and have reviewed the electronic transaction disclosure above',
+    esignRequired: 'You must consent to electronic transactions before signing',
     submit: 'SIGN & SUBMIT',
     submitting: 'SUBMITTING',
     signatureRequired: 'Please provide your signature above',
@@ -63,6 +66,8 @@ const labels = {
   es: {
     loading: 'Cargando formulario de consentimiento',
     checkboxLabel: 'He leido y entiendo el consentimiento anterior',
+    esignCheckboxLabel: 'Consiento en realizar esta transaccion electronicamente y he revisado la divulgacion de transaccion electronica anterior',
+    esignRequired: 'Debe consentir las transacciones electronicas antes de firmar',
     submit: 'FIRMAR Y ENVIAR',
     submitting: 'ENVIANDO',
     signatureRequired: 'Por favor proporcione su firma arriba',
@@ -94,7 +99,9 @@ export default function SignPage({ params }: { params: { token: string } }) {
   const [state, setState] = useState<PageState>({ kind: 'loading' });
   const [language, setLanguage] = useState<'en' | 'es'>('en');
   const [acknowledged, setAcknowledged] = useState(false);
+  const [esignConsented, setEsignConsented] = useState(false);
   const [signatureData, setSignatureData] = useState<string>('');
+  const [signatureType, setSignatureType] = useState<'drawn' | 'typed'>('drawn');
   const [validationError, setValidationError] = useState<string | null>(null);
 
   // Prevent double-submission
@@ -167,6 +174,10 @@ export default function SignPage({ params }: { params: { token: string } }) {
     if (state.kind !== 'form') return;
 
     // Validate
+    if (!esignConsented) {
+      setValidationError(t.esignRequired);
+      return;
+    }
     if (!acknowledged) {
       setValidationError(t.checkboxRequired);
       return;
@@ -187,6 +198,8 @@ export default function SignPage({ params }: { params: { token: string } }) {
         body: JSON.stringify({
           signature_data: signatureData,
           confirmed: true,
+          esign_consent: true,
+          signature_type: signatureType,
         }),
       });
 
@@ -199,13 +212,18 @@ export default function SignPage({ params }: { params: { token: string } }) {
         return;
       }
 
-      setState({ kind: 'complete', signedAt: json.data.signed_at });
+      setState({
+        kind: 'complete',
+        signedAt: json.data.signed_at,
+        pdfDownloadUrl: json.data.pdf_download_url ?? null,
+        signingToken: token,
+      });
     } catch {
       setState({ kind: 'form', data: state.data });
       setValidationError(t.submissionError);
       submittingRef.current = false;
     }
-  }, [state, token, acknowledged, signatureData, t]);
+  }, [state, token, acknowledged, esignConsented, signatureData, signatureType, t]);
 
   // ---------------------------------------------------------------------------
   // Render: Loading
@@ -274,7 +292,12 @@ export default function SignPage({ params }: { params: { token: string } }) {
   if (state.kind === 'complete') {
     return (
       <div className="min-h-screen bg-[#f8f8f6]">
-        <SigningComplete signedAt={state.signedAt} language={language} />
+        <SigningComplete
+          signedAt={state.signedAt}
+          language={language}
+          pdfDownloadUrl={state.pdfDownloadUrl}
+          revokeToken={state.signingToken}
+        />
       </div>
     );
   }
@@ -319,6 +342,9 @@ export default function SignPage({ params }: { params: { token: string } }) {
           <div className="mt-4 h-0.5 bg-[#C8A75E]" />
         </div>
 
+        {/* E-Sign Act Disclosure */}
+        <ESignDisclosure language={language} companyName={consentData.organization_name} />
+
         {/* Consent document */}
         <div className="bg-white border border-[#e8e8e3] mb-6">
           <ConsentDocument
@@ -332,7 +358,26 @@ export default function SignPage({ params }: { params: { token: string } }) {
           />
         </div>
 
-        {/* Acknowledgment */}
+        {/* E-Sign consent checkbox */}
+        <div className="mb-3">
+          <label className="flex items-start gap-3.5 cursor-pointer bg-white border border-[#e8e8e3] p-4 transition-colors hover:bg-[#fafaf8] select-none">
+            <input
+              type="checkbox"
+              checked={esignConsented}
+              onChange={(e) => {
+                setEsignConsented(e.target.checked);
+                if (validationError) setValidationError(null);
+              }}
+              disabled={isSubmitting}
+              className="mt-0.5 h-5 w-5 border-[#d4d4cf] text-[#0c0f14] focus:ring-[#0c0f14] focus:ring-offset-0 shrink-0 accent-[#0c0f14]"
+            />
+            <span className="text-sm leading-relaxed text-[#3a3f49]">
+              {t.esignCheckboxLabel}
+            </span>
+          </label>
+        </div>
+
+        {/* FMCSA consent acknowledgment */}
         <div className="mb-6">
           <label className="flex items-start gap-3.5 cursor-pointer bg-white border border-[#e8e8e3] p-4 transition-colors hover:bg-[#fafaf8] select-none">
             <input
@@ -365,8 +410,10 @@ export default function SignPage({ params }: { params: { token: string } }) {
                 setSignatureData(data);
                 if (validationError) setValidationError(null);
               }}
+              onTypeChange={setSignatureType}
               height={200}
               clearLabel={t.clear}
+              language={language}
             />
           </div>
         </div>

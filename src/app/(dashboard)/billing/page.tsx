@@ -60,7 +60,7 @@ export default function BillingPage() {
       });
       window.history.replaceState({}, '', '/billing');
     }
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   return (
     <div className="space-y-10">

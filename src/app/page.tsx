@@ -529,6 +529,7 @@ export default function LandingPage() {
                 <li><span className="text-sm text-[#8b919a]/50 cursor-not-allowed">Get Started</span></li>
                 <li><span className="text-sm text-[#8b919a]/50 cursor-not-allowed">Sign In</span></li>
                 <li><span className="text-sm text-[#3a3f49]">API Documentation</span></li>
+                <li><Link href="/tms" className="text-sm text-[#8b919a] hover:text-[#C8A75E] transition-colors">TMS Partners</Link></li>
               </ul>
             </div>
 

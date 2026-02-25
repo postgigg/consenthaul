@@ -6,6 +6,18 @@ export type ConsentType = 'limited_query' | 'pre_employment' | 'blanket';
 export type DeliveryMethod = 'sms' | 'whatsapp' | 'email' | 'manual';
 export type NotificationStatus = 'queued' | 'sending' | 'sent' | 'delivered' | 'failed' | 'undeliverable';
 
+// Service request types
+export type ServiceRequestCategory = 'api_integration' | 'mcp_setup' | 'custom_integration' | 'other';
+export type ServiceRequestUrgency = 'low' | 'medium' | 'high';
+export type ServiceRequestStatus = 'pending' | 'quoted' | 'deposit_paid' | 'in_progress' | 'completed' | 'cancelled' | 'refunded';
+
+// Regulatory intelligence types
+export type RegulatorySourceType = 'rss' | 'webpage' | 'api';
+export type RegulatoryAlertStatus = 'new' | 'reviewing' | 'action_required' | 'resolved' | 'dismissed';
+
+// Partner application types
+export type PartnerApplicationStatus = 'pending' | 'paid' | 'provisioning' | 'active' | 'rejected';
+
 // Outreach types
 export type PipelineStage = 'lead' | 'contacted' | 'replied' | 'demo' | 'trial' | 'customer' | 'lost';
 export type CampaignStatus = 'draft' | 'active' | 'paused' | 'completed';
@@ -33,11 +45,13 @@ export interface Database {
           logo_url: string | null;
           settings: Json;
           stripe_customer_id: string | null;
+          is_partner: boolean;
           created_at: string;
           updated_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['organizations']['Row'], 'id' | 'created_at' | 'updated_at'> & {
+        Insert: Omit<Database['public']['Tables']['organizations']['Row'], 'id' | 'created_at' | 'updated_at' | 'is_partner'> & {
           id?: string;
+          is_partner?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -55,6 +69,7 @@ export interface Database {
           is_active: boolean;
           is_platform_admin: boolean;
           last_login_at: string | null;
+          welcome_email_sent_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -506,6 +521,50 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['outreach_events']['Insert']>;
         Relationships: [];
       };
+      service_requests: {
+        Row: {
+          id: string;
+          organization_id: string;
+          requested_by: string;
+          category: ServiceRequestCategory;
+          description: string;
+          urgency: ServiceRequestUrgency;
+          tms_system: string | null;
+          status: ServiceRequestStatus;
+          quoted_amount: number | null;
+          deposit_amount: number | null;
+          deposit_stripe_payment_intent: string | null;
+          admin_notes: string | null;
+          quoted_at: string | null;
+          deposit_paid_at: string | null;
+          started_at: string | null;
+          completed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          requested_by: string;
+          category: ServiceRequestCategory;
+          description: string;
+          urgency?: ServiceRequestUrgency;
+          tms_system?: string | null;
+          status?: ServiceRequestStatus;
+          quoted_amount?: number | null;
+          deposit_amount?: number | null;
+          deposit_stripe_payment_intent?: string | null;
+          admin_notes?: string | null;
+          quoted_at?: string | null;
+          deposit_paid_at?: string | null;
+          started_at?: string | null;
+          completed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['service_requests']['Insert']>;
+        Relationships: [];
+      };
       platform_config: {
         Row: {
           key: string;
@@ -522,6 +581,202 @@ export interface Database {
           updated_by?: string | null;
         };
         Update: Partial<Database['public']['Tables']['platform_config']['Insert']>;
+        Relationships: [];
+      };
+      regulatory_sources: {
+        Row: {
+          id: string;
+          name: string;
+          url: string;
+          source_type: RegulatorySourceType;
+          check_frequency_hours: number;
+          last_checked_at: string | null;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          url: string;
+          source_type?: RegulatorySourceType;
+          check_frequency_hours?: number;
+          last_checked_at?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['regulatory_sources']['Insert']>;
+        Relationships: [];
+      };
+      regulatory_alerts: {
+        Row: {
+          id: string;
+          source_id: string | null;
+          title: string;
+          url: string | null;
+          summary: string | null;
+          content_hash: string;
+          relevance_score: number;
+          category: string | null;
+          impact_assessment: string | null;
+          recommended_actions: string | null;
+          affected_areas: string[];
+          status: RegulatoryAlertStatus;
+          admin_notes: string | null;
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          source_id?: string | null;
+          title: string;
+          url?: string | null;
+          summary?: string | null;
+          content_hash: string;
+          relevance_score?: number;
+          category?: string | null;
+          impact_assessment?: string | null;
+          recommended_actions?: string | null;
+          affected_areas?: string[];
+          status?: RegulatoryAlertStatus;
+          admin_notes?: string | null;
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['regulatory_alerts']['Insert']>;
+        Relationships: [];
+      };
+      partner_applications: {
+        Row: {
+          id: string;
+          company_name: string;
+          website_url: string | null;
+          employee_count_range: string;
+          contact_name: string;
+          contact_email: string;
+          contact_phone: string;
+          partnership_reason: string;
+          tms_platform_name: string;
+          carrier_count_range: string;
+          consents_per_carrier_month: string;
+          estimated_annual_consents: number;
+          recommended_pack_id: string | null;
+          has_migration_data: boolean;
+          migration_file_paths: string[];
+          migration_total_bytes: number;
+          migration_fee_cents: number;
+          auto_create_carriers: boolean;
+          auto_create_fee_cents: number;
+          selected_pack_id: string;
+          selected_pack_credits: number;
+          selected_pack_price_cents: number;
+          partner_agreement_accepted: boolean;
+          data_processing_accepted: boolean;
+          legal_signatory_name: string;
+          legal_accepted_at: string | null;
+          onboarding_fee_cents: number;
+          total_amount_cents: number;
+          stripe_checkout_session_id: string | null;
+          stripe_payment_intent_id: string | null;
+          status: PartnerApplicationStatus;
+          organization_id: string | null;
+          provisioned_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          company_name: string;
+          website_url?: string | null;
+          employee_count_range: string;
+          contact_name: string;
+          contact_email: string;
+          contact_phone: string;
+          partnership_reason: string;
+          tms_platform_name: string;
+          carrier_count_range: string;
+          consents_per_carrier_month: string;
+          estimated_annual_consents?: number;
+          recommended_pack_id?: string | null;
+          has_migration_data?: boolean;
+          migration_file_paths?: string[];
+          migration_total_bytes?: number;
+          migration_fee_cents?: number;
+          auto_create_carriers?: boolean;
+          auto_create_fee_cents?: number;
+          selected_pack_id: string;
+          selected_pack_credits: number;
+          selected_pack_price_cents: number;
+          partner_agreement_accepted?: boolean;
+          data_processing_accepted?: boolean;
+          legal_signatory_name: string;
+          legal_accepted_at?: string | null;
+          onboarding_fee_cents?: number;
+          total_amount_cents: number;
+          stripe_checkout_session_id?: string | null;
+          stripe_payment_intent_id?: string | null;
+          status?: PartnerApplicationStatus;
+          organization_id?: string | null;
+          provisioned_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['partner_applications']['Insert']>;
+        Relationships: [];
+      };
+      migration_transfers: {
+        Row: {
+          id: string;
+          application_id: string | null;
+          token: string;
+          label: string;
+          uploaded_files: Json;
+          total_bytes: number;
+          carrier_count: number | null;
+          driver_count: number | null;
+          parsed_at: string | null;
+          expires_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          application_id?: string | null;
+          token: string;
+          label?: string;
+          uploaded_files?: Json;
+          total_bytes?: number;
+          carrier_count?: number | null;
+          driver_count?: number | null;
+          parsed_at?: string | null;
+          expires_at: string;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['migration_transfers']['Insert']>;
+        Relationships: [];
+      };
+      partner_organizations: {
+        Row: {
+          id: string;
+          partner_org_id: string;
+          carrier_org_id: string;
+          created_from_migration: boolean;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          partner_org_id: string;
+          carrier_org_id: string;
+          created_from_migration?: boolean;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['partner_organizations']['Insert']>;
         Relationships: [];
       };
     };

@@ -19,3 +19,9 @@ export const webhookLimiter = createRateLimiter({ windowMs: 60_000, max: 120 });
 
 /** General API (session-based): 30 requests per minute per IP */
 export const generalLimiter = createRateLimiter({ windowMs: 60_000, max: 30 });
+
+/** TMS partner application: 5 requests per minute per IP */
+export const partnerApplyLimiter = createRateLimiter({ windowMs: 60_000, max: 5 });
+
+/** TMS partner migration upload: 10 requests per minute per IP */
+export const partnerUploadLimiter = createRateLimiter({ windowMs: 60_000, max: 10 });

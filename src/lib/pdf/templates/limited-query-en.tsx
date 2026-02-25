@@ -441,6 +441,20 @@ export function LimitedQueryEn({
           </View>
         </View>
 
+        {/* E-Sign Act Disclosure Acknowledgment */}
+        <View style={{ marginTop: 12, padding: 8, backgroundColor: '#f9fafb', borderWidth: 1, borderColor: brand.lightGray, borderStyle: 'solid', borderRadius: 3 }}>
+          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: brand.midGray, marginBottom: 3, textTransform: 'uppercase', letterSpacing: 0.3 }}>
+            Electronic Transaction Disclosure (E-Sign Act)
+          </Text>
+          <Text style={{ fontSize: 7.5, lineHeight: 1.5, color: brand.signatureGray }}>
+            The signer was presented with and acknowledged the E-Sign Act disclosures
+            (15 U.S.C. § 7001) prior to signing, including: the right to paper records,
+            the right to withdraw consent to electronic transactions, hardware and software
+            requirements, scope of consent, how to update contact information, paper copy
+            request process, and consequences of withdrawal.
+          </Text>
+        </View>
+
         {/* Footer */}
         <View style={styles.footer} fixed>
           <Text style={styles.footerText}>

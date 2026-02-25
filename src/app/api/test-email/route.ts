@@ -3,6 +3,8 @@ import {
   sendConsentEmail,
   sendDriverReceiptEmail,
   sendCarrierNotificationEmail,
+  sendWelcomeEmail,
+  sendServiceRequestNotificationEmail,
 } from '@/lib/messaging/email';
 import { generateConsentPDF } from '@/lib/pdf/generate-consent-pdf';
 
@@ -117,6 +119,37 @@ export async function GET() {
     results.carrierNotification = `sent${pdfBuffer ? ' (with PDF)' : ' (no PDF)'}`;
   } catch (err) {
     results.carrierNotification = `failed: ${err instanceof Error ? err.message : String(err)}`;
+  }
+
+  // 4. Welcome email — delay to avoid Resend rate limit
+  await new Promise((r) => setTimeout(r, 1500));
+  try {
+    const welcomeResult = await sendWelcomeEmail({
+      to: testEmail,
+      userName: 'John Doe',
+    });
+    results.welcomeEmail = `sent (${welcomeResult.messageId})`;
+  } catch (err) {
+    results.welcomeEmail = `failed: ${err instanceof Error ? err.message : String(err)}`;
+  }
+
+  // 5. Service request notification email — delay to avoid Resend rate limit
+  await new Promise((r) => setTimeout(r, 1500));
+  try {
+    await sendServiceRequestNotificationEmail({
+      category: 'custom_integration',
+      description:
+        'We need a custom integration with Samsara TMS to automatically trigger FMCSA consent requests when new drivers are onboarded. Should support webhook callbacks and status sync.',
+      urgency: 'high',
+      tmsSystem: 'Samsara',
+      orgName: 'Acme Trucking LLC',
+      userEmail: 'john@acmetrucking.com',
+      userName: 'John Doe',
+      toOverride: testEmail,
+    });
+    results.serviceRequestNotification = 'sent';
+  } catch (err) {
+    results.serviceRequestNotification = `failed: ${err instanceof Error ? err.message : String(err)}`;
   }
 
   return NextResponse.json({ results });

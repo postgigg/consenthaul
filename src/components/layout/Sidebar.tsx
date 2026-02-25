@@ -16,6 +16,7 @@ import {
   X,
   Code2,
   Bot,
+  LifeBuoy,
   Shield,
 } from 'lucide-react';
 import { LogoFull } from '@/components/brand/Logo';
@@ -38,6 +39,7 @@ const navItems = [
   { label: 'Billing', href: '/billing', icon: CreditCard },
   { label: 'API', href: '/api-docs', icon: Code2 },
   { label: 'MCP', href: '/mcp-docs', icon: Bot },
+  { label: 'Help', href: '/help', icon: LifeBuoy },
   { label: 'Settings', href: '/settings', icon: Settings },
 ];
 

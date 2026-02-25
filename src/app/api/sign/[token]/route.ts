@@ -193,7 +193,7 @@ export async function POST(
       );
     }
 
-    const { signature_data } = parsed.data;
+    const { signature_data, signature_type } = parsed.data;
 
     // 5. Collect signer metadata
     const signerIp =
@@ -321,7 +321,10 @@ export async function POST(
       resource_id: consent.id,
       details: {
         signature_hash: sigHash,
+        signature_type: signature_type ?? 'drawn',
         signer_ip: signerIp,
+        esign_consented: true,
+        esign_consented_at: signedAt,
         pdf_generated: !!pdfStoragePath,
       },
       ip_address: signerIp,
@@ -342,6 +345,7 @@ export async function POST(
         signedAt,
         consentId: consent.id,
         language: consent.language ?? 'en',
+        signingToken: token,
         ...(pdfBuffer ? { pdfBuffer } : {}),
       }).catch((err) => {
         console.error('[POST /api/sign/[token]] driver receipt email failed:', err);
@@ -382,6 +386,11 @@ export async function POST(
         console.error('[POST /api/sign/[token]] failed to fetch org profiles for email:', err);
       });
 
+    // Build PDF download URL (using the signing token, valid for 30 days)
+    const pdfDownloadUrl = pdfStoragePath
+      ? `${baseUrl}/api/sign/${token}/pdf`
+      : null;
+
     return NextResponse.json({
       data: {
         consent_id: consent.id,
@@ -389,6 +398,7 @@ export async function POST(
         signed_at: signedAt,
         signature_hash: sigHash,
         pdf_storage_path: pdfStoragePath,
+        pdf_download_url: pdfDownloadUrl,
       },
     });
   } catch (err) {

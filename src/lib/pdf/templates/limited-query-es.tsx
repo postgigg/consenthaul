@@ -450,6 +450,20 @@ export function LimitedQueryEs({
           </View>
         </View>
 
+        {/* E-Sign Act Disclosure Acknowledgment */}
+        <View style={{ marginTop: 12, padding: 8, backgroundColor: '#f9fafb', borderWidth: 1, borderColor: brand.lightGray, borderStyle: 'solid', borderRadius: 3 }}>
+          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: brand.midGray, marginBottom: 3, textTransform: 'uppercase', letterSpacing: 0.3 }}>
+            Divulgación de Transacción Electrónica (Ley E-Sign)
+          </Text>
+          <Text style={{ fontSize: 7.5, lineHeight: 1.5, color: brand.signatureGray }}>
+            Al firmante se le presentaron y este reconoció las divulgaciones de la Ley E-Sign
+            (15 U.S.C. § 7001) antes de firmar, incluyendo: el derecho a registros en papel,
+            el derecho a retirar el consentimiento para transacciones electrónicas, requisitos
+            de hardware y software, alcance del consentimiento, cómo actualizar la información
+            de contacto, proceso de solicitud de copia en papel y consecuencias del retiro.
+          </Text>
+        </View>
+
         {/* Footer */}
         <View style={styles.footer} fixed>
           <Text style={styles.footerText}>

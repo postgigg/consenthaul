@@ -224,6 +224,7 @@ interface SendDriverReceiptParams {
   consentId: string;
   language?: string;
   pdfBuffer?: Buffer;
+  signingToken?: string;
 }
 
 export async function sendDriverReceiptEmail({
@@ -235,6 +236,7 @@ export async function sendDriverReceiptEmail({
   consentId,
   language = 'en',
   pdfBuffer,
+  signingToken,
 }: SendDriverReceiptParams): Promise<void> {
   const isSpanish = language === 'es';
   const signedDate = new Date(signedAt).toLocaleDateString(isSpanish ? 'es-US' : 'en-US', {
@@ -267,6 +269,8 @@ export async function sendDriverReceiptEmail({
         retention: 'Su documento de consentimiento firmado será retenido por <strong>3 años</strong> según lo requiere 49 CFR Part 40.',
         attachedNote: 'Una copia de su documento de consentimiento firmado está adjunta a este correo para sus registros.',
         questions: 'Si tiene alguna pregunta sobre este consentimiento, comuníquese directamente con su empleador.',
+        withdrawNote: 'Si desea retirar su consentimiento para transacciones electrónicas, puede hacerlo usando el siguiente enlace:',
+        withdrawLink: 'Retirar consentimiento electrónico',
         footer: `Este correo fue enviado por ConsentHaul en nombre de ${companyName}.`,
       }
     : {
@@ -282,6 +286,8 @@ export async function sendDriverReceiptEmail({
         retention: 'Your signed consent document will be retained for <strong>3 years</strong> as required by 49 CFR Part 40.',
         attachedNote: 'A copy of your signed consent document is attached to this email for your records.',
         questions: 'If you have any questions about this consent, please contact your employer directly.',
+        withdrawNote: 'If you wish to withdraw your consent to electronic transactions, you may do so using the link below:',
+        withdrawLink: 'Withdraw electronic consent',
         footer: `This email was sent by ConsentHaul on behalf of ${companyName}.`,
       };
 
@@ -325,7 +331,14 @@ export async function sendDriverReceiptEmail({
 
     <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#6b6f76;">${t.retention}</p>
     ${pdfBuffer ? `<p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#3a3f49;font-weight:600;">&#128206; ${t.attachedNote}</p>` : ''}
-    <p style="margin:0;font-size:14px;line-height:1.6;color:#6b6f76;">${t.questions}</p>
+    <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#6b6f76;">${t.questions}</p>
+    ${signingToken ? `
+    <hr style="border:none;border-top:1px solid #e8e8e3;margin:24px 0;" />
+    <p style="margin:0 0 8px;font-size:13px;line-height:1.5;color:#8b919a;">${t.withdrawNote}</p>
+    <p style="margin:0;font-size:13px;">
+      <a href="${process.env.NEXT_PUBLIC_APP_URL ?? 'https://consenthaul.com'}/revoke/${signingToken}" style="color:#C8A75E;text-decoration:underline;">${t.withdrawLink}</a>
+    </p>
+    ` : ''}
   `;
 
   const html = emailShell({
@@ -471,5 +484,214 @@ export async function sendCarrierNotificationEmail({
           ],
         }
       : {}),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// 4. Welcome email (sent to new users after signup)
+// ---------------------------------------------------------------------------
+
+interface SendWelcomeEmailParams {
+  to: string;
+  userName: string;
+}
+
+export async function sendWelcomeEmail({
+  to,
+  userName,
+}: SendWelcomeEmailParams): Promise<{ messageId: string }> {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://consenthaul.com';
+
+  const subject = 'Welcome to ConsentHaul — Your 3 free credits are ready';
+
+  const body = `
+    <p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:#0c0f14;">Hi ${userName},</p>
+
+    <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#3a3f49;">
+      Welcome to ConsentHaul! Your account is set up and ready to go.
+    </p>
+
+    <!-- Credits callout -->
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;width:100%;">
+      <tr>
+        <td style="background-color:#fffbeb;border-left:3px solid #C8A75E;padding:12px 16px;">
+          <p style="margin:0;font-size:15px;font-weight:600;color:#92400e;">
+            Your account includes 3 free credits to get started.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:0 0 12px;font-size:12px;font-weight:700;color:#8b919a;letter-spacing:0.08em;text-transform:uppercase;">Getting started</p>
+
+    <!-- Tips -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;border:1px solid #e8e8e3;">
+      <tr>
+        <td style="padding:12px 16px;border-bottom:1px solid #e8e8e3;">
+          <p style="margin:0 0 4px;font-size:14px;font-weight:600;color:#0c0f14;">1. Set up API keys</p>
+          <p style="margin:0;font-size:13px;color:#6b6f76;">
+            Generate API keys to integrate ConsentHaul with your systems.
+            <a href="${appUrl}/settings/api-keys" style="color:#C8A75E;text-decoration:underline;">Go to API Keys &rarr;</a>
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:12px 16px;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;">
+          <p style="margin:0 0 4px;font-size:14px;font-weight:600;color:#0c0f14;">2. Connect AI agents via MCP</p>
+          <p style="margin:0;font-size:13px;color:#6b6f76;">
+            Use our MCP server to connect Claude, GPT, or other AI agents directly.
+            <a href="${appUrl}/mcp-docs" style="color:#C8A75E;text-decoration:underline;">View MCP docs &rarr;</a>
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:12px 16px;">
+          <p style="margin:0 0 4px;font-size:14px;font-weight:600;color:#0c0f14;">3. Need a custom integration?</p>
+          <p style="margin:0;font-size:13px;color:#6b6f76;">
+            We build custom TMS integrations and API setups for your fleet.
+            <a href="${appUrl}/help" style="color:#C8A75E;text-decoration:underline;">Request an integration &rarr;</a>
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <!-- CTA Button -->
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 24px;">
+      <tr>
+        <td align="center" style="background-color:#C8A75E;">
+          <a href="${appUrl}/dashboard" target="_blank" style="display:inline-block;padding:14px 36px;font-size:14px;font-weight:700;color:#0c0f14;text-decoration:none;letter-spacing:0.05em;text-transform:uppercase;">
+            OPEN YOUR DASHBOARD
+          </a>
+        </td>
+      </tr>
+    </table>
+
+    <hr style="border:none;border-top:1px solid #e8e8e3;margin:24px 0;" />
+
+    <p style="margin:0;font-size:14px;line-height:1.6;color:#6b6f76;">
+      Need help with a TMS integration or custom setup? Our team handles every integration personally &mdash; no AI slop, real human perfection.
+      <a href="${appUrl}/help" style="color:#C8A75E;text-decoration:underline;">Request an integration</a>.
+    </p>
+  `;
+
+  const html = emailShell({
+    lang: 'en',
+    title: 'Welcome to ConsentHaul',
+    preheader: 'Your account is ready — 3 free credits included.',
+    body,
+    footerText: 'You received this email because you signed up for ConsentHaul.',
+  });
+
+  const { data, error } = await getResend().emails.send({
+    from: 'ConsentHaul <noreply@consenthaul.com>',
+    to,
+    subject,
+    html,
+  });
+
+  if (error || !data?.id) {
+    throw new Error(
+      `Welcome email failed: ${error?.message ?? 'No message ID returned'}`,
+    );
+  }
+
+  return { messageId: data.id };
+}
+
+// ---------------------------------------------------------------------------
+// 5. Service request admin notification (sent to admin on new request)
+// ---------------------------------------------------------------------------
+
+interface SendServiceRequestNotificationParams {
+  category: string;
+  description: string;
+  urgency: string;
+  tmsSystem: string | null;
+  orgName: string;
+  userEmail: string;
+  userName: string;
+  toOverride?: string;
+}
+
+export async function sendServiceRequestNotificationEmail({
+  category,
+  description,
+  urgency,
+  tmsSystem,
+  orgName,
+  userEmail,
+  userName,
+  toOverride,
+}: SendServiceRequestNotificationParams): Promise<void> {
+  const adminEmail = toOverride || process.env.ADMIN_NOTIFICATION_EMAIL || process.env.PLATFORM_ADMIN_EMAILS?.split(',')[0]?.trim();
+  if (!adminEmail) {
+    console.warn('[sendServiceRequestNotificationEmail] No admin email configured');
+    return;
+  }
+
+  const categoryLabel = category.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
+  const subject = `New Service Request — ${categoryLabel} from ${orgName}`;
+
+  const body = `
+    <p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:#0c0f14;">A new service request has been submitted.</p>
+
+    <p style="margin:0 0 12px;font-size:12px;font-weight:700;color:#8b919a;letter-spacing:0.08em;text-transform:uppercase;">Request details</p>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;border:1px solid #e8e8e3;">
+      <tr>
+        <td style="padding:10px 16px;font-size:13px;color:#8b919a;border-bottom:1px solid #e8e8e3;width:140px;">Category</td>
+        <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;">${categoryLabel}</td>
+      </tr>
+      <tr>
+        <td style="padding:10px 16px;font-size:13px;color:#8b919a;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;">Urgency</td>
+        <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;">${urgency.charAt(0).toUpperCase() + urgency.slice(1)}</td>
+      </tr>
+      <tr>
+        <td style="padding:10px 16px;font-size:13px;color:#8b919a;border-bottom:1px solid #e8e8e3;">Organization</td>
+        <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;">${orgName}</td>
+      </tr>
+      <tr>
+        <td style="padding:10px 16px;font-size:13px;color:#8b919a;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;">Requested by</td>
+        <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;">${userName} (${userEmail})</td>
+      </tr>
+      ${tmsSystem ? `
+      <tr>
+        <td style="padding:10px 16px;font-size:13px;color:#8b919a;border-bottom:1px solid #e8e8e3;">TMS System</td>
+        <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;">${tmsSystem}</td>
+      </tr>` : ''}
+      <tr>
+        <td style="padding:10px 16px;font-size:13px;color:#8b919a;" colspan="2">
+          <p style="margin:0 0 4px;font-weight:700;">Description</p>
+          <p style="margin:0;color:#0c0f14;">${description}</p>
+        </td>
+      </tr>
+    </table>
+
+    <!-- CTA Button -->
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 24px;">
+      <tr>
+        <td align="center" style="background-color:#0c0f14;">
+          <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://consenthaul.com'}/admin/service-requests" target="_blank" style="display:inline-block;padding:14px 36px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;letter-spacing:0.05em;text-transform:uppercase;">
+            VIEW IN ADMIN
+          </a>
+        </td>
+      </tr>
+    </table>
+  `;
+
+  const html = emailShell({
+    lang: 'en',
+    title: 'New Service Request',
+    preheader: `${categoryLabel} request from ${orgName}`,
+    body,
+    footerText: 'This is an internal ConsentHaul admin notification.',
+  });
+
+  await getResend().emails.send({
+    from: 'ConsentHaul <noreply@consenthaul.com>',
+    to: adminEmail,
+    subject,
+    html,
   });
 }
