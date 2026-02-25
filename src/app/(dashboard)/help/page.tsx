@@ -55,7 +55,7 @@ export default function HelpPage() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   return (
-    <div className="space-y-8 max-w-4xl">
+    <div className="space-y-8">
       {/* Hero Banner */}
       <div className="relative overflow-hidden bg-[#0c0f14] -mx-6 -mt-6 px-8 py-12">
         {/* Subtle grid background */}
