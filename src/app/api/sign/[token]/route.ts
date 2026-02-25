@@ -6,6 +6,7 @@ import { generateConsentPDF } from '@/lib/pdf/generate-consent-pdf';
 import { createHash } from 'crypto';
 import { signLimiter } from '@/lib/rate-limiters';
 import { getClientIp } from '@/lib/rate-limit';
+import { sendDriverReceiptEmail, sendCarrierNotificationEmail } from '@/lib/messaging/email';
 import type { Database } from '@/types/database';
 
 type ConsentRow = Database['public']['Tables']['consents']['Row'];
@@ -256,9 +257,10 @@ export async function POST(
     // 8. Generate PDF
     let pdfStoragePath: string | null = null;
     let pdfHash: string | null = null;
+    let pdfBuffer: Buffer | null = null;
 
     try {
-      const pdfBuffer = await generateConsentPDF({
+      pdfBuffer = await generateConsentPDF({
         consent: {
           ...consent,
           signed_at: signedAt,
@@ -325,6 +327,58 @@ export async function POST(
       ip_address: signerIp,
       user_agent: signerUserAgent,
     });
+
+    // 12. Send post-signing emails (fire-and-forget — don't block the response)
+    const driverName = `${driver.first_name} ${driver.last_name}`;
+    const companyName = organization.name ?? 'Unknown Company';
+
+    // 12a. Driver receipt email (with signed PDF attached)
+    if (driver.email) {
+      sendDriverReceiptEmail({
+        to: driver.email,
+        driverName,
+        companyName,
+        consentType: consent.consent_type,
+        signedAt,
+        consentId: consent.id,
+        language: consent.language ?? 'en',
+        ...(pdfBuffer ? { pdfBuffer } : {}),
+      }).catch((err) => {
+        console.error('[POST /api/sign/[token]] driver receipt email failed:', err);
+      });
+    }
+
+    // 12b. Carrier notification email to org members
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://consenthaul.com';
+    const dashboardUrl = `${baseUrl}/consents`;
+
+    supabase
+      .from('profiles')
+      .select('email')
+      .eq('organization_id', consent.organization_id)
+      .then(({ data: profiles }) => {
+        const emails = (profiles ?? [])
+          .map((p: { email: string | null }) => p.email)
+          .filter((e): e is string => !!e);
+
+        if (emails.length > 0) {
+          sendCarrierNotificationEmail({
+            to: emails,
+            driverName,
+            companyName,
+            consentType: consent.consent_type,
+            signedAt,
+            consentId: consent.id,
+            dashboardUrl,
+            ...(pdfBuffer ? { pdfBuffer } : {}),
+          }).catch((err) => {
+            console.error('[POST /api/sign/[token]] carrier notification email failed:', err);
+          });
+        }
+      })
+      .catch((err) => {
+        console.error('[POST /api/sign/[token]] failed to fetch org profiles for email:', err);
+      });
 
     return NextResponse.json({
       data: {

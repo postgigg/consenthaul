@@ -22,18 +22,18 @@ export const metadata: Metadata = {
 const STEPS = [
   {
     num: '01',
-    title: 'Create FMCSA consent request',
-    desc: 'Enter driver info, pick the Clearinghouse consent type (limited or full query), hit send. One credit per FMCSA consent form.',
+    title: 'Add your driver',
+    desc: 'Enter their name, CDL number, and phone or email. Or bulk-import your roster from a CSV.',
   },
   {
     num: '02',
-    title: 'Driver signs electronically',
-    desc: 'Driver receives a DOT consent link via SMS or WhatsApp. Opens it on their phone, reviews the FMCSA consent document, signs. 60 seconds.',
+    title: 'Send the consent link',
+    desc: 'Pick SMS, WhatsApp, or email. One tap sends a secure FMCSA consent form link directly to the driver\'s phone. One credit per consent.',
   },
   {
     num: '03',
-    title: 'Compliant PDF filed automatically',
-    desc: 'Signed FMCSA consent PDF is generated with e-signature, timestamp, and device data. Stored and retained for 3 years per 49 CFR Part 40. Done.',
+    title: 'Driver signs, PDF filed',
+    desc: 'Driver taps the link, reviews, signs with their finger. Compliant FMCSA consent PDF generated instantly — stored for 3 years per 49 CFR Part 40.',
   },
 ];
 
@@ -105,28 +105,28 @@ const FAQS = [
 
 const FEATURES = [
   {
-    title: 'FMCSA Consent via SMS, WhatsApp & Email',
-    desc: 'Send DOT consent form links however your CDL drivers prefer. Bilingual EN/ES FMCSA consent forms out of the box.',
+    title: 'Reach Drivers However They Prefer',
+    desc: 'SMS, WhatsApp, or email — send FMCSA consent links however your drivers actually respond. Bilingual EN/ES out of the box.',
   },
   {
-    title: '3-Year DOT Consent Retention',
-    desc: 'Signed FMCSA consent PDFs are stored and retained for the DOT-required 3 years per 49 CFR Part 40. No filing cabinets.',
+    title: 'Compliance on Autopilot',
+    desc: 'Every signed consent PDF is stored for 3 years per 49 CFR Part 40. No filing cabinets, no scanning, no manual tracking.',
   },
   {
-    title: 'Mobile-First Electronic Consent Signing',
-    desc: 'Built for CDL drivers at rest stops with bad signal. Fast, clear, dead simple FMCSA consent form signing on any phone.',
+    title: 'Built for the Truck Stop',
+    desc: 'Mobile-first signing designed for CDL drivers on the road. Loads fast on bad signal. Dead simple. No app to download.',
   },
   {
-    title: 'Bulk CDL Driver Import',
-    desc: 'CSV upload your entire fleet. Create FMCSA consent requests for hundreds of CDL drivers in minutes.',
+    title: 'Import Your Whole Fleet',
+    desc: 'CSV upload your driver roster. Send consent requests to hundreds of drivers in minutes, not days.',
   },
   {
-    title: 'REST API + MCP for AI Agents',
-    desc: 'Integrate FMCSA consent collection via REST API or our MCP server — let AI agents manage drivers, consents, and billing directly.',
+    title: 'Plug Into Your TMS',
+    desc: 'REST API and MCP (Model Context Protocol) server let your TMS or AI agents create drivers, send consents, check billing, and pull signed PDFs — no manual work.',
   },
   {
-    title: 'Real-Time Consent Status Tracking',
-    desc: 'Watch FMCSA consent forms move from sent to viewed to signed. Know exactly where every driver\'s DOT consent stands.',
+    title: 'Know Where Every Consent Stands',
+    desc: 'Real-time status tracking from sent → viewed → signed. Dashboard shows exactly which drivers still need to sign.',
   },
 ];
 
@@ -169,7 +169,7 @@ export default function LandingPage() {
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-8 h-0.5 bg-[#C8A75E]" />
                 <span className="text-xs font-bold text-[#8b919a] uppercase tracking-[0.2em]">
-                  Digital FMCSA Clearinghouse Consent Platform
+                  Built for Motor Carriers
                 </span>
               </div>
 
@@ -177,19 +177,19 @@ export default function LandingPage() {
                 className="text-[clamp(2.25rem,4vw,3.75rem)] font-bold text-[#0c0f14] leading-[1.05] tracking-tight"
                 style={{ fontFamily: "'Geist', system-ui, sans-serif" }}
               >
-                FMCSA Consent Forms —
+                Stop Chasing Drivers
                 <br />
+                for Paper. Get FMCSA Consent{' '}
                 <span className="relative inline-block">
-                  <span className="relative z-10">Signed Digitally</span>
+                  <span className="relative z-10">in 60 Seconds.</span>
                   <span className="absolute bottom-1 left-0 right-0 h-3 bg-[#C8A75E]/30 -z-0" />
-                </span>{' '}
-                in 60 Seconds
+                </span>
               </h1>
 
               <p className="mt-6 text-[#6b6f76] text-lg leading-relaxed max-w-xl">
-                The fastest way to collect FMCSA Clearinghouse limited query consent from CDL drivers.
-                Send a digital DOT consent form via SMS or email. Your driver signs electronically
-                on their phone. You get a compliant FMCSA consent PDF back instantly.
+                Text your driver a link. They sign on their phone in 60 seconds.
+                You get a compliant FMCSA consent PDF — filed and retained automatically.
+                No app downloads. No paper. No chasing.
               </p>
 
               <div className="mt-10 flex flex-wrap items-center gap-4">
@@ -216,10 +216,10 @@ export default function LandingPage() {
               {/* Stats strip */}
               <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 border border-[#e8e8e3]">
                 {[
-                  { value: '$1.50', label: 'per FMCSA consent' },
-                  { value: '60s', label: 'avg e-sign time' },
-                  { value: '3yr', label: 'DOT retention' },
-                  { value: 'EN/ES', label: 'bilingual forms' },
+                  { value: '$1.50', label: 'per consent — as low as' },
+                  { value: '60s', label: 'driver signs on phone' },
+                  { value: '3yr', label: 'automatic DOT retention' },
+                  { value: 'EN/ES', label: 'English + Spanish' },
                 ].map((stat, i) => (
                   <div
                     key={stat.label}
@@ -262,10 +262,11 @@ export default function LandingPage() {
         />
 
         <div className="relative mx-auto max-w-6xl px-6 py-24 lg:py-32">
-          <div className="flex items-center gap-3 mb-12">
+          <div className="flex items-center gap-3 mb-4">
             <span className="text-xs font-bold text-[#5c6370] uppercase tracking-[0.2em]">How it works</span>
             <div className="flex-1 h-px bg-[#1e2129]" />
           </div>
+          <p className="text-lg text-[#8b919a] mb-12">Up and running in 2 minutes</p>
 
           <div className="grid md:grid-cols-3 gap-0 border border-[#1e2129]">
             {STEPS.map((step, i) => (
@@ -348,12 +349,12 @@ export default function LandingPage() {
               className="text-3xl lg:text-4xl font-bold text-[#0c0f14] tracking-tight"
               style={{ fontFamily: "'Geist', system-ui, sans-serif" }}
             >
-              FMCSA Consent Pricing.
+              Pay Only for What You Use.
               <br />
-              Pay Per Form. No Subscriptions.
+              No Monthly Fees. Credits Never Expire.
             </h2>
             <p className="text-sm text-[#6b6f76] max-w-xs">
-              Buy FMCSA consent credits. Use them to send Clearinghouse consent forms whenever you need. Credits never expire.
+              Buy consent credits in bulk. Use them whenever a driver needs to sign. No subscriptions, no per-seat fees, no expiration. Start with 3 free credits.
             </p>
           </div>
 
@@ -464,15 +465,14 @@ export default function LandingPage() {
               className="text-3xl lg:text-[2.75rem] font-bold text-white tracking-tight leading-[1.1]"
               style={{ fontFamily: "'Geist', system-ui, sans-serif" }}
             >
-              Collect FMCSA Consent
+              Your Drivers&apos; Phones Are
               <br />
-              From Drivers&apos; Phones.
+              Already in Their Pockets. Use Them.
               <br />
-              <span className="text-[#C8A75E]">Start in 2 Minutes.</span>
+              <span className="text-[#C8A75E]">Start Collecting Consent in 2 Minutes.</span>
             </h2>
             <p className="mt-6 text-[#8b919a] text-base leading-relaxed max-w-lg mx-auto">
-              No more printing, mailing, scanning, or chasing CDL drivers for paper consent forms.
-              Send digital FMCSA consent forms and collect Clearinghouse consent signatures from your drivers&apos; phones.
+              No more printing, mailing, scanning, or chasing. Text a link. Driver signs. PDF filed. That&apos;s it.
             </p>
 
             {/* CTA buttons */}
@@ -518,7 +518,7 @@ export default function LandingPage() {
             <div className="sm:col-span-2 lg:col-span-1">
               <LogoFull mode="dark" className="h-5 w-auto" />
               <p className="mt-4 text-sm text-[#5c6370] leading-relaxed max-w-xs">
-                Digital FMCSA consent form platform for motor carriers and fleet operators. Collect Clearinghouse limited query authorization from CDL drivers electronically. DOT consent management made simple.
+                Digital FMCSA consent collection for motor carriers. Text a link. Driver signs. PDF filed.
               </p>
             </div>
 
