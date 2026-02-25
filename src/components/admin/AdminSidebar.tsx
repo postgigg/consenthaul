@@ -14,6 +14,10 @@ import {
   ArrowLeft,
   Menu,
   X,
+  Megaphone,
+  Target,
+  Mail,
+  GitBranch,
 } from 'lucide-react';
 import { LogoFull } from '@/components/brand/Logo';
 
@@ -25,6 +29,13 @@ const adminNavItems = [
   { label: 'Configuration', href: '/admin/config', icon: Wrench },
   { label: 'Audit Log', href: '/admin/audit', icon: ScrollText },
   { label: 'Revenue', href: '/admin/revenue', icon: DollarSign },
+];
+
+const outreachNavItems = [
+  { label: 'Outreach', href: '/admin/outreach', icon: Megaphone },
+  { label: 'Leads', href: '/admin/outreach/leads', icon: Target },
+  { label: 'Campaigns', href: '/admin/outreach/campaigns', icon: Mail },
+  { label: 'Pipeline', href: '/admin/outreach/pipeline', icon: GitBranch },
 ];
 
 export function AdminSidebar() {
@@ -59,8 +70,39 @@ export function AdminSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-0.5 px-3 py-2">
+      <nav className="flex-1 space-y-0.5 px-3 py-2 overflow-y-auto">
         {adminNavItems.map((item) => {
+          const active = isActive(item.href);
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setMobileOpen(false)}
+              className={`group flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors ${
+                active
+                  ? 'bg-[#C8A75E]/15 text-[#C8A75E]'
+                  : 'text-[#6b6f76] hover:bg-[#1e2129] hover:text-[#d4d4cf]'
+              }`}
+            >
+              <Icon
+                className={`h-[18px] w-[18px] shrink-0 ${
+                  active ? 'text-[#C8A75E]' : 'text-[#5c6370] group-hover:text-[#8b919a]'
+                }`}
+              />
+              <span className="flex-1">{item.label}</span>
+              {active && <div className="h-1.5 w-1.5 bg-[#C8A75E]" />}
+            </Link>
+          );
+        })}
+
+        {/* Outreach section */}
+        <div className="pt-4 pb-1">
+          <p className="px-3 text-[0.6rem] font-bold uppercase tracking-wider text-[#5c6370]">
+            Outreach
+          </p>
+        </div>
+        {outreachNavItems.map((item) => {
           const active = isActive(item.href);
           const Icon = item.icon;
           return (

@@ -6,6 +6,12 @@ export type ConsentType = 'limited_query' | 'pre_employment' | 'blanket';
 export type DeliveryMethod = 'sms' | 'whatsapp' | 'email' | 'manual';
 export type NotificationStatus = 'queued' | 'sending' | 'sent' | 'delivered' | 'failed' | 'undeliverable';
 
+// Outreach types
+export type PipelineStage = 'lead' | 'contacted' | 'replied' | 'demo' | 'trial' | 'customer' | 'lost';
+export type CampaignStatus = 'draft' | 'active' | 'paused' | 'completed';
+export type EnrollmentStatus = 'active' | 'completed' | 'paused' | 'replied' | 'bounced' | 'unsubscribed';
+export type OutreachEventType = 'sent' | 'delivered' | 'opened' | 'clicked' | 'replied' | 'bounced' | 'unsubscribed' | 'complaint';
+
 export interface Database {
   public: {
     Views: {
@@ -314,6 +320,190 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database['public']['Tables']['notifications']['Insert']>;
+        Relationships: [];
+      };
+      outreach_leads: {
+        Row: {
+          id: string;
+          company_name: string;
+          dot_number: string | null;
+          mc_number: string | null;
+          phone: string | null;
+          email: string | null;
+          contact_name: string | null;
+          contact_title: string | null;
+          address_line1: string | null;
+          address_line2: string | null;
+          city: string | null;
+          state: string | null;
+          zip: string | null;
+          fleet_size: number | null;
+          driver_count: number | null;
+          carrier_operation: string | null;
+          operating_status: string | null;
+          pipeline_stage: PipelineStage;
+          lead_score: number;
+          lead_source: string | null;
+          ai_summary: string | null;
+          tags: string[];
+          do_not_contact: boolean;
+          last_contacted_at: string | null;
+          organization_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          company_name: string;
+          dot_number?: string | null;
+          mc_number?: string | null;
+          phone?: string | null;
+          email?: string | null;
+          contact_name?: string | null;
+          contact_title?: string | null;
+          address_line1?: string | null;
+          address_line2?: string | null;
+          city?: string | null;
+          state?: string | null;
+          zip?: string | null;
+          fleet_size?: number | null;
+          driver_count?: number | null;
+          carrier_operation?: string | null;
+          operating_status?: string | null;
+          pipeline_stage?: PipelineStage;
+          lead_score?: number;
+          lead_source?: string | null;
+          ai_summary?: string | null;
+          tags?: string[];
+          do_not_contact?: boolean;
+          last_contacted_at?: string | null;
+          organization_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['outreach_leads']['Insert']>;
+        Relationships: [];
+      };
+      outreach_campaigns: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          status: CampaignStatus;
+          target_filters: Json;
+          send_settings: Json;
+          stats_sent: number;
+          stats_opened: number;
+          stats_clicked: number;
+          stats_replied: number;
+          stats_bounced: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          status?: CampaignStatus;
+          target_filters?: Json;
+          send_settings?: Json;
+          stats_sent?: number;
+          stats_opened?: number;
+          stats_clicked?: number;
+          stats_replied?: number;
+          stats_bounced?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['outreach_campaigns']['Insert']>;
+        Relationships: [];
+      };
+      outreach_sequence_steps: {
+        Row: {
+          id: string;
+          campaign_id: string;
+          step_order: number;
+          delay_days: number;
+          subject: string | null;
+          body_html: string | null;
+          body_text: string | null;
+          use_ai_generation: boolean;
+          ai_prompt: string | null;
+          skip_if_replied: boolean;
+          skip_if_opened: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          campaign_id: string;
+          step_order: number;
+          delay_days?: number;
+          subject?: string | null;
+          body_html?: string | null;
+          body_text?: string | null;
+          use_ai_generation?: boolean;
+          ai_prompt?: string | null;
+          skip_if_replied?: boolean;
+          skip_if_opened?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['outreach_sequence_steps']['Insert']>;
+        Relationships: [];
+      };
+      outreach_enrollments: {
+        Row: {
+          id: string;
+          campaign_id: string;
+          lead_id: string;
+          status: EnrollmentStatus;
+          current_step: number;
+          next_send_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          campaign_id: string;
+          lead_id: string;
+          status?: EnrollmentStatus;
+          current_step?: number;
+          next_send_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['outreach_enrollments']['Insert']>;
+        Relationships: [];
+      };
+      outreach_events: {
+        Row: {
+          id: string;
+          enrollment_id: string | null;
+          lead_id: string;
+          campaign_id: string | null;
+          step_id: string | null;
+          event_type: OutreachEventType;
+          resend_message_id: string | null;
+          ai_reply_classification: string | null;
+          ai_reply_summary: string | null;
+          details: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          enrollment_id?: string | null;
+          lead_id: string;
+          campaign_id?: string | null;
+          step_id?: string | null;
+          event_type: OutreachEventType;
+          resend_message_id?: string | null;
+          ai_reply_classification?: string | null;
+          ai_reply_summary?: string | null;
+          details?: Json;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['outreach_events']['Insert']>;
         Relationships: [];
       };
       platform_config: {

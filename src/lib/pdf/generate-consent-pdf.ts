@@ -1,6 +1,7 @@
 import React from 'react';
 import { renderToBuffer } from '@react-pdf/renderer';
 import { createHash } from 'crypto';
+import QRCode from 'qrcode';
 import { LimitedQueryEn } from './templates/limited-query-en';
 import { LimitedQueryEs } from './templates/limited-query-es';
 
@@ -83,6 +84,15 @@ export async function generateConsentPDF({
     .filter(Boolean)
     .join(' ');
 
+  // Generate QR code data URL encoding the consent document ID
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://consenthaul.com';
+  const qrContent = `${appUrl}/consents/${consent.id}`;
+  const qrCodeDataUrl = await QRCode.toDataURL(qrContent, {
+    width: 80,
+    margin: 1,
+    color: { dark: '#1e40af', light: '#ffffff' },
+  });
+
   // Shared props for both language templates
   const templateProps = {
     consent: {
@@ -106,6 +116,7 @@ export async function generateConsentPDF({
       address,
     },
     signatureDataUrl: consent.signature_data,
+    qrCodeDataUrl,
     generatedAt,
   };
 

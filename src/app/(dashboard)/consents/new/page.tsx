@@ -39,7 +39,7 @@ export default function NewConsentPage() {
       </div>
 
       {/* Consent form */}
-      <div className="max-w-2xl">
+      <div>
         <ConsentForm
           onSuccess={() => {
             // Stay on the page so user can see the signing URL;

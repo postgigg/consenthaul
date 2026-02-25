@@ -6,8 +6,33 @@ import {
   Text,
   Image,
   StyleSheet,
+  Svg,
+  Rect,
+  Path,
+  Circle,
 } from '@react-pdf/renderer';
 import { CONSENT_TEXT_EN } from '@/lib/constants';
+
+// ---------------------------------------------------------------------------
+// Brand colors
+// ---------------------------------------------------------------------------
+
+const brand = {
+  dark: '#0c0f14',
+  gold: '#C8A75E',
+  white: '#ffffff',
+  gray: '#3f3f46',
+  lightGray: '#e4e4e7',
+  midGray: '#52525b',
+  textDark: '#18181b',
+  textBody: '#27272a',
+  footerGray: '#a1a1aa',
+  signatureGray: '#71717a',
+  borderGray: '#d4d4d8',
+  accentBg: '#fdf9f0',
+  accentBorder: '#e8dcc4',
+  accentText: '#5c4a1e',
+};
 
 // ---------------------------------------------------------------------------
 // Styles
@@ -28,29 +53,46 @@ const styles = StyleSheet.create({
     right: 24,
     bottom: 24,
     borderWidth: 1,
-    borderColor: '#d4d4d8',
+    borderColor: brand.borderGray,
     borderStyle: 'solid',
   },
 
   // Header
   header: {
-    textAlign: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 20,
     paddingBottom: 14,
     borderBottomWidth: 2,
-    borderBottomColor: '#1e40af',
+    borderBottomColor: brand.dark,
     borderBottomStyle: 'solid',
+  },
+  headerLogo: {
+    width: 64,
+    alignItems: 'flex-start',
+  },
+  headerText: {
+    flex: 1,
+    textAlign: 'center',
+  },
+  qrCode: {
+    width: 64,
+    height: 64,
+  },
+  qrPlaceholder: {
+    width: 64,
   },
   headerTitle: {
     fontSize: 15,
     fontFamily: 'Helvetica-Bold',
-    color: '#1e40af',
+    color: brand.dark,
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 11,
     fontFamily: 'Helvetica-Bold',
-    color: '#3f3f46',
+    color: brand.gray,
   },
 
   // Section
@@ -60,13 +102,13 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 10,
     fontFamily: 'Helvetica-Bold',
-    color: '#1e40af',
+    color: brand.dark,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 6,
     paddingBottom: 3,
     borderBottomWidth: 1,
-    borderBottomColor: '#e4e4e7',
+    borderBottomColor: brand.lightGray,
     borderBottomStyle: 'solid',
   },
 
@@ -79,29 +121,29 @@ const styles = StyleSheet.create({
     width: 130,
     fontSize: 9,
     fontFamily: 'Helvetica-Bold',
-    color: '#52525b',
+    color: brand.midGray,
   },
   infoValue: {
     flex: 1,
     fontSize: 9,
-    color: '#18181b',
+    color: brand.textDark,
   },
 
   // Body text
   bodyText: {
     fontSize: 9,
     lineHeight: 1.6,
-    color: '#27272a',
+    color: brand.textBody,
     textAlign: 'justify',
   },
 
   // Acknowledgment
   acknowledgmentBox: {
-    backgroundColor: '#f0f9ff',
+    backgroundColor: brand.accentBg,
     padding: 10,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#bfdbfe',
+    borderColor: brand.accentBorder,
     borderStyle: 'solid',
     marginTop: 12,
     marginBottom: 14,
@@ -109,7 +151,7 @@ const styles = StyleSheet.create({
   acknowledgmentText: {
     fontSize: 9,
     lineHeight: 1.5,
-    color: '#1e3a5f',
+    color: brand.accentText,
     fontFamily: 'Helvetica-Oblique',
   },
 
@@ -118,7 +160,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#d4d4d8',
+    borderTopColor: brand.borderGray,
     borderTopStyle: 'solid',
   },
   signatureImage: {
@@ -130,13 +172,13 @@ const styles = StyleSheet.create({
   signatureLine: {
     width: 220,
     borderBottomWidth: 1,
-    borderBottomColor: '#18181b',
+    borderBottomColor: brand.textDark,
     borderBottomStyle: 'solid',
     marginBottom: 3,
   },
   signatureLabel: {
     fontSize: 8,
-    color: '#71717a',
+    color: brand.signatureGray,
   },
   signatureMetaRow: {
     flexDirection: 'row',
@@ -155,16 +197,43 @@ const styles = StyleSheet.create({
     right: 48,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#e4e4e7',
+    borderTopColor: brand.lightGray,
     borderTopStyle: 'solid',
     paddingTop: 6,
   },
   footerText: {
     fontSize: 7,
-    color: '#a1a1aa',
+    color: brand.footerGray,
+  },
+  footerBrand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  // Gold accent bar
+  goldBar: {
+    height: 3,
+    backgroundColor: brand.gold,
+    marginBottom: 16,
   },
 });
+
+// ---------------------------------------------------------------------------
+// Logo SVG component for PDF
+// ---------------------------------------------------------------------------
+
+function ConsentHaulLogo({ size = 28 }: { size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 48 48">
+      <Rect x="3" y="3" width="42" height="42" rx="9" fill={brand.dark} stroke={brand.dark} strokeWidth={2} />
+      <Path d="M32 11 L37 11 L37 16" stroke={brand.white} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M15.5 26.2 L20.8 31.0 L32.8 18.8" stroke={brand.white} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
+      <Circle cx="35.5" cy="35.5" r="2.6" fill={brand.gold} />
+    </Svg>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Props
@@ -192,6 +261,7 @@ export interface LimitedQueryEnProps {
     address: string | null;
   };
   signatureDataUrl: string | null;
+  qrCodeDataUrl?: string | null;
   generatedAt: string;
 }
 
@@ -204,6 +274,7 @@ export function LimitedQueryEn({
   driver,
   organization,
   signatureDataUrl,
+  qrCodeDataUrl,
   generatedAt,
 }: LimitedQueryEnProps) {
   const frequency = consent.query_frequency ?? 'annual';
@@ -234,14 +305,28 @@ export function LimitedQueryEn({
         {/* Page border */}
         <View style={styles.border} fixed />
 
+        {/* Gold accent bar */}
+        <View style={styles.goldBar} />
+
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>
-            FMCSA Drug &amp; Alcohol Clearinghouse
-          </Text>
-          <Text style={styles.headerSubtitle}>
-            General Consent for Limited Queries
-          </Text>
+          <View style={styles.headerLogo}>
+            <ConsentHaulLogo size={28} />
+          </View>
+          <View style={styles.headerText}>
+            <Text style={styles.headerTitle}>
+              FMCSA Drug &amp; Alcohol Clearinghouse
+            </Text>
+            <Text style={styles.headerSubtitle}>
+              General Consent for Limited Queries
+            </Text>
+          </View>
+          {qrCodeDataUrl ? (
+            // eslint-disable-next-line jsx-a11y/alt-text
+            <Image src={qrCodeDataUrl} style={styles.qrCode} />
+          ) : (
+            <View style={styles.qrPlaceholder} />
+          )}
         </View>
 
         {/* Organization info */}
@@ -364,9 +449,12 @@ export function LimitedQueryEn({
           <Text style={styles.footerText}>
             Generated: {generatedAt}
           </Text>
-          <Text style={styles.footerText}>
-            ConsentHaul — consenthaul.com
-          </Text>
+          <View style={styles.footerBrand}>
+            <ConsentHaulLogo size={10} />
+            <Text style={styles.footerText}>
+              ConsentHaul — consenthaul.com
+            </Text>
+          </View>
         </View>
       </Page>
     </Document>

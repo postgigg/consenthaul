@@ -182,7 +182,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0c0f14] tracking-tight mb-3" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>10. Cookies</h2>
+            <h2 id="cookies" className="text-lg font-bold text-[#0c0f14] tracking-tight mb-3" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>10. Cookies</h2>
             <p>
               We use cookies and similar technologies for authentication, session management, and analytics. Essential cookies are required for the Service to function (e.g., authentication tokens). Analytics cookies help us understand how users interact with the platform. You can manage cookie preferences through your browser settings, but disabling essential cookies will prevent you from using the Service.
             </p>

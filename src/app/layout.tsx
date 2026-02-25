@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
+import { CookieBanner } from '@/components/CookieBanner';
 import './globals.css';
 
 const geistSans = localFont({
@@ -414,6 +415,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased h-full`}
       >
         {children}
+        <CookieBanner />
       </body>
     </html>
   );

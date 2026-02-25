@@ -1,26 +1,59 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { CreditBalance } from '@/components/billing/CreditBalance';
 import { PricingCards } from '@/components/billing/PricingCards';
 import { PurchaseHistory } from '@/components/billing/PurchaseHistory';
 
 export default function BillingPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [toast, setToast] = useState<{
     type: 'success' | 'error';
     message: string;
   } | null>(null);
 
   useEffect(() => {
-    if (searchParams.get('success') === 'true') {
-      setToast({
-        type: 'success',
-        message: 'Payment successful. Credits added to your account.',
-      });
-      window.history.replaceState({}, '', '/billing');
-    } else if (searchParams.get('canceled') === 'true') {
+    const checkout = searchParams.get('checkout');
+    const sessionId = searchParams.get('session_id');
+
+    if (checkout === 'success' && sessionId) {
+      // Verify the session and add credits
+      fetch('/api/billing/verify-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sessionId }),
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.status === 'credits_added') {
+            setToast({
+              type: 'success',
+              message: `Payment successful! ${data.credits} credits added to your account.`,
+            });
+          } else if (data.status === 'already_processed') {
+            setToast({
+              type: 'success',
+              message: 'Payment successful. Credits already added to your account.',
+            });
+          } else {
+            setToast({
+              type: 'success',
+              message: 'Payment successful. Credits added to your account.',
+            });
+          }
+          window.history.replaceState({}, '', '/billing');
+          router.refresh();
+        })
+        .catch(() => {
+          setToast({
+            type: 'success',
+            message: 'Payment successful. Credits will be added shortly.',
+          });
+          window.history.replaceState({}, '', '/billing');
+        });
+    } else if (checkout === 'cancelled') {
       setToast({
         type: 'error',
         message: 'Payment canceled. No credits were added.',

@@ -124,9 +124,12 @@ export async function POST(request: NextRequest) {
         pack_id: pack.id,
         user_id: user.id,
       },
-      success_url: `${appUrl}/dashboard/billing?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${appUrl}/dashboard/billing?checkout=cancelled`,
+      success_url: `${appUrl}/billing?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${appUrl}/billing?checkout=cancelled`,
       allow_promotion_codes: true,
+      payment_intent_data: {
+        receipt_email: profile.email,
+      },
     });
 
     return NextResponse.json({

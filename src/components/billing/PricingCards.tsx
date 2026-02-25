@@ -82,8 +82,9 @@ export function PricingCards() {
         return;
       }
 
-      if (data.url) {
-        window.location.href = data.url;
+      const url = data.url ?? data.data?.checkout_url;
+      if (url) {
+        window.location.href = url;
       }
     } catch {
       setError('An unexpected error occurred. Please try again.');

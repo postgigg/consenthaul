@@ -201,6 +201,15 @@ export default function LandingPage() {
                     <path d="M5 12h14M12 5l7 7-7 7" />
                   </svg>
                 </span>
+                <Link
+                  href="/demo"
+                  className="bg-[#C8A75E] text-[#0c0f14] font-bold text-sm uppercase tracking-wider px-8 py-4 inline-flex items-center gap-2 transition-all hover:bg-[#d4b56a] active:bg-[#b89648]"
+                >
+                  View Demo
+                  <svg width="16" height="16" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </Link>
                 <span className="text-sm text-[#8b919a]">3 free credits on signup</span>
               </div>
 
@@ -231,7 +240,7 @@ export default function LandingPage() {
             </div>
 
             {/* Right column — animated phone demo */}
-            <div className="flex justify-center lg:justify-end">
+            <div className="flex justify-center lg:justify-end scale-[0.85] origin-center lg:origin-right">
               <PhoneSigningDemo />
             </div>
           </div>

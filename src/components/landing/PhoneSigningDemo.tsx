@@ -350,10 +350,10 @@ export function PhoneSigningDemo() {
 
                         <text x="72" y="325" fill="#8b919a" fontSize="7" fontWeight="600" fontFamily="system-ui">MESSAGES</text>
                         <text x="345" y="325" fill="#8b919a" fontSize="6" fontFamily="system-ui" opacity="0.5" textAnchor="end">now</text>
-                        <text x="72" y="341" fill="#0c0f14" fontSize="8" fontWeight="600" fontFamily="system-ui">(512) 555-0147</text>
+                        <text x="72" y="341" fill="#0c0f14" fontSize="8" fontWeight="600" fontFamily="system-ui">ConsentHaul</text>
                         <text x="72" y="357" fill="#6b6f76" fontSize="7.5" fontFamily="system-ui">Acme Freight LLC needs your consent</text>
                         <text x="72" y="371" fill="#6b6f76" fontSize="7.5" fontFamily="system-ui">for an FMCSA query. Sign here:</text>
-                        <text x="72" y="385" fill="#3b82f6" fontSize="7.5" fontFamily="system-ui">consenthaul.com/sign/abc123</text>
+                        <text x="72" y="385" fill="#3b82f6" fontSize="7.5" fontFamily="system-ui">app.consenthaul.com/sign/abc123</text>
                       </g>
                     </g>
                   )}
@@ -419,8 +419,8 @@ export function PhoneSigningDemo() {
                           {/* Driver info fields */}
                           {[
                             { y: 158, label: 'Driver Name', value: 'Carlos Mendez' },
-                            { y: 184, label: 'CDL Number', value: 'TX-28491037' },
-                            { y: 210, label: 'Date of Birth', value: '03/14/1988' },
+                            { y: 184, label: 'CDL Number', value: '28491037' },
+                            { y: 210, label: 'CDL State', value: 'TX' },
                             { y: 236, label: 'Carrier', value: 'Acme Freight LLC' },
                             { y: 262, label: 'Consent Type', value: 'Limited Query' },
                           ].map((f, i) => (
@@ -617,7 +617,7 @@ export function PhoneSigningDemo() {
                         <text x="60" y="528" fill="#8b919a" fontSize="4.5" fontFamily="system-ui" opacity="0.5">Signed</text>
                         <text x="150" y="528" fill="#0c0f14" fontSize="5.2" fontWeight="600" fontFamily="system-ui" opacity="0.65">Feb 24, 2026 at 9:41 AM</text>
                         <text x="60" y="546" fill="#8b919a" fontSize="4.5" fontFamily="system-ui" opacity="0.5">Consent ID</text>
-                        <text x="150" y="546" fill="#0c0f14" fontSize="5.2" fontWeight="600" fontFamily="system-ui" opacity="0.65">CNS-2026-00847</text>
+                        <text x="150" y="546" fill="#0c0f14" fontSize="5.2" fontWeight="600" fontFamily="system-ui" opacity="0.65">e7d6c5b4-3a2f-...</text>
                         <text x="60" y="564" fill="#8b919a" fontSize="4.5" fontFamily="system-ui" opacity="0.5">Retention</text>
                         <text x="150" y="564" fill="#28c840" fontSize="5.2" fontWeight="600" fontFamily="system-ui" opacity="0.65">3 years (until Feb 2029)</text>
                       </g>
