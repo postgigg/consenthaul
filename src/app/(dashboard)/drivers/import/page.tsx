@@ -48,7 +48,7 @@ export default function DriverImportPage() {
             Dates should be in <code className="bg-[#f0f0ec] px-1 rounded">YYYY-MM-DD</code> format
           </li>
           <li>
-            Phone numbers should include country code (e.g., +15551234567)
+            Phone numbers should include country code (e.g., +10000000000)
           </li>
           <li>Maximum 5,000 rows per import</li>
         </ul>

@@ -205,7 +205,7 @@ curl -X POST https://app.consenthaul.com/api/v1/drivers \\
   -d '{
     "first_name": "John",
     "last_name": "Doe",
-    "phone": "+15551234567",
+    "phone": "+10000000000",
     "email": "john@example.com",
     "cdl_number": "D1234567",
     "cdl_state": "TX"
@@ -342,7 +342,7 @@ function DriversTab() {
   -d '{
     "first_name": "John",
     "last_name": "Doe",
-    "phone": "+15551234567",
+    "phone": "+10000000000",
     "email": "john.doe@example.com",
     "cdl_number": "D1234567",
     "cdl_state": "TX",
@@ -357,7 +357,7 @@ function DriversTab() {
     "organization_id": "org-uuid",
     "first_name": "John",
     "last_name": "Doe",
-    "phone": "+15551234567",
+    "phone": "+10000000000",
     "email": "john.doe@example.com",
     "cdl_number": "D1234567",
     "cdl_state": "TX",
@@ -410,7 +410,7 @@ function DriversTab() {
       "id": "550e8400-e29b-41d4-a716-446655440000",
       "first_name": "John",
       "last_name": "Doe",
-      "phone": "+15551234567",
+      "phone": "+10000000000",
       "email": "john.doe@example.com",
       "cdl_number": "D1234567",
       "cdl_state": "TX",
@@ -493,7 +493,7 @@ function ConsentsTab() {
     "status": "sent",
     "language": "en",
     "delivery_method": "sms",
-    "delivery_address": "+15551234567",
+    "delivery_address": "+10000000000",
     "signing_url": "https://app.consenthaul.com/sign/abc123token",
     "signing_token_expires_at": "2026-02-27T12:00:00Z",
     "created_at": "2026-02-24T12:00:00Z"
@@ -558,7 +558,7 @@ function ConsentsTab() {
         "id": "550e8400-e29b-41d4-a716-446655440000",
         "first_name": "John",
         "last_name": "Doe",
-        "phone": "+15551234567",
+        "phone": "+10000000000",
         "email": "john.doe@example.com",
         "cdl_number": "D1234567"
       }
