@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { LogoFull } from '@/components/brand/Logo';
 import { LandingNav } from '@/components/landing/LandingNav';
 import { ComingSoonBanner } from '@/components/landing/ComingSoonBanner';
+import { TerminalTyping } from '@/components/landing/TerminalTyping';
 
 // ---------------------------------------------------------------------------
 // Metadata
@@ -57,7 +58,7 @@ const PAIN_POINTS = [
 ];
 
 const BUILD_VS_BUY = [
-  { label: 'Development cost', build: '$150K\u2013$300K', buy: '$5K one-time onboarding' },
+  { label: 'Development cost', build: '$150K\u2013$300K', buy: '$499 one-time onboarding' },
   { label: 'Time to ship', build: '6\u201312 months', buy: '1 sprint' },
   { label: 'FMCSA compliance liability', build: 'You own it', buy: 'We own it' },
   { label: 'ESIGN Act / UETA compliance', build: 'Your lawyers', buy: 'Our lawyers' },
@@ -69,10 +70,10 @@ const BUILD_VS_BUY = [
 ];
 
 const PRICING_TIERS = [
-  { name: 'Starter', credits: '10,000', price: '$10,000', per: '$1.00' },
-  { name: 'Growth', credits: '100,000', price: '$75,000', per: '$0.75' },
-  { name: 'Scale', credits: '250,000', price: '$125,000', per: '$0.50', popular: true },
-  { name: 'Enterprise', credits: '500,000', price: '$145,000', per: '$0.29' },
+  { name: 'Starter', credits: '10,000', price: '$7,500', fullPrice: '$10,000', per: '$1.00', optional: true },
+  { name: 'Growth', credits: '100,000', price: '$56,250', fullPrice: '$75,000', per: '$0.75', optional: true },
+  { name: 'Scale', credits: '250,000', price: '$93,750', fullPrice: '$125,000', per: '$0.50', popular: true, optional: true },
+  { name: 'Enterprise', credits: '500,000', price: '$108,750', fullPrice: '$145,000', per: '$0.29', optional: true },
 ];
 
 const REVENUE_MODELS = [
@@ -148,7 +149,7 @@ const FAQS = [
   },
   {
     q: 'How do we get started?',
-    a: 'Email partnerships@consenthaul.com. Onboarding starts with a one-time $5,000 partner fee, which includes 40 hours of dedicated specialist and partner manager time plus 15 hours of custom development work. We\u2019ll set up your partner account, sandbox keys, and schedule an integration call.',
+    a: 'Email partnerships@consenthaul.com or apply online. Onboarding starts with a one-time $499 partner fee. We\u2019ll set up your partner account, sandbox keys, and schedule an integration kickoff call. Credit packs are optional during signup and come with a 25% discount.',
   },
 ];
 
@@ -261,35 +262,9 @@ export default function TMSPartnerPage() {
               </div>
             </div>
 
-            {/* Right column — code snippet */}
+            {/* Right column — code snippet with typing animation */}
             <div className="hidden lg:block">
-              <div className="bg-[#0c0f14] p-6 w-[340px] border border-[#1e2129]">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#ff5f57]" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#febc2e]" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#28c840]" />
-                  <span className="ml-2 text-[0.6rem] text-[#5c6370] font-mono">integrate.sh</span>
-                </div>
-                <pre className="text-[0.7rem] leading-relaxed font-mono overflow-x-auto">
-                  <code>
-                    <span className="text-[#5c6370]"># Create driver</span>{'\n'}
-                    <span className="text-[#C8A75E]">curl</span><span className="text-[#8b919a]"> -X POST /api/v1/drivers \</span>{'\n'}
-                    <span className="text-[#8b919a]">  -d </span><span className="text-[#98c379]">{`'{"name":"John Doe",`}</span>{'\n'}
-                    <span className="text-[#98c379]">{`    "cdl":"D1234567"}'`}</span>{'\n'}
-                    {'\n'}
-                    <span className="text-[#5c6370]"># Send consent</span>{'\n'}
-                    <span className="text-[#C8A75E]">curl</span><span className="text-[#8b919a]"> -X POST /api/v1/consents \</span>{'\n'}
-                    <span className="text-[#8b919a]">  -d </span><span className="text-[#98c379]">{`'{"driver_id":"...",`}</span>{'\n'}
-                    <span className="text-[#98c379]">{`    "method":"sms"}'`}</span>{'\n'}
-                    {'\n'}
-                    <span className="text-[#5c6370]"># Check status</span>{'\n'}
-                    <span className="text-[#C8A75E]">curl</span><span className="text-[#8b919a]"> GET /api/v1/consents</span>{'\n'}
-                    {'\n'}
-                    <span className="text-[#5c6370]"># Download PDF</span>{'\n'}
-                    <span className="text-[#C8A75E]">curl</span><span className="text-[#8b919a]">{` GET /api/v1/consents/{id}`}</span>
-                  </code>
-                </pre>
-              </div>
+              <TerminalTyping />
             </div>
           </div>
         </div>
@@ -526,6 +501,12 @@ export default function TMSPartnerPage() {
                 <div className="mt-6 pt-4 border-t border-dashed border-[#d4d4cf]/30">
                   <p className={`text-xl font-bold ${tier.popular ? 'text-white' : 'text-[#0c0f14]'}`}>
                     {tier.price}
+                    <span className={`text-sm line-through ml-2 font-normal ${tier.popular ? 'text-[#5c6370]' : 'text-[#b5b5ae]'}`}>
+                      {tier.fullPrice}
+                    </span>
+                  </p>
+                  <p className={`text-xs font-medium mt-1 ${tier.popular ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                    25% off at signup
                   </p>
                   <p className={`text-sm mt-0.5 ${tier.popular ? 'text-[#8b919a]' : 'text-[#6b6f76]'}`}>
                     {tier.per} per consent
@@ -544,22 +525,27 @@ export default function TMSPartnerPage() {
                   className="text-[2rem] font-bold text-white tracking-tight"
                   style={{ fontFamily: "'Geist', system-ui, sans-serif" }}
                 >
-                  $5,000
+                  $499
                 </p>
                 <p className="text-sm text-[#8b919a] mt-2 leading-relaxed">
-                  Required before your first credit pack purchase. This is your integration investment &mdash; not a recurring fee.
+                  Get started with sandbox keys, integration support, and a dedicated partner channel. Credit packs are optional &mdash; purchase during signup for 25% off.
                 </p>
               </div>
-              <div className="grid sm:grid-cols-2 gap-0 border border-[#1e2129] flex-1">
+              <div className="grid sm:grid-cols-3 gap-0 border border-[#1e2129] flex-1">
                 <div className="p-5 border-b sm:border-b-0 sm:border-r border-[#1e2129]">
-                  <p className="text-2xl font-bold text-white tracking-tight" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>40<span className="text-base text-[#8b919a] font-normal ml-1">hrs</span></p>
-                  <p className="text-sm text-[#8b919a] mt-1">Dedicated specialist &amp; partner manager time</p>
-                  <p className="text-xs text-[#5c6370] mt-2">Integration support, architecture review, onboarding calls</p>
+                  <p className="text-2xl font-bold text-[#C8A75E] tracking-tight" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>Sandbox</p>
+                  <p className="text-sm text-[#8b919a] mt-1">API keys &amp; documentation</p>
+                  <p className="text-xs text-[#5c6370] mt-2">Unlimited test credits, full API access from day one</p>
+                </div>
+                <div className="p-5 border-b sm:border-b-0 sm:border-r border-[#1e2129]">
+                  <p className="text-2xl font-bold text-[#C8A75E] tracking-tight" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>Support</p>
+                  <p className="text-sm text-[#8b919a] mt-1">Dedicated partner channel</p>
+                  <p className="text-xs text-[#5c6370] mt-2">Integration assistance, architecture review, onboarding calls</p>
                 </div>
                 <div className="p-5">
-                  <p className="text-2xl font-bold text-white tracking-tight" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>15<span className="text-base text-[#8b919a] font-normal ml-1">hrs</span></p>
-                  <p className="text-sm text-[#8b919a] mt-1">Custom development work</p>
-                  <p className="text-xs text-[#5c6370] mt-2">White-label customization, webhook setup, custom PDF templates</p>
+                  <p className="text-2xl font-bold text-[#C8A75E] tracking-tight" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>Migration</p>
+                  <p className="text-sm text-[#8b919a] mt-1">$17/GB &mdash; optional</p>
+                  <p className="text-xs text-[#5c6370] mt-2">Bring existing carrier/driver data. Skip it entirely if starting fresh</p>
                 </div>
               </div>
             </div>
@@ -567,13 +553,8 @@ export default function TMSPartnerPage() {
 
           <div className="mt-8 flex flex-col sm:flex-row sm:items-start gap-6">
             <p className="text-sm text-[#6b6f76] leading-relaxed flex-1">
-              Credits never expire. No monthly minimums. No per-seat fees. Minimum purchase: 10,000 credits.
+              Credits never expire. No monthly minimums. No per-seat fees. Credit packs are optional &mdash; 25% off when purchased during signup.
             </p>
-            <div className="shrink-0 p-5 bg-[#f8f8f6] border border-[#e8e8e3] max-w-md">
-              <p className="text-sm text-[#0c0f14] font-semibold leading-relaxed">
-                At $0.29/consent, a 500K pack costs $145,000 &mdash; less than a single engineer&apos;s fully loaded salary. And you didn&apos;t write a line of code.
-              </p>
-            </div>
           </div>
         </div>
       </section>

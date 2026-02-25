@@ -7,6 +7,7 @@ import { getClientIp } from '@/lib/rate-limit';
 import {
   TMS_PARTNER_PACKS,
   TMS_ONBOARDING_FEE_CENTS,
+  TMS_SIGNUP_DISCOUNT,
   AUTO_CREATE_CARRIER_FEE_CENTS,
 } from '@/lib/stripe/credits';
 
@@ -40,20 +41,27 @@ export async function POST(request: NextRequest) {
 
     const data = parsed.data;
 
-    // Validate selected pack exists
-    const pack = TMS_PARTNER_PACKS.find((p) => p.id === data.selected_pack_id);
-    if (!pack) {
+    // Validate selected pack exists (optional — partners can skip pack selection)
+    const pack = data.selected_pack_id
+      ? TMS_PARTNER_PACKS.find((p) => p.id === data.selected_pack_id)
+      : null;
+    if (data.selected_pack_id && !pack) {
       return NextResponse.json(
         { error: 'Invalid credit pack selection' },
         { status: 400 },
       );
     }
 
+    // Apply 25% signup discount to pack price when purchased during application
+    const discountedPackPriceCents = pack
+      ? Math.round(pack.price_cents * (1 - TMS_SIGNUP_DISCOUNT))
+      : 0;
+
     // Calculate total
     const migrationFee = data.has_migration_data ? data.migration_fee_cents : 0;
     const autoCreateFee = data.auto_create_carriers ? AUTO_CREATE_CARRIER_FEE_CENTS : 0;
     const totalAmountCents =
-      TMS_ONBOARDING_FEE_CENTS + pack.price_cents + migrationFee + autoCreateFee;
+      TMS_ONBOARDING_FEE_CENTS + discountedPackPriceCents + migrationFee + autoCreateFee;
 
     // Insert application
     const supabase = createAdminClient();
@@ -78,9 +86,9 @@ export async function POST(request: NextRequest) {
         migration_fee_cents: migrationFee,
         auto_create_carriers: data.auto_create_carriers,
         auto_create_fee_cents: autoCreateFee,
-        selected_pack_id: pack.id,
-        selected_pack_credits: pack.credits,
-        selected_pack_price_cents: pack.price_cents,
+        selected_pack_id: pack?.id ?? '',
+        selected_pack_credits: pack?.credits ?? 0,
+        selected_pack_price_cents: discountedPackPriceCents,
         partner_agreement_accepted: data.partner_agreement_accepted,
         data_processing_accepted: data.data_processing_accepted,
         legal_signatory_name: data.legal_signatory_name,
@@ -106,24 +114,27 @@ export async function POST(request: NextRequest) {
           currency: 'usd',
           product_data: {
             name: 'Partner Onboarding Fee',
-            description: 'One-time setup: 40hrs integration specialist + 15hrs custom development',
+            description: 'One-time partner onboarding setup',
           },
           unit_amount: TMS_ONBOARDING_FEE_CENTS,
         },
         quantity: 1,
       },
-      {
+    ];
+
+    if (pack) {
+      lineItems.push({
         price_data: {
           currency: 'usd',
           product_data: {
-            name: `${pack.name} Credit Pack — ${pack.credits.toLocaleString()} consents`,
+            name: `${pack.name} Credit Pack — ${pack.credits.toLocaleString()} consents (25% signup discount)`,
             description: `${pack.per_consent}/consent — ${pack.description}`,
           },
-          unit_amount: pack.price_cents,
+          unit_amount: discountedPackPriceCents,
         },
         quantity: 1,
-      },
-    ];
+      });
+    }
 
     if (migrationFee > 0) {
       const totalGB = Math.ceil((data.migration_total_bytes || 0) / (1024 * 1024 * 1024));

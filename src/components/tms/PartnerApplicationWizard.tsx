@@ -6,6 +6,7 @@ import { Upload, Download, Link2, Code2, Search, Copy, Check, FileText } from 'l
 import {
   TMS_PARTNER_PACKS,
   TMS_ONBOARDING_FEE_CENTS,
+  TMS_SIGNUP_DISCOUNT,
   AUTO_CREATE_CARRIER_FEE_CENTS,
   MIGRATION_PRICE_PER_GB_CENTS,
   type TmsPartnerPack,
@@ -456,7 +457,7 @@ export function PartnerApplicationWizard() {
         auto_create_fee_cents: migration.auto_create_carriers ? AUTO_CREATE_CARRIER_FEE_CENTS : 0,
         selected_pack_id: selectedPack.id,
         selected_pack_credits: selectedPack.credits,
-        selected_pack_price_cents: selectedPack.price_cents,
+        selected_pack_price_cents: discountedPackCents,
         partner_agreement_accepted: partnerAgreementAccepted as true,
         data_processing_accepted: dataProcessingAccepted as true,
         legal_signatory_name: legalSignatoryName,
@@ -492,13 +493,15 @@ export function PartnerApplicationWizard() {
   const labelCls = 'block text-xs font-medium text-[#8b919a] uppercase tracking-wider mb-1.5';
   const selectCls = `${inputCls} bg-white`;
 
-  // Total calculation
-  const totalCents = selectedPack
-    ? TMS_ONBOARDING_FEE_CENTS +
-      selectedPack.price_cents +
-      (migration.has_migration_data ? migration.migration_fee_cents : 0) +
-      (migration.auto_create_carriers ? AUTO_CREATE_CARRIER_FEE_CENTS : 0)
+  // Total calculation (25% discount on pack when purchased during signup)
+  const discountedPackCents = selectedPack
+    ? Math.round(selectedPack.price_cents * (1 - TMS_SIGNUP_DISCOUNT))
     : 0;
+  const totalCents =
+    TMS_ONBOARDING_FEE_CENTS +
+    discountedPackCents +
+    (migration.has_migration_data ? migration.migration_fee_cents : 0) +
+    (migration.auto_create_carriers ? AUTO_CREATE_CARRIER_FEE_CENTS : 0);
 
   return (
     <div className="border border-[#e8e8e3] bg-white">
@@ -1052,11 +1055,15 @@ export function PartnerApplicationWizard() {
         {/* ----------------------------------------------------------------- */}
         {step === 4 && (
           <div>
-            <p className="mb-4 text-sm font-medium text-[#3a3f49]">Select Your Credit Pack</p>
+            <p className="mb-2 text-sm font-medium text-[#3a3f49]">Select Your Credit Pack</p>
+            <p className="mb-4 text-xs text-emerald-600 font-medium">
+              Save 25% on credit packs when you purchase during signup. You can also buy credits later at full price.
+            </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {TMS_PARTNER_PACKS.map((pack) => {
                 const isRecommended = pack.id === recommendedPackId;
                 const isSelected = selectedPack?.id === pack.id;
+                const discountedCents = Math.round(pack.price_cents * (1 - TMS_SIGNUP_DISCOUNT));
                 return (
                   <button
                     key={pack.id}
@@ -1072,9 +1079,15 @@ export function PartnerApplicationWizard() {
                         Recommended
                       </span>
                     )}
-                    <p className="text-lg font-bold text-[#0c0f14]">{pack.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-lg font-bold text-[#0c0f14]">{pack.name}</p>
+                      <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        25% Off
+                      </span>
+                    </div>
                     <p className="text-2xl font-bold text-[#0c0f14] mt-1">
-                      {formatCents(pack.price_cents)}
+                      {formatCents(discountedCents)}
+                      <span className="text-sm text-[#8b919a] line-through ml-2">{formatCents(pack.price_cents)}</span>
                     </p>
                     <p className="text-sm text-[#C8A75E] font-medium mt-1">
                       {pack.credits.toLocaleString()} consents — {pack.per_consent}/each
@@ -1111,7 +1124,7 @@ export function PartnerApplicationWizard() {
                   <p className="font-bold mb-2">CONSENTHAUL TMS PARTNER AGREEMENT</p>
                   <p className="mb-2">This Partner Agreement (&quot;Agreement&quot;) is entered into between ConsentHaul, Inc. (&quot;ConsentHaul&quot;) and the Partner identified in the application form.</p>
                   <p className="mb-2"><strong>1. Partner Rights.</strong> Partner receives a non-exclusive license to integrate ConsentHaul&apos;s FMCSA consent collection services into their TMS platform via API. Partner may resell consent services to their carrier customers.</p>
-                  <p className="mb-2"><strong>2. Onboarding.</strong> ConsentHaul provides 40 hours of integration specialist support and 15 hours of custom development as part of the onboarding fee. Additional hours billed at $250/hr.</p>
+                  <p className="mb-2"><strong>2. Onboarding.</strong> ConsentHaul provides integration support, sandbox API keys, and a dedicated partner channel as part of the onboarding fee.</p>
                   <p className="mb-2"><strong>3. Credits.</strong> Partner purchases consent credits in bulk at negotiated rates. Credits do not expire. Credits are non-refundable after 30 days.</p>
                   <p className="mb-2"><strong>4. Data Handling.</strong> All driver consent data is processed in accordance with FMCSA Clearinghouse regulations, the ESIGN Act, and UETA. ConsentHaul maintains SOC 2 Type II compliance.</p>
                   <p className="mb-2"><strong>5. Sub-Organizations.</strong> If Partner elects auto-creation of carrier sub-organizations, each carrier receives its own organization ID, API keys, and isolated data scope.</p>
@@ -1219,10 +1232,16 @@ export function PartnerApplicationWizard() {
                   <p className="text-xs text-[#8b919a]">
                     {selectedPack.credits.toLocaleString()} consents at {selectedPack.per_consent}/each
                   </p>
+                  <p className="text-xs text-emerald-600 font-medium">25% signup discount applied</p>
                 </div>
-                <span className="text-sm font-medium text-[#0c0f14]">
-                  {formatCents(selectedPack.price_cents)}
-                </span>
+                <div className="text-right">
+                  <span className="text-sm font-medium text-[#0c0f14]">
+                    {formatCents(discountedPackCents)}
+                  </span>
+                  <p className="text-xs text-[#8b919a] line-through">
+                    {formatCents(selectedPack.price_cents)}
+                  </p>
+                </div>
               </div>
 
               {migration.has_migration_data && migration.migration_fee_cents > 0 && (

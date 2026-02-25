@@ -648,11 +648,15 @@ export async function sendPartnerReceiptEmail({
     <tr>
       <td style="padding:10px 16px;font-size:13px;color:#3a3f49;border-bottom:1px solid #e8e8e3;">Partner Onboarding Fee</td>
       <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;text-align:right;">${fmt(onboardingFeeCents)}</td>
-    </tr>
+    </tr>`;
+
+  if (packName && packCredits && packPriceCents > 0) {
+    lineItemsHtml += `
     <tr>
-      <td style="padding:10px 16px;font-size:13px;color:#3a3f49;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;">${packName} Credit Pack (${packCredits.toLocaleString()} consents)</td>
+      <td style="padding:10px 16px;font-size:13px;color:#3a3f49;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;">${packName} Credit Pack (${packCredits.toLocaleString()} consents) — 25% signup discount</td>
       <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;text-align:right;">${fmt(packPriceCents)}</td>
     </tr>`;
+  }
 
   if (migrationFeeCents > 0) {
     lineItemsHtml += `
@@ -813,7 +817,7 @@ export async function sendPartnerWelcomeEmail({
         <td style="padding:12px 16px;border-bottom:1px solid #e8e8e3;">
           <p style="margin:0 0 4px;font-size:14px;font-weight:600;color:#0c0f14;">1. Integration kickoff call</p>
           <p style="margin:0;font-size:13px;color:#6b6f76;">
-            Your dedicated integration specialist will reach out within 24 hours to schedule a kickoff call. You have 40 hours of specialist time included.
+            Our partnerships team will reach out within 24 hours to schedule a kickoff call and get your integration started.
           </p>
         </td>
       </tr>

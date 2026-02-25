@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ServiceRequestWizard } from '@/components/help/ServiceRequestWizard';
 import { ServiceRequestList } from '@/components/help/ServiceRequestList';
+import { TerminalTyping } from '@/components/landing/TerminalTyping';
 import {
   Zap,
   BarChart3,
@@ -67,25 +68,32 @@ export default function HelpPage() {
             backgroundSize: '48px 48px',
           }}
         />
-        <div className="relative">
-          {/* Eyebrow */}
-          <div className="flex items-center gap-3 mb-4">
-            <div className="h-px w-8 bg-[#C8A75E]" />
-            <span className="text-[11px] font-bold tracking-[0.15em] text-[#C8A75E] uppercase">
-              Custom Integrations
-            </span>
+        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+          <div>
+            {/* Eyebrow */}
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-px w-8 bg-[#C8A75E]" />
+              <span className="text-[11px] font-bold tracking-[0.15em] text-[#C8A75E] uppercase">
+                Custom Integrations
+              </span>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-3">
+              We Build It.{' '}
+              <span className="text-[#C8A75E]">You Ship It.</span>
+            </h1>
+
+            <p className="text-sm text-[#8b919a] max-w-xl leading-relaxed">
+              Real human engineering — our team handles every integration
+              personally. No AI slop, no templates. Tell us what you need and
+              we&apos;ll build it.
+            </p>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-3">
-            We Build It.{' '}
-            <span className="text-[#C8A75E]">You Ship It.</span>
-          </h1>
-
-          <p className="text-sm text-[#8b919a] max-w-xl leading-relaxed">
-            Real human engineering — our team handles every integration
-            personally. No AI slop, no templates. Tell us what you need and
-            we&apos;ll build it.
-          </p>
+          {/* Terminal code block with typing animation */}
+          <div className="shrink-0 hidden sm:block">
+            <TerminalTyping />
+          </div>
         </div>
       </div>
 

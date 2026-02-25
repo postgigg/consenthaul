@@ -20,16 +20,11 @@ const TIMELINE = [
   },
   {
     label: 'Week 1–2',
-    title: 'Integration Build',
-    desc: 'Your 40 hours of integration specialist support begins. We\'ll work alongside your engineering team to build the integration.',
+    title: 'Integration Support',
+    desc: 'Our team provides integration guidance, architecture review, and hands-on support as you build.',
   },
   {
     label: 'Week 2–3',
-    title: 'Custom Development',
-    desc: '15 hours of custom development for carrier-specific workflows, white-label UI, or specialized reporting.',
-  },
-  {
-    label: 'Week 3–4',
     title: 'Testing & Launch',
     desc: 'End-to-end testing with real carrier accounts, load testing, and production deployment with live API keys.',
   },
@@ -65,19 +60,19 @@ export default function TMSApplySuccessPage() {
           </div>
           <div className="divide-y divide-[#e8e8e3]">
             <div className="flex justify-between px-6 py-3">
-              <span className="text-sm text-[#8b919a]">Integration Specialist</span>
-              <span className="text-sm font-medium text-[#0c0f14]">40 hours</span>
-            </div>
-            <div className="flex justify-between px-6 py-3">
-              <span className="text-sm text-[#8b919a]">Custom Development</span>
-              <span className="text-sm font-medium text-[#0c0f14]">15 hours</span>
-            </div>
-            <div className="flex justify-between px-6 py-3">
               <span className="text-sm text-[#8b919a]">Dedicated Slack Channel</span>
               <span className="text-sm font-medium text-[#0c0f14]">Included</span>
             </div>
             <div className="flex justify-between px-6 py-3">
               <span className="text-sm text-[#8b919a]">Sandbox + Production API Keys</span>
+              <span className="text-sm font-medium text-[#0c0f14]">Included</span>
+            </div>
+            <div className="flex justify-between px-6 py-3">
+              <span className="text-sm text-[#8b919a]">Integration Support</span>
+              <span className="text-sm font-medium text-[#0c0f14]">Included</span>
+            </div>
+            <div className="flex justify-between px-6 py-3">
+              <span className="text-sm text-[#8b919a]">API Documentation Access</span>
               <span className="text-sm font-medium text-[#0c0f14]">Included</span>
             </div>
           </div>

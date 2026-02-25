@@ -18,10 +18,12 @@ import {
   Bot,
   LifeBuoy,
   Shield,
+  Building2,
 } from 'lucide-react';
 import { LogoFull } from '@/components/brand/Logo';
 import { OrgSwitcher } from '@/components/layout/OrgSwitcher';
 import type { Database } from '@/types/database';
+import type { LucideIcon } from 'lucide-react';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type Organization = Database['public']['Tables']['organizations']['Row'];
@@ -31,7 +33,14 @@ interface SidebarProps {
   organization: Organization;
 }
 
-const navItems = [
+interface NavItem {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  partner?: boolean;
+}
+
+const baseNavItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Drivers', href: '/drivers', icon: Users },
   { label: 'Consents', href: '/consents', icon: FileSignature },
@@ -43,11 +52,22 @@ const navItems = [
   { label: 'Settings', href: '/settings', icon: Settings },
 ];
 
+const partnerNavItem: NavItem = {
+  label: 'TMS Partner',
+  href: '/partner',
+  icon: Building2,
+  partner: true,
+};
+
 export function Sidebar({ profile, organization }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+
+  const navItems: NavItem[] = organization.is_partner
+    ? [baseNavItems[0], partnerNavItem, ...baseNavItems.slice(1)]
+    : baseNavItems;
 
   function isActive(href: string) {
     if (href === '/dashboard') {
@@ -81,6 +101,7 @@ export function Sidebar({ profile, organization }: SidebarProps) {
         {navItems.map((item) => {
           const active = isActive(item.href);
           const Icon = item.icon;
+          const isPartnerLink = item.partner === true;
           return (
             <Link
               key={item.href}
@@ -89,11 +110,18 @@ export function Sidebar({ profile, organization }: SidebarProps) {
               className={`group flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors ${
                 active
                   ? 'bg-[#C8A75E]/15 text-[#C8A75E]'
-                  : 'text-[#6b6f76] hover:bg-[#1e2129] hover:text-[#d4d4cf]'
+                  : isPartnerLink
+                    ? 'text-[#C8A75E]/70 hover:bg-[#C8A75E]/10 hover:text-[#C8A75E]'
+                    : 'text-[#6b6f76] hover:bg-[#1e2129] hover:text-[#d4d4cf]'
               }`}
             >
-              <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? 'text-[#C8A75E]' : 'text-[#5c6370] group-hover:text-[#8b919a]'}`} />
+              <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? 'text-[#C8A75E]' : isPartnerLink ? 'text-[#C8A75E]/60 group-hover:text-[#C8A75E]' : 'text-[#5c6370] group-hover:text-[#8b919a]'}`} />
               <span className="flex-1">{item.label}</span>
+              {isPartnerLink && !active && (
+                <span className="inline-flex items-center px-1.5 py-0.5 text-[0.5rem] font-bold uppercase tracking-wider bg-[#C8A75E]/20 text-[#C8A75E]">
+                  Partner
+                </span>
+              )}
               {active && (
                 <div className="h-1.5 w-1.5 bg-[#C8A75E]" />
               )}

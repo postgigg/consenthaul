@@ -109,8 +109,11 @@ export const TMS_PARTNER_PACKS: TmsPartnerPack[] = [
   },
 ];
 
-/** One-time partner onboarding fee: $5,000 (includes 40hrs specialist + 15hrs custom dev) */
-export const TMS_ONBOARDING_FEE_CENTS = 500_000;
+/** One-time partner onboarding fee: $499 */
+export const TMS_ONBOARDING_FEE_CENTS = 49_900;
+
+/** Signup discount on credit packs: 25% off when purchased during partner application */
+export const TMS_SIGNUP_DISCOUNT = 0.25;
 
 /** Data migration fee per GB: $17/GB */
 export const MIGRATION_PRICE_PER_GB_CENTS = 1700;
