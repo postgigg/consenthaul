@@ -599,7 +599,289 @@ export async function sendWelcomeEmail({
 }
 
 // ---------------------------------------------------------------------------
-// 5. Service request admin notification (sent to admin on new request)
+// 5. Partner payment receipt (sent after Stripe payment completes)
+// ---------------------------------------------------------------------------
+
+interface SendPartnerReceiptParams {
+  to: string;
+  contactName: string;
+  companyName: string;
+  packName: string;
+  packCredits: number;
+  onboardingFeeCents: number;
+  packPriceCents: number;
+  migrationFeeCents: number;
+  autoCreateFeeCents: number;
+  totalAmountCents: number;
+  stripePaymentIntent: string;
+  paidAt: string;
+}
+
+export async function sendPartnerReceiptEmail({
+  to,
+  contactName,
+  companyName,
+  packName,
+  packCredits,
+  onboardingFeeCents,
+  packPriceCents,
+  migrationFeeCents,
+  autoCreateFeeCents,
+  totalAmountCents,
+  stripePaymentIntent,
+  paidAt,
+}: SendPartnerReceiptParams): Promise<void> {
+  const paidDate = new Date(paidAt).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+
+  const fmt = (cents: number) =>
+    `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const subject = `Payment receipt — ConsentHaul Partner (${fmt(totalAmountCents)})`;
+
+  let lineItemsHtml = `
+    <tr>
+      <td style="padding:10px 16px;font-size:13px;color:#3a3f49;border-bottom:1px solid #e8e8e3;">Partner Onboarding Fee</td>
+      <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;text-align:right;">${fmt(onboardingFeeCents)}</td>
+    </tr>
+    <tr>
+      <td style="padding:10px 16px;font-size:13px;color:#3a3f49;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;">${packName} Credit Pack (${packCredits.toLocaleString()} consents)</td>
+      <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;text-align:right;">${fmt(packPriceCents)}</td>
+    </tr>`;
+
+  if (migrationFeeCents > 0) {
+    lineItemsHtml += `
+    <tr>
+      <td style="padding:10px 16px;font-size:13px;color:#3a3f49;border-bottom:1px solid #e8e8e3;">Data Migration</td>
+      <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;text-align:right;">${fmt(migrationFeeCents)}</td>
+    </tr>`;
+  }
+
+  if (autoCreateFeeCents > 0) {
+    lineItemsHtml += `
+    <tr>
+      <td style="padding:10px 16px;font-size:13px;color:#3a3f49;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;">Auto-Create Carrier Sub-Orgs</td>
+      <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;text-align:right;">${fmt(autoCreateFeeCents)}</td>
+    </tr>`;
+  }
+
+  const body = `
+    <p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:#0c0f14;">Hi ${contactName},</p>
+
+    <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#3a3f49;">
+      Thank you for your payment. Here is your receipt for the ConsentHaul TMS Partner application.
+    </p>
+
+    <!-- Success badge -->
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;width:100%;">
+      <tr>
+        <td style="background-color:#f0fdf4;border-left:3px solid #22c55e;padding:12px 16px;">
+          <p style="margin:0;font-size:15px;font-weight:600;color:#166534;">
+            Payment of ${fmt(totalAmountCents)} received
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:0 0 12px;font-size:12px;font-weight:700;color:#8b919a;letter-spacing:0.08em;text-transform:uppercase;">Invoice Details</p>
+
+    <!-- Line items table -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;border:1px solid #e8e8e3;">
+      <tr>
+        <td style="padding:10px 16px;font-size:11px;font-weight:700;color:#8b919a;border-bottom:1px solid #e8e8e3;letter-spacing:0.05em;text-transform:uppercase;">Item</td>
+        <td style="padding:10px 16px;font-size:11px;font-weight:700;color:#8b919a;border-bottom:1px solid #e8e8e3;letter-spacing:0.05em;text-transform:uppercase;text-align:right;">Amount</td>
+      </tr>
+      ${lineItemsHtml}
+      <tr>
+        <td style="padding:12px 16px;font-size:14px;font-weight:700;color:#0c0f14;background-color:#fafaf8;">Total</td>
+        <td style="padding:12px 16px;font-size:16px;font-weight:700;color:#C8A75E;background-color:#fafaf8;text-align:right;">${fmt(totalAmountCents)}</td>
+      </tr>
+    </table>
+
+    <p style="margin:0 0 12px;font-size:12px;font-weight:700;color:#8b919a;letter-spacing:0.08em;text-transform:uppercase;">Payment Info</p>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;border:1px solid #e8e8e3;">
+      <tr>
+        <td style="padding:10px 16px;font-size:13px;color:#8b919a;border-bottom:1px solid #e8e8e3;width:140px;">Company</td>
+        <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;">${companyName}</td>
+      </tr>
+      <tr>
+        <td style="padding:10px 16px;font-size:13px;color:#8b919a;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;">Date</td>
+        <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;">${paidDate}</td>
+      </tr>
+      <tr>
+        <td style="padding:10px 16px;font-size:13px;color:#8b919a;">Reference</td>
+        <td style="padding:10px 16px;font-size:12px;font-family:monospace;color:#6b6f76;">${stripePaymentIntent.slice(0, 20)}...</td>
+      </tr>
+    </table>
+
+    <hr style="border:none;border-top:1px solid #e8e8e3;margin:24px 0;" />
+
+    <p style="margin:0;font-size:13px;line-height:1.5;color:#8b919a;">
+      This receipt is for your records. Your account is being provisioned and you will receive a welcome email shortly with your login credentials and API keys.
+    </p>
+  `;
+
+  const html = emailShell({
+    lang: 'en',
+    title: 'Payment Receipt',
+    preheader: `Payment of ${fmt(totalAmountCents)} received for ConsentHaul Partner.`,
+    body,
+    footerText: `This receipt was sent to ${to} for ${companyName}.`,
+  });
+
+  await getResend().emails.send({
+    from: 'ConsentHaul <noreply@consenthaul.com>',
+    to,
+    subject,
+    html,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// 6. Partner welcome email (sent after provisioning completes)
+// ---------------------------------------------------------------------------
+
+interface SendPartnerWelcomeParams {
+  to: string;
+  contactName: string;
+  companyName: string;
+  packName: string;
+  packCredits: number;
+  sandboxKeyPrefix: string;
+  liveKeyPrefix: string;
+}
+
+export async function sendPartnerWelcomeEmail({
+  to,
+  contactName,
+  companyName,
+  packName,
+  packCredits,
+  sandboxKeyPrefix,
+  liveKeyPrefix,
+}: SendPartnerWelcomeParams): Promise<void> {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://consenthaul.com';
+
+  const subject = `Welcome to the ConsentHaul Partner Program, ${companyName}!`;
+
+  const body = `
+    <p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:#0c0f14;">Hi ${contactName},</p>
+
+    <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#3a3f49;">
+      Welcome to the ConsentHaul Partner Program! Your account has been provisioned and is ready to go. Here is everything you need to get started.
+    </p>
+
+    <!-- Partner badge -->
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;width:100%;">
+      <tr>
+        <td style="background-color:#fffbeb;border-left:3px solid #C8A75E;padding:16px;">
+          <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#92400e;letter-spacing:0.08em;text-transform:uppercase;">Partner Account Active</p>
+          <p style="margin:0;font-size:15px;font-weight:600;color:#0c0f14;">
+            ${companyName} &mdash; ${packName} Pack (${packCredits.toLocaleString()} consents)
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:0 0 12px;font-size:12px;font-weight:700;color:#8b919a;letter-spacing:0.08em;text-transform:uppercase;">Your API Keys</p>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;border:1px solid #e8e8e3;">
+      <tr>
+        <td style="padding:10px 16px;font-size:13px;color:#8b919a;border-bottom:1px solid #e8e8e3;width:140px;">Sandbox Key</td>
+        <td style="padding:10px 16px;font-size:12px;font-family:monospace;color:#0c0f14;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;">${sandboxKeyPrefix}...</td>
+      </tr>
+      <tr>
+        <td style="padding:10px 16px;font-size:13px;color:#8b919a;">Live Key</td>
+        <td style="padding:10px 16px;font-size:12px;font-family:monospace;color:#0c0f14;">${liveKeyPrefix}...</td>
+      </tr>
+    </table>
+
+    <p style="margin:0 0 24px;font-size:13px;line-height:1.5;color:#8b919a;">
+      Full API keys are visible in your dashboard under Settings &rarr; API Keys. For security, they are only shown once when generated.
+    </p>
+
+    <p style="margin:0 0 12px;font-size:12px;font-weight:700;color:#8b919a;letter-spacing:0.08em;text-transform:uppercase;">What&rsquo;s Next</p>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;border:1px solid #e8e8e3;">
+      <tr>
+        <td style="padding:12px 16px;border-bottom:1px solid #e8e8e3;">
+          <p style="margin:0 0 4px;font-size:14px;font-weight:600;color:#0c0f14;">1. Integration kickoff call</p>
+          <p style="margin:0;font-size:13px;color:#6b6f76;">
+            Your dedicated integration specialist will reach out within 24 hours to schedule a kickoff call. You have 40 hours of specialist time included.
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:12px 16px;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;">
+          <p style="margin:0 0 4px;font-size:14px;font-weight:600;color:#0c0f14;">2. API integration</p>
+          <p style="margin:0;font-size:13px;color:#6b6f76;">
+            Start integrating with our REST API or connect AI agents via MCP.
+            <a href="${appUrl}/mcp-docs" style="color:#C8A75E;text-decoration:underline;">View API &amp; MCP docs &rarr;</a>
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:12px 16px;border-bottom:1px solid #e8e8e3;">
+          <p style="margin:0 0 4px;font-size:14px;font-weight:600;color:#0c0f14;">3. Data migration</p>
+          <p style="margin:0;font-size:13px;color:#6b6f76;">
+            If you uploaded migration data, our team will process it during your onboarding kickoff.
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:12px 16px;background-color:#fafaf8;">
+          <p style="margin:0 0 4px;font-size:14px;font-weight:600;color:#0c0f14;">4. Go live</p>
+          <p style="margin:0;font-size:13px;color:#6b6f76;">
+            Once your integration is tested in sandbox, switch to your live key and start collecting consents.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <!-- CTA Button -->
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 24px;">
+      <tr>
+        <td align="center" style="background-color:#C8A75E;">
+          <a href="${appUrl}/dashboard" target="_blank" style="display:inline-block;padding:14px 36px;font-size:14px;font-weight:700;color:#0c0f14;text-decoration:none;letter-spacing:0.05em;text-transform:uppercase;">
+            OPEN YOUR DASHBOARD
+          </a>
+        </td>
+      </tr>
+    </table>
+
+    <hr style="border:none;border-top:1px solid #e8e8e3;margin:24px 0;" />
+
+    <p style="margin:0;font-size:14px;line-height:1.6;color:#6b6f76;">
+      Questions? Reply to this email or reach us at
+      <a href="mailto:partners@consenthaul.com" style="color:#C8A75E;text-decoration:underline;">partners@consenthaul.com</a>.
+      We are here to make your integration seamless.
+    </p>
+  `;
+
+  const html = emailShell({
+    lang: 'en',
+    title: 'Welcome to ConsentHaul Partners',
+    preheader: `${companyName} is now a ConsentHaul partner — ${packCredits.toLocaleString()} credits ready.`,
+    body,
+    footerText: `You received this email because ${companyName} joined the ConsentHaul Partner Program.`,
+  });
+
+  await getResend().emails.send({
+    from: 'ConsentHaul <noreply@consenthaul.com>',
+    to,
+    subject,
+    html,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// 7. Service request admin notification (sent to admin on new request)
 // ---------------------------------------------------------------------------
 
 interface SendServiceRequestNotificationParams {

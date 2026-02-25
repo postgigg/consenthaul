@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import Stripe from 'stripe';
 import { CREDIT_PACKS, TMS_PARTNER_PACKS } from '@/lib/stripe/credits';
+import { sendPartnerReceiptEmail, sendPartnerWelcomeEmail } from '@/lib/messaging/email';
 import { generateApiKey } from '@/lib/tokens';
 import { webhookLimiter } from '@/lib/rate-limiters';
 import { getClientIp } from '@/lib/rate-limit';
@@ -295,6 +296,28 @@ async function handlePartnerApplicationPayment(session: Stripe.Checkout.Session)
 
   console.log(`[Stripe webhook] Partner application ${applicationId} marked as paid`);
 
+  // Send payment receipt email
+  const pack = TMS_PARTNER_PACKS.find((p) => p.id === application.selected_pack_id);
+  try {
+    await sendPartnerReceiptEmail({
+      to: application.contact_email,
+      contactName: application.contact_name,
+      companyName: application.company_name,
+      packName: pack?.name ?? 'Partner',
+      packCredits: application.selected_pack_credits,
+      onboardingFeeCents: application.onboarding_fee_cents,
+      packPriceCents: application.selected_pack_price_cents,
+      migrationFeeCents: application.migration_fee_cents,
+      autoCreateFeeCents: application.auto_create_fee_cents,
+      totalAmountCents: application.total_amount_cents,
+      stripePaymentIntent: paymentIntentId,
+      paidAt: new Date().toISOString(),
+    });
+    console.log(`[Stripe webhook] Payment receipt sent to ${application.contact_email}`);
+  } catch (emailErr) {
+    console.error('[Stripe webhook] Failed to send receipt email:', emailErr);
+  }
+
   // Begin provisioning
   await supabase
     .from('partner_applications')
@@ -352,7 +375,6 @@ async function handlePartnerApplicationPayment(session: Stripe.Checkout.Session)
       .eq('id', orgId);
 
     // 3. Add selected credit pack via RPC
-    const pack = TMS_PARTNER_PACKS.find((p) => p.id === application.selected_pack_id);
     if (pack) {
       await supabase.rpc('add_credits', {
         p_org_id: orgId,
@@ -422,6 +444,22 @@ async function handlePartnerApplicationPayment(session: Stripe.Checkout.Session)
         has_migration_data: application.has_migration_data,
       },
     });
+
+    // 8. Send partner welcome email
+    try {
+      await sendPartnerWelcomeEmail({
+        to: application.contact_email,
+        contactName: application.contact_name,
+        companyName: application.company_name,
+        packName: pack?.name ?? 'Partner',
+        packCredits: pack?.credits ?? application.selected_pack_credits,
+        sandboxKeyPrefix: sandboxKey.prefix,
+        liveKeyPrefix: liveKey.prefix,
+      });
+      console.log(`[Stripe webhook] Partner welcome email sent to ${application.contact_email}`);
+    } catch (emailErr) {
+      console.error('[Stripe webhook] Failed to send partner welcome email:', emailErr);
+    }
 
     console.log(
       `[Stripe webhook] Partner ${application.company_name} provisioned: org=${orgId}, ` +

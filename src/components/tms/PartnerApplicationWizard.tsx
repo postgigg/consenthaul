@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Upload, X } from 'lucide-react';
+import { Upload, Download, Link2, Code2, Search, Copy, Check, FileText } from 'lucide-react';
 import {
   TMS_PARTNER_PACKS,
   TMS_ONBOARDING_FEE_CENTS,
@@ -69,6 +69,20 @@ interface VolumeInfo {
   recommended_pack_id: string;
 }
 
+interface UploadedFileInfo {
+  path: string;
+  name: string;
+  size_bytes: number;
+  uploaded_at: string;
+}
+
+interface ParseResult {
+  carrier_count: number;
+  driver_count: number;
+  carrier_sample: string[];
+  driver_sample: string[];
+}
+
 interface MigrationInfo {
   has_migration_data: boolean;
   migration_file_paths: string[];
@@ -76,7 +90,33 @@ interface MigrationInfo {
   migration_fee_cents: number;
   auto_create_carriers: boolean;
   auto_create_fee_cents: number;
-  files: File[];
+  transfer_token: string | null;
+  carrier_count: number | null;
+  driver_count: number | null;
+  uploaded_files: UploadedFileInfo[];
+}
+
+const CARRIERS_TEMPLATE = `company_name,dot_number,mc_number,phone,email,contact_name
+"ABC Trucking","1234567","MC-987654","(555) 111-2222","dispatch@abctrucking.com","Mike Johnson"`;
+
+const DRIVERS_TEMPLATE = `carrier_company_name,first_name,last_name,phone,email,cdl_number,cdl_state
+"ABC Trucking","John","Smith","(555) 333-4444","john.smith@email.com","D1234567","CA"`;
+
+function downloadTemplate(filename: string, content: string) {
+  const blob = new Blob([content], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
 const TOTAL_STEPS = 7;
@@ -165,9 +205,18 @@ export function PartnerApplicationWizard() {
     migration_fee_cents: 0,
     auto_create_carriers: false,
     auto_create_fee_cents: 0,
-    files: [],
+    transfer_token: null,
+    carrier_count: null,
+    driver_count: null,
+    uploaded_files: [],
   });
   const [uploading, setUploading] = useState(false);
+  const [parsing, setParsing] = useState(false);
+  const [parseResult, setParseResult] = useState<ParseResult | null>(null);
+  const [generatingLink, setGeneratingLink] = useState(false);
+  const [shareableUrl, setShareableUrl] = useState('');
+  const [copied, setCopied] = useState(false);
+  const [activeMethod, setActiveMethod] = useState<'upload' | 'link' | 'api' | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
 
@@ -210,73 +259,174 @@ export function PartnerApplicationWizard() {
   }
 
   // ---------------------------------------------------------------------------
-  // File upload handlers
+  // Transfer token management
   // ---------------------------------------------------------------------------
+
+  const transferTokenRef = useRef<string | null>(null);
+
+  const ensureTransferToken = useCallback(async (): Promise<string> => {
+    if (transferTokenRef.current) return transferTokenRef.current;
+
+    const res = await fetch('/api/tms/upload-migration', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+
+    if (!res.ok) throw new Error('Failed to create transfer session');
+
+    const { token } = await res.json();
+    transferTokenRef.current = token;
+    setMigration((prev) => ({ ...prev, transfer_token: token }));
+    return token;
+  }, []);
+
+  // ---------------------------------------------------------------------------
+  // File upload handlers (presigned URL flow)
+  // ---------------------------------------------------------------------------
+
+  const uploadSingleFile = useCallback(async (file: File, transferToken: string) => {
+    // 1. Get presigned URL
+    const presignRes = await fetch('/api/tms/migration/presign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: transferToken,
+        filename: file.name,
+        content_type: file.type || 'text/csv',
+        size_bytes: file.size,
+      }),
+    });
+
+    if (!presignRes.ok) {
+      const data = await presignRes.json();
+      throw new Error(data.error || 'Failed to get upload URL');
+    }
+
+    const { signed_url, path } = await presignRes.json();
+
+    // 2. PUT directly to storage (bypasses server body limit)
+    const uploadRes = await fetch(signed_url, {
+      method: 'PUT',
+      headers: { 'Content-Type': file.type || 'text/csv' },
+      body: file,
+    });
+
+    if (!uploadRes.ok) throw new Error(`Upload failed for ${file.name}`);
+
+    // 3. Confirm
+    const confirmRes = await fetch('/api/tms/migration/confirm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: transferToken,
+        path,
+        filename: file.name,
+        size_bytes: file.size,
+      }),
+    });
+
+    if (!confirmRes.ok) {
+      const data = await confirmRes.json();
+      throw new Error(data.error || 'Failed to confirm upload');
+    }
+
+    return { path, confirmData: await confirmRes.json() };
+  }, []);
 
   const handleFiles = useCallback(async (newFiles: File[]) => {
     const csvFiles = newFiles.filter((f) => f.name.endsWith('.csv'));
     if (csvFiles.length === 0) return;
 
-    const allFiles = [...migration.files, ...csvFiles].slice(0, 10);
-
     setUploading(true);
     setError('');
 
     try {
-      const formData = new FormData();
-      allFiles.forEach((f) => formData.append('files', f));
+      const transferToken = await ensureTransferToken();
 
-      const res = await fetch('/api/tms/upload-migration', {
-        method: 'POST',
-        body: formData,
-      });
+      for (const file of csvFiles) {
+        const { path, confirmData } = await uploadSingleFile(file, transferToken);
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Upload failed');
+        setMigration((prev) => ({
+          ...prev,
+          has_migration_data: true,
+          migration_total_bytes: confirmData.total_bytes,
+          migration_fee_cents: confirmData.migration_fee_cents,
+          uploaded_files: [...prev.uploaded_files, {
+            path,
+            name: file.name,
+            size_bytes: file.size,
+            uploaded_at: new Date().toISOString(),
+          }],
+        }));
       }
-
-      const result = await res.json();
-
-      setMigration((prev) => ({
-        ...prev,
-        has_migration_data: true,
-        migration_file_paths: result.storage_paths,
-        migration_total_bytes: result.total_bytes,
-        migration_fee_cents: result.migration_fee_cents,
-        files: allFiles,
-      }));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed');
     } finally {
       setUploading(false);
     }
-  }, [migration.files]);
-
-  function removeFile(index: number) {
-    const newFiles = migration.files.filter((_, i) => i !== index);
-    if (newFiles.length === 0) {
-      setMigration({
-        has_migration_data: false,
-        migration_file_paths: [],
-        migration_total_bytes: 0,
-        migration_fee_cents: 0,
-        auto_create_carriers: migration.auto_create_carriers,
-        auto_create_fee_cents: migration.auto_create_fee_cents,
-        files: [],
-      });
-    } else {
-      // Re-upload remaining files
-      handleFiles([]);
-      setMigration((prev) => ({ ...prev, files: newFiles }));
-    }
-  }
+  }, [uploadSingleFile, ensureTransferToken]);
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
     setDragOver(false);
-    const files = Array.from(e.dataTransfer.files);
-    handleFiles(files);
+    handleFiles(Array.from(e.dataTransfer.files));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Shareable link generation
+  // ---------------------------------------------------------------------------
+
+  async function handleGenerateLink() {
+    setGeneratingLink(true);
+    setError('');
+    try {
+      const transferToken = await ensureTransferToken();
+      const url = `${window.location.origin}/tms/upload/${transferToken}`;
+      setShareableUrl(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate link');
+    } finally {
+      setGeneratingLink(false);
+    }
+  }
+
+  function handleCopyLink() {
+    navigator.clipboard.writeText(shareableUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Parse uploaded files
+  // ---------------------------------------------------------------------------
+
+  async function handleParse() {
+    if (!migration.transfer_token) return;
+    setParsing(true);
+    setError('');
+    try {
+      const res = await fetch('/api/tms/migration/parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: migration.transfer_token }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Parse failed');
+      }
+      const result: ParseResult = await res.json();
+      setParseResult(result);
+      setMigration((prev) => ({
+        ...prev,
+        carrier_count: result.carrier_count,
+        driver_count: result.driver_count,
+      }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Parse failed');
+    } finally {
+      setParsing(false);
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -298,9 +448,10 @@ export function PartnerApplicationWizard() {
         estimated_annual_consents: annualEstimate,
         recommended_pack_id: recommendedPackId,
         has_migration_data: migration.has_migration_data,
-        migration_file_paths: migration.migration_file_paths,
+        migration_file_paths: migration.uploaded_files.map((f) => f.path),
         migration_total_bytes: migration.migration_total_bytes,
         migration_fee_cents: migration.migration_fee_cents,
+        transfer_token: migration.transfer_token,
         auto_create_carriers: migration.auto_create_carriers,
         auto_create_fee_cents: migration.auto_create_carriers ? AUTO_CREATE_CARRIER_FEE_CENTS : 0,
         selected_pack_id: selectedPack.id,
@@ -598,68 +749,225 @@ export function PartnerApplicationWizard() {
           <div>
             <p className="mb-4 text-sm font-medium text-[#3a3f49]">Data Migration (Optional)</p>
             <p className="mb-4 text-sm text-[#8b919a]">
-              Upload CSV files with your existing carrier/driver data. We&apos;ll migrate everything into ConsentHaul during onboarding.
+              Transfer your existing carrier/driver data into ConsentHaul. Upload CSV files, share a link with your data team, or use the API.
               Migration is billed at <span className="font-medium text-[#0c0f14]">{formatCents(MIGRATION_PRICE_PER_GB_CENTS)}/GB</span> (minimum {formatCents(MIGRATION_PRICE_PER_GB_CENTS)}).
             </p>
 
             <div className="space-y-4">
-              {/* File drop zone */}
-              <div
-                onDrop={handleDrop}
-                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                onDragLeave={(e) => { e.preventDefault(); setDragOver(false); }}
-                onClick={() => fileInputRef.current?.click()}
-                className={`border-2 border-dashed p-8 text-center cursor-pointer transition-colors ${
-                  dragOver
-                    ? 'border-[#C8A75E] bg-[#fafaf8]'
-                    : 'border-[#d4d4cf] hover:border-[#C8A75E]'
-                }`}
-              >
-                <Upload className="h-8 w-8 text-[#8b919a] mx-auto mb-2" />
-                <p className="text-sm text-[#3a3f49]">
-                  {uploading ? 'Uploading...' : 'Drag & drop CSV files here, or click to browse'}
+              {/* CSV Template Downloads */}
+              <div className="border border-[#e8e8e3] p-4">
+                <p className="text-xs font-medium text-[#8b919a] uppercase tracking-wider mb-3">
+                  CSV Templates
                 </p>
-                <p className="text-xs text-[#8b919a] mt-1">
-                  Max 10 files, 100MB total. CSV format only.
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={() => downloadTemplate('carriers.csv', CARRIERS_TEMPLATE)}
+                    className="flex items-center gap-2 px-3 py-2 border border-[#e8e8e3] text-sm text-[#3a3f49] hover:border-[#C8A75E] transition-colors"
+                  >
+                    <Download className="h-4 w-4" />
+                    carriers.csv
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => downloadTemplate('drivers.csv', DRIVERS_TEMPLATE)}
+                    className="flex items-center gap-2 px-3 py-2 border border-[#e8e8e3] text-sm text-[#3a3f49] hover:border-[#C8A75E] transition-colors"
+                  >
+                    <Download className="h-4 w-4" />
+                    drivers.csv
+                  </button>
+                </div>
+                <p className="mt-2 text-xs text-[#8b919a]">
+                  Use <code className="text-[#0c0f14] bg-[#f0f0ec] px-1">carrier_company_name</code> in drivers.csv to link drivers to their carrier in carriers.csv.
                 </p>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".csv"
-                  multiple
-                  className="hidden"
-                  onChange={(e) => {
-                    if (e.target.files) handleFiles(Array.from(e.target.files));
-                  }}
-                />
               </div>
 
-              {/* File list */}
-              {migration.files.length > 0 && (
-                <div className="border border-[#e8e8e3] divide-y divide-[#e8e8e3]">
-                  {migration.files.map((file, i) => (
-                    <div key={i} className="flex items-center justify-between px-4 py-2">
-                      <div>
-                        <p className="text-sm text-[#0c0f14]">{file.name}</p>
-                        <p className="text-xs text-[#8b919a]">
-                          {(file.size / 1024).toFixed(1)} KB
-                        </p>
+              {/* Three transfer method cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Upload Here */}
+                <button
+                  type="button"
+                  onClick={() => setActiveMethod(activeMethod === 'upload' ? null : 'upload')}
+                  className={`flex flex-col items-center p-4 border text-center transition-colors ${
+                    activeMethod === 'upload'
+                      ? 'border-[#C8A75E] bg-[#C8A75E]/5'
+                      : 'border-[#e8e8e3] hover:border-[#d4d4cf]'
+                  }`}
+                >
+                  <Upload className="h-6 w-6 text-[#C8A75E] mb-2" />
+                  <p className="text-sm font-medium text-[#0c0f14]">Upload Here</p>
+                  <p className="text-xs text-[#8b919a] mt-1">Drag & drop CSV files</p>
+                </button>
+
+                {/* Share Upload Link */}
+                <button
+                  type="button"
+                  onClick={() => setActiveMethod(activeMethod === 'link' ? null : 'link')}
+                  className={`flex flex-col items-center p-4 border text-center transition-colors ${
+                    activeMethod === 'link'
+                      ? 'border-[#C8A75E] bg-[#C8A75E]/5'
+                      : 'border-[#e8e8e3] hover:border-[#d4d4cf]'
+                  }`}
+                >
+                  <Link2 className="h-6 w-6 text-[#C8A75E] mb-2" />
+                  <p className="text-sm font-medium text-[#0c0f14]">Share Upload Link</p>
+                  <p className="text-xs text-[#8b919a] mt-1">Send to your data team</p>
+                </button>
+
+                {/* Migration API */}
+                <button
+                  type="button"
+                  onClick={() => setActiveMethod(activeMethod === 'api' ? null : 'api')}
+                  className={`flex flex-col items-center p-4 border text-center transition-colors ${
+                    activeMethod === 'api'
+                      ? 'border-[#C8A75E] bg-[#C8A75E]/5'
+                      : 'border-[#e8e8e3] hover:border-[#d4d4cf]'
+                  }`}
+                >
+                  <Code2 className="h-6 w-6 text-[#C8A75E] mb-2" />
+                  <p className="text-sm font-medium text-[#0c0f14]">Migration API</p>
+                  <p className="text-xs text-[#8b919a] mt-1">POST data programmatically</p>
+                </button>
+              </div>
+
+              {/* Upload Here panel */}
+              {activeMethod === 'upload' && (
+                <div className="space-y-3">
+                  <div
+                    onDrop={handleDrop}
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={(e) => { e.preventDefault(); setDragOver(false); }}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`border-2 border-dashed p-8 text-center cursor-pointer transition-colors ${
+                      dragOver
+                        ? 'border-[#C8A75E] bg-[#fafaf8]'
+                        : 'border-[#d4d4cf] hover:border-[#C8A75E]'
+                    }`}
+                  >
+                    <Upload className="h-8 w-8 text-[#8b919a] mx-auto mb-2" />
+                    <p className="text-sm text-[#3a3f49]">
+                      {uploading ? 'Uploading...' : 'Drag & drop CSV files here, or click to browse'}
+                    </p>
+                    <p className="text-xs text-[#8b919a] mt-1">
+                      Files upload directly to secure storage. No size limit.
+                    </p>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".csv"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files) handleFiles(Array.from(e.target.files));
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Share Upload Link panel */}
+              {activeMethod === 'link' && (
+                <div className="border border-[#e8e8e3] p-4 space-y-3">
+                  {!shareableUrl ? (
+                    <Button
+                      onClick={handleGenerateLink}
+                      loading={generatingLink}
+                      variant="gold"
+                      className="w-full"
+                    >
+                      <Link2 className="h-4 w-4 mr-2" />
+                      Generate Upload Link
+                    </Button>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-[#8b919a] uppercase tracking-wider">
+                        Share this link with your data team
+                      </p>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={shareableUrl}
+                          readOnly
+                          className="flex-1 border border-[#e8e8e3] px-3 py-2 text-sm text-[#0c0f14] bg-[#fafaf8] focus:outline-none"
+                        />
+                        <Button onClick={handleCopyLink} variant="outline" className="shrink-0">
+                          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        </Button>
                       </div>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); removeFile(i); }}
-                        className="text-[#8b919a] hover:text-red-500 transition-colors"
+                      <p className="text-xs text-[#8b919a]">
+                        Link expires in 7 days. Anyone with this link can upload files.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Migration API panel */}
+              {activeMethod === 'api' && (
+                <div className="border border-[#e8e8e3] p-4 space-y-3">
+                  {!migration.transfer_token ? (
+                    <div>
+                      <p className="text-sm text-[#8b919a] mb-3">
+                        Generate a transfer token first, then use it to POST data via the API.
+                      </p>
+                      <Button
+                        onClick={async () => {
+                          setError('');
+                          try {
+                            await ensureTransferToken();
+                          } catch (err) {
+                            setError(err instanceof Error ? err.message : 'Failed to create token');
+                          }
+                        }}
+                        variant="gold"
+                        className="w-full"
                       >
-                        <X className="h-4 w-4" />
-                      </button>
+                        Generate API Token
+                      </Button>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-xs font-medium text-[#8b919a] uppercase tracking-wider mb-2">
+                        API Endpoint
+                      </p>
+                      <div className="bg-[#0c0f14] text-[#e8e8e3] p-3 text-xs font-mono overflow-x-auto whitespace-pre">
+{`curl -X POST ${typeof window !== 'undefined' ? window.location.origin : ''}/api/tms/migration/ingest \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "token": "${migration.transfer_token}",
+    "type": "carriers",
+    "data": [
+      {
+        "company_name": "ABC Trucking",
+        "dot_number": "1234567",
+        "mc_number": "MC-987654"
+      }
+    ]
+  }'`}
+                      </div>
+                      <p className="text-xs text-[#8b919a] mt-2">
+                        Use <code className="text-[#0c0f14] bg-[#f0f0ec] px-1">&quot;type&quot;: &quot;drivers&quot;</code> for driver records. Max 10,000 records per request.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Uploaded file list */}
+              {migration.uploaded_files.length > 0 && (
+                <div className="border border-[#e8e8e3] divide-y divide-[#e8e8e3]">
+                  {migration.uploaded_files.map((file, i) => (
+                    <div key={i} className="flex items-center gap-3 px-4 py-2">
+                      <FileText className="h-4 w-4 text-[#8b919a] shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm text-[#0c0f14] truncate">{file.name}</p>
+                        <p className="text-xs text-[#8b919a]">{formatBytes(file.size_bytes)}</p>
+                      </div>
                     </div>
                   ))}
                   <div className="px-4 py-2 bg-[#fafaf8]">
                     <p className="text-xs text-[#8b919a]">
-                      Total size: {migration.migration_total_bytes < 1024 * 1024
-                        ? `${(migration.migration_total_bytes / 1024).toFixed(1)} KB`
-                        : `${(migration.migration_total_bytes / (1024 * 1024)).toFixed(2)} MB`
-                      }
-                      {' '}({Math.max(1, Math.ceil(migration.migration_total_bytes / (1024 * 1024 * 1024)))} GB billed at {formatCents(MIGRATION_PRICE_PER_GB_CENTS)}/GB)
+                      {migration.uploaded_files.length} file(s) — {formatBytes(migration.migration_total_bytes)} total
                     </p>
                     {migration.migration_fee_cents > 0 && (
                       <p className="text-xs font-medium text-[#C8A75E] mt-0.5">
@@ -667,6 +975,41 @@ export function PartnerApplicationWizard() {
                       </p>
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* Scan Files button */}
+              {migration.uploaded_files.length > 0 && migration.transfer_token && (
+                <Button
+                  onClick={handleParse}
+                  loading={parsing}
+                  variant="gold"
+                  className="w-full"
+                >
+                  <Search className="h-4 w-4 mr-2" />
+                  {parsing ? 'Scanning...' : 'Scan Files'}
+                </Button>
+              )}
+
+              {/* Parse result */}
+              {parseResult && (
+                <div className="border border-[#C8A75E]/30 bg-[#C8A75E]/5 p-4">
+                  <p className="text-sm font-medium text-[#0c0f14]">
+                    Found {parseResult.carrier_count.toLocaleString()} carrier{parseResult.carrier_count !== 1 ? 's' : ''} and{' '}
+                    {parseResult.driver_count.toLocaleString()} driver{parseResult.driver_count !== 1 ? 's' : ''}
+                  </p>
+                  {parseResult.carrier_sample.length > 0 && (
+                    <p className="text-xs text-[#8b919a] mt-1">
+                      Carriers: {parseResult.carrier_sample.join(', ')}
+                      {parseResult.carrier_count > 3 && ', ...'}
+                    </p>
+                  )}
+                  {parseResult.driver_sample.length > 0 && (
+                    <p className="text-xs text-[#8b919a] mt-0.5">
+                      Drivers: {parseResult.driver_sample.join(', ')}
+                      {parseResult.driver_count > 3 && ', ...'}
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -886,7 +1229,7 @@ export function PartnerApplicationWizard() {
                 <div className="flex justify-between px-4 py-3">
                   <div>
                     <span className="text-sm text-[#8b919a]">Data Migration</span>
-                    <p className="text-xs text-[#8b919a]">{migration.files.length} file(s)</p>
+                    <p className="text-xs text-[#8b919a]">{migration.uploaded_files.length} file(s)</p>
                   </div>
                   <span className="text-sm font-medium text-[#0c0f14]">
                     {formatCents(migration.migration_fee_cents)}

@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
     }
 
-    const { token, filename, content_type, size_bytes } = await request.json();
+    const { token, filename } = await request.json();
 
     if (!token || !filename) {
       return NextResponse.json({ error: 'token and filename are required' }, { status: 400 });
