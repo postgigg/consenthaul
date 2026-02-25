@@ -15,6 +15,8 @@ import {
   Menu,
   X,
   Code2,
+  Bot,
+  Shield,
 } from 'lucide-react';
 import { LogoFull } from '@/components/brand/Logo';
 import { OrgSwitcher } from '@/components/layout/OrgSwitcher';
@@ -35,6 +37,7 @@ const navItems = [
   { label: 'Templates', href: '/templates', icon: FileText },
   { label: 'Billing', href: '/billing', icon: CreditCard },
   { label: 'API', href: '/api-docs', icon: Code2 },
+  { label: 'MCP', href: '/mcp-docs', icon: Bot },
   { label: 'Settings', href: '/settings', icon: Settings },
 ];
 
@@ -96,6 +99,23 @@ export function Sidebar({ profile, organization }: SidebarProps) {
           );
         })}
       </nav>
+
+      {/* Admin link (only for platform admins) */}
+      {profile.is_platform_admin && (
+        <div className="px-3 pb-2">
+          <Link
+            href="/admin"
+            onClick={() => setMobileOpen(false)}
+            className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-red-400 hover:bg-red-500/10 transition-colors"
+          >
+            <Shield className="h-[18px] w-[18px] shrink-0" />
+            <span className="flex-1">Admin Panel</span>
+            <span className="inline-flex items-center px-1.5 py-0.5 text-[0.55rem] font-bold uppercase tracking-wider bg-red-600 text-white">
+              Admin
+            </span>
+          </Link>
+        </div>
+      )}
 
       {/* User info + logout */}
       <div className="border-t border-[#1e2129] p-4">

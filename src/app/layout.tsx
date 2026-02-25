@@ -26,12 +26,24 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'ConsentHaul — FMCSA Clearinghouse Consent Made Simple',
+    default: 'ConsentHaul — Digital FMCSA Clearinghouse Consent Form | Online Limited Query Authorization',
     template: '%s | ConsentHaul',
   },
   description:
-    'Digital FMCSA Clearinghouse limited query consent platform for trucking carriers. Send consent links via SMS, WhatsApp, or email. Drivers sign on their phone. Get compliant signed PDFs back instantly. 3-year auto-retention included.',
+    'Collect FMCSA consent forms online from CDL drivers in 60 seconds. ConsentHaul is a digital Clearinghouse limited query consent platform for motor carriers. Send a DOT consent form via SMS or email, drivers sign electronically on their phone, and you receive a compliant FMCSA consent PDF — stored for 3 years per 49 CFR Part 40. Bilingual English/Spanish support included.',
   keywords: [
+    'FMCSA consent form',
+    'digital DOT consent',
+    'FMCSA Clearinghouse consent form online',
+    'electronic FMCSA consent signature',
+    'CDL driver consent form',
+    'FMCSA limited query authorization form',
+    'Clearinghouse consent for carriers',
+    'how to get FMCSA Clearinghouse consent',
+    'DOT drug test consent form',
+    'FMCSA consent management software',
+    'bilingual FMCSA consent form',
+    'FMCSA consent form SMS',
     'FMCSA Clearinghouse consent',
     'FMCSA limited query consent',
     'Clearinghouse consent form',
@@ -52,6 +64,22 @@ export const metadata: Metadata = {
     'fleet safety compliance',
     'mobile driver consent',
     'digital consent form trucking',
+    'FMCSA Clearinghouse limited query consent form',
+    'online FMCSA consent collection',
+    'DOT Clearinghouse consent platform',
+    'electronic DOT consent form',
+    'FMCSA consent PDF generator',
+    'digital FMCSA consent for trucking companies',
+    'FMCSA consent automation',
+    'CDL Clearinghouse limited query',
+    'FMCSA pre-employment consent form',
+    'DOT drug testing consent management',
+    'carrier Clearinghouse consent compliance',
+    'FMCSA electronic signature platform',
+    'mobile FMCSA consent signing',
+    'FMCSA consent form WhatsApp',
+    'bulk CDL driver consent collection',
+    'FMCSA consent record retention',
   ],
   authors: [{ name: 'Workbird LLC' }],
   creator: 'Workbird LLC',
@@ -76,9 +104,9 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: SITE_URL,
     siteName: 'ConsentHaul',
-    title: 'ConsentHaul — FMCSA Clearinghouse Consent Made Simple',
+    title: 'ConsentHaul — FMCSA Consent Form | Clearinghouse Limited Query Authorization Online',
     description:
-      'Stop chasing drivers for consent forms. Send a link, driver signs on their phone, you get a compliant PDF back. FMCSA Clearinghouse limited query consent without the paperwork.',
+      'Collect FMCSA Clearinghouse limited query consent forms from CDL drivers digitally. Send DOT consent links via SMS or email — drivers sign electronically on their phone. Compliant FMCSA consent PDFs generated and retained for 3 years. As low as $1.50 per consent.',
     images: [
       {
         url: '/og-image.png',
@@ -91,9 +119,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ConsentHaul — FMCSA Clearinghouse Consent Made Simple',
+    title: 'ConsentHaul — FMCSA Consent Form Online | Digital DOT Consent',
     description:
-      'Digital FMCSA consent platform for trucking carriers. Send links, collect signatures, get signed PDFs. As low as $0.50 per consent.',
+      'Digital FMCSA Clearinghouse consent form platform for trucking carriers. Send DOT consent links to CDL drivers, collect electronic signatures, get compliant FMCSA consent PDFs. As low as $1.50 per consent.',
     images: ['/og-image.png'],
     creator: '@consenthaul',
   },
@@ -101,7 +129,6 @@ export const metadata: Metadata = {
     canonical: SITE_URL,
     languages: {
       'en-US': SITE_URL,
-      'es-US': `${SITE_URL}/es`,
     },
   },
   other: {
@@ -123,7 +150,7 @@ const jsonLd = {
       applicationCategory: 'BusinessApplication',
       operatingSystem: 'Web',
       description:
-        'Digital FMCSA Clearinghouse limited query consent platform. Send consent links to CDL drivers via SMS, WhatsApp, or email. Collect electronic signatures on mobile devices. Automatically generate and retain compliant signed PDFs for 3 years.',
+        'Digital FMCSA Clearinghouse limited query consent form platform for motor carriers. Send DOT consent links to CDL drivers via SMS, WhatsApp, or email. Collect electronic FMCSA consent signatures on mobile devices. Automatically generate and retain compliant signed consent PDFs for 3 years per 49 CFR Part 40.',
       url: SITE_URL,
       author: {
         '@type': 'Organization',
@@ -133,53 +160,65 @@ const jsonLd = {
       offers: {
         '@type': 'AggregateOffer',
         priceCurrency: 'USD',
-        lowPrice: '0.50',
-        highPrice: '1.50',
+        lowPrice: '1.50',
+        highPrice: '3.00',
         offerCount: 4,
         offers: [
           {
             '@type': 'Offer',
             name: 'Starter — 10 Credits',
-            price: '15.00',
+            price: '30.00',
             priceCurrency: 'USD',
-            description: '10 consent credits at $1.50 per consent',
+            description: '10 FMCSA consent credits at $3.00 per consent form',
           },
           {
             '@type': 'Offer',
             name: 'Fleet — 50 Credits',
-            price: '50.00',
+            price: '125.00',
             priceCurrency: 'USD',
-            description: '50 consent credits at $1.00 per consent. Save 33%.',
+            description: '50 FMCSA consent credits at $2.50 per consent form. Save 17%.',
           },
           {
             '@type': 'Offer',
             name: 'Carrier — 200 Credits',
-            price: '150.00',
+            price: '400.00',
             priceCurrency: 'USD',
-            description: '200 consent credits at $0.75 per consent. Save 50%.',
+            description: '200 FMCSA consent credits at $2.00 per consent form. Save 33%.',
           },
           {
             '@type': 'Offer',
             name: 'Enterprise — 1,000 Credits',
-            price: '500.00',
+            price: '1500.00',
             priceCurrency: 'USD',
-            description: '1,000 consent credits at $0.50 per consent. Save 67%.',
+            description: '1,000 FMCSA consent credits at $1.50 per consent form. Save 50%.',
           },
         ],
       },
       featureList: [
         'FMCSA Clearinghouse limited query consent',
-        'SMS consent delivery',
+        'Digital FMCSA consent form generation',
+        'DOT drug testing consent management',
+        'CDL driver consent form online',
+        'Electronic FMCSA consent signature collection',
+        'SMS consent delivery for CDL drivers',
         'WhatsApp consent delivery',
         'Email consent delivery',
-        'Mobile-first electronic signature',
-        'Bilingual English/Spanish support',
-        'Automatic PDF generation',
-        '3-year compliant document retention',
-        'Real-time consent status tracking',
-        'Bulk CSV driver import',
+        'Mobile-first electronic DOT consent signing',
+        'Bilingual English/Spanish FMCSA consent forms',
+        'Automatic FMCSA consent PDF generation',
+        '3-year compliant DOT consent document retention',
+        'Real-time FMCSA consent status tracking',
+        'Bulk CSV CDL driver import',
         'REST API for TMS integration',
+        'MCP server for AI agent consent management',
+        'FMCSA pre-employment consent collection',
+        'Carrier Clearinghouse consent compliance tools',
+        'FMCSA consent form WhatsApp delivery',
+        '49 CFR Part 40 compliant consent forms',
+        'Online limited query authorization forms',
+        'FMCSA consent automation for fleets',
         'Stripe-powered secure payments',
+        'Digital DOT Clearinghouse consent platform',
       ],
     },
     {
@@ -189,7 +228,7 @@ const jsonLd = {
       url: SITE_URL,
       logo: `${SITE_URL}/logo.png`,
       description:
-        'ConsentHaul is operated by Workbird LLC. We provide digital FMCSA Clearinghouse consent management for trucking carriers and fleet operators.',
+        'ConsentHaul is operated by Workbird LLC. We provide a digital FMCSA consent form platform for motor carriers and fleet operators to collect DOT Clearinghouse limited query authorization from CDL drivers electronically, in compliance with 49 CFR Part 40. Our DOT consent management system supports SMS, WhatsApp, and email delivery.',
       contactPoint: {
         '@type': 'ContactPoint',
         contactType: 'customer support',
@@ -202,15 +241,7 @@ const jsonLd = {
       name: 'ConsentHaul',
       url: SITE_URL,
       description:
-        'FMCSA Clearinghouse consent platform for trucking carriers. Digital consent forms, electronic signatures, and compliant PDF retention.',
-      potentialAction: {
-        '@type': 'SearchAction',
-        target: {
-          '@type': 'EntryPoint',
-          urlTemplate: `${SITE_URL}/search?q={search_term_string}`,
-        },
-        'query-input': 'required name=search_term_string',
-      },
+        'FMCSA Clearinghouse consent form platform for trucking carriers. Digital DOT consent forms, electronic FMCSA consent signatures, and compliant consent PDF retention for motor carriers.',
     },
     {
       '@type': 'FAQPage',
@@ -228,7 +259,7 @@ const jsonLd = {
           name: 'How much does ConsentHaul cost?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'ConsentHaul uses a pay-per-consent model with no subscriptions. Credit packs range from $1.50 per consent (10-pack for $15) down to $0.50 per consent (1,000-pack for $500). Credits never expire. New accounts receive 3 free credits on signup.',
+            text: 'ConsentHaul uses a pay-per-consent model with no subscriptions. Credit packs range from $3.00 per consent (10-pack for $30) down to $1.50 per consent (1,000-pack for $1,500). Credits never expire. New accounts receive 3 free credits on signup.',
           },
         },
         {
@@ -254,6 +285,112 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'Yes. ConsentHaul is fully bilingual (English/Spanish). Drivers can toggle between languages on the signing page. Consent documents, notifications, and signed PDFs are all available in both languages.',
           },
+        },
+        {
+          '@type': 'Question',
+          name: 'Can I import my existing driver list?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Yes. You can bulk-import drivers via CSV upload. Just upload a spreadsheet with driver names, CDL numbers, phone numbers, and emails — ConsentHaul handles the rest.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How long are signed consents stored?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'All signed consent PDFs are automatically retained for 3 years from the date of signing, meeting the FMCSA minimum retention requirement. You can download signed PDFs at any time from your dashboard.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Do you have an API?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Yes. ConsentHaul offers a REST API and an MCP (Model Context Protocol) server for AI agents. Integrate consent creation directly into your TMS, dispatch system, or onboarding workflow — or let AI agents like Claude manage drivers, send consents, and check billing through natural language.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What is an FMCSA Clearinghouse limited query consent?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'An FMCSA Clearinghouse limited query consent is a written or electronic authorization from a CDL driver that allows a motor carrier to check whether the driver has any drug or alcohol violations recorded in the FMCSA Drug & Alcohol Clearinghouse. Carriers must obtain this consent before running a limited query, which is required for pre-employment screening and at least annually for current employees under 49 CFR Part 382.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How do I get FMCSA Clearinghouse consent from my drivers?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'With ConsentHaul, you enter the driver\'s name, CDL number, and phone number or email, then send a digital FMCSA consent form with one click. The driver receives a secure link via SMS, WhatsApp, or email, opens it on their phone, reviews the consent document, and signs electronically. The signed FMCSA consent PDF is generated and stored automatically — no paper, printing, or scanning required.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Is an electronic FMCSA consent signature legally valid?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Yes. Electronic signatures on FMCSA consent forms are legally valid under the Electronic Signatures in Global and National Commerce Act (ESIGN Act) and the Uniform Electronic Transactions Act (UETA). ConsentHaul captures signature image data, timestamps, IP addresses, and device information to establish authenticity and meet regulatory requirements.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What is the difference between a limited query and a full query in the FMCSA Clearinghouse?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'A limited query tells a motor carrier whether a CDL driver has any drug or alcohol violations in the FMCSA Clearinghouse without revealing details. It requires the driver\'s written or electronic consent. A full query reveals the actual violation details and requires the driver to grant electronic consent directly in the Clearinghouse portal. ConsentHaul handles the consent collection for limited queries — the most common type used for pre-employment and annual checks.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Can ConsentHaul be used for DOT pre-employment drug testing consent?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Yes. ConsentHaul is commonly used by motor carriers to collect FMCSA Clearinghouse limited query consent as part of the DOT pre-employment screening process. Before hiring a new CDL driver, carriers are required to run a Clearinghouse query — and ConsentHaul makes it easy to collect the required driver consent digitally before initiating the query.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Do trucking companies need consent for every FMCSA Clearinghouse query?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Yes. Motor carriers must obtain a driver\'s written or electronic consent before each limited query to the FMCSA Drug & Alcohol Clearinghouse. Consent cannot be blanket or indefinite — it must be collected for each specific query. ConsentHaul simplifies this by letting carriers send and collect individual FMCSA consent forms digitally in seconds.',
+          },
+        },
+      ],
+    },
+    {
+      '@type': 'HowTo',
+      name: 'How to Collect FMCSA Clearinghouse Consent Online',
+      description:
+        'Use ConsentHaul to collect digital FMCSA Clearinghouse limited query consent from CDL drivers in three simple steps. No paper forms, no printing, no scanning.',
+      step: [
+        {
+          '@type': 'HowToStep',
+          name: 'Create an FMCSA consent request',
+          text: 'Enter the CDL driver\'s name, phone number or email, and select the Clearinghouse consent type (limited query or full query). ConsentHaul generates a compliant FMCSA consent form and sends a secure DOT consent link to the driver via SMS, WhatsApp, or email.',
+        },
+        {
+          '@type': 'HowToStep',
+          name: 'Driver signs the FMCSA consent form electronically',
+          text: 'The CDL driver receives a DOT consent link on their phone, opens it in their browser (no app required), reviews the FMCSA consent document in English or Spanish, acknowledges the terms, and draws their electronic signature. Average signing time is 60 seconds.',
+        },
+        {
+          '@type': 'HowToStep',
+          name: 'Compliant FMCSA consent PDF is filed automatically',
+          text: 'Once signed, ConsentHaul generates a compliant FMCSA consent PDF with the driver\'s electronic signature, timestamp, IP address, and device data. The signed DOT consent form is stored securely and retained for 3 years per 49 CFR Part 40 requirements.',
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: SITE_URL,
         },
       ],
     },

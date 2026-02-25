@@ -47,6 +47,7 @@ export interface Database {
           email: string;
           phone: string | null;
           is_active: boolean;
+          is_platform_admin: boolean;
           last_login_at: string | null;
           created_at: string;
           updated_at: string;
@@ -313,6 +314,24 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database['public']['Tables']['notifications']['Insert']>;
+        Relationships: [];
+      };
+      platform_config: {
+        Row: {
+          key: string;
+          encrypted_value: string;
+          description: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          key: string;
+          encrypted_value: string;
+          description?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: Partial<Database['public']['Tables']['platform_config']['Insert']>;
         Relationships: [];
       };
     };

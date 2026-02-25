@@ -65,6 +65,14 @@ export async function POST(request: NextRequest) {
 
     const orgId = profile.organization_id;
 
+    // Fetch organization name for messaging
+    const { data: orgData } = await supabase
+      .from('organizations')
+      .select('name')
+      .eq('id', orgId)
+      .single();
+    const companyName = orgData?.name ?? undefined;
+
     // 4. Verify the driver belongs to the same org
     const { data: driverData, error: driverError } = await supabase
       .from('drivers')
@@ -172,6 +180,7 @@ export async function POST(request: NextRequest) {
             to: deliveryAddress,
             driverName: driverFullName,
             signingUrl,
+            companyName,
             language: consent.language,
           });
           deliverySid = result.sid;
@@ -180,6 +189,7 @@ export async function POST(request: NextRequest) {
             to: deliveryAddress,
             driverName: driverFullName,
             signingUrl,
+            companyName,
             language: consent.language,
           });
           deliverySid = result.sid;
@@ -188,6 +198,7 @@ export async function POST(request: NextRequest) {
             to: deliveryAddress,
             driverName: driverFullName,
             signingUrl,
+            companyName,
             language: consent.language,
           });
           deliverySid = result.messageId;

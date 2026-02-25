@@ -2,9 +2,15 @@ import Link from 'next/link';
 import { LogoFull } from '@/components/brand/Logo';
 import type { Metadata } from 'next';
 
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://consenthaul.com';
+
 export const metadata: Metadata = {
-  title: 'Terms of Service | ConsentHaul',
-  description: 'ConsentHaul Terms of Service — governing the use of our FMCSA Clearinghouse electronic consent platform.',
+  title: 'Terms of Service — FMCSA Clearinghouse Consent Platform | ConsentHaul',
+  description:
+    'ConsentHaul Terms of Service — governing the use of our digital FMCSA consent form platform for motor carriers. Covers electronic DOT consent signatures, Clearinghouse limited query authorization, credit-based pricing, and data retention under 49 CFR Part 40.',
+  alternates: {
+    canonical: `${SITE_URL}/terms`,
+  },
 };
 
 export default function TermsPage() {
@@ -134,7 +140,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-bold text-[#0c0f14] tracking-tight mb-3" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>10. Limitation of Liability</h2>
             <p>
-              TO THE MAXIMUM EXTENT PERMITTED BY LAW, FLOTAC LTD AND ITS OFFICERS, DIRECTORS, EMPLOYEES, AND AGENTS SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUE, WHETHER INCURRED DIRECTLY OR INDIRECTLY, ARISING FROM YOUR USE OF OR INABILITY TO USE THE SERVICE. OUR TOTAL LIABILITY SHALL NOT EXCEED THE AMOUNT YOU PAID TO US IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM.
+              TO THE MAXIMUM EXTENT PERMITTED BY LAW, WORKBIRD LLC AND ITS OFFICERS, DIRECTORS, EMPLOYEES, AND AGENTS SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUE, WHETHER INCURRED DIRECTLY OR INDIRECTLY, ARISING FROM YOUR USE OF OR INABILITY TO USE THE SERVICE. OUR TOTAL LIABILITY SHALL NOT EXCEED THE AMOUNT YOU PAID TO US IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM.
             </p>
           </section>
 

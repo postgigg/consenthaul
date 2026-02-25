@@ -2,9 +2,15 @@ import Link from 'next/link';
 import { LogoFull } from '@/components/brand/Logo';
 import type { Metadata } from 'next';
 
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://consenthaul.com';
+
 export const metadata: Metadata = {
-  title: 'Privacy Policy | ConsentHaul',
-  description: 'ConsentHaul Privacy Policy — how we collect, use, store, and protect your personal information on our FMCSA consent platform.',
+  title: 'Privacy Policy — FMCSA Consent Data Protection | ConsentHaul',
+  description:
+    'ConsentHaul Privacy Policy — how we collect, use, store, and protect CDL driver personal information and electronic FMCSA consent signature data on our DOT Clearinghouse consent form platform.',
+  alternates: {
+    canonical: `${SITE_URL}/privacy`,
+  },
 };
 
 export default function PrivacyPage() {

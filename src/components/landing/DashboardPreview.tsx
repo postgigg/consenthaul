@@ -8,28 +8,6 @@ export function DashboardPreview() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-[#C8A75E]/[0.03] blur-[100px] rounded-full" />
       </div>
 
-      {/* Guide overlays */}
-      <svg className="absolute -inset-6 sm:-inset-8 w-[calc(100%+48px)] sm:w-[calc(100%+64px)] h-[calc(100%+48px)] sm:h-[calc(100%+64px)] pointer-events-none z-20" viewBox="0 0 1000 520" fill="none" preserveAspectRatio="none">
-        {['M24 60 L24 28 L56 28','M944 28 L976 28 L976 60','M24 460 L24 492 L56 492','M944 492 L976 492 L976 460'].map((d, i) => (
-          <path key={i} d={d} stroke="#C8A75E" strokeWidth="1" strokeLinecap="round">
-            <animate attributeName="opacity" values="0.12;0.4;0.12" dur="4s" begin={`${i * 0.8}s`} repeatCount="indefinite" />
-          </path>
-        ))}
-        <line x1="36" y1="0" x2="964" y2="0" stroke="url(#sg)" strokeWidth="1">
-          <animateTransform attributeName="transform" type="translate" values="0,40;0,480;0,40" dur="12s" repeatCount="indefinite" />
-          <animate attributeName="opacity" values="0;0.25;0.25;0" dur="12s" repeatCount="indefinite" />
-        </line>
-        <defs>
-          <linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#C8A75E" stopOpacity="0" />
-            <stop offset="30%" stopColor="#C8A75E" stopOpacity="0.35" />
-            <stop offset="50%" stopColor="#C8A75E" stopOpacity="0.5" />
-            <stop offset="70%" stopColor="#C8A75E" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="#C8A75E" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-      </svg>
-
       {/* Layout */}
       <div className="relative flex items-end">
 
@@ -54,145 +32,214 @@ export function DashboardPreview() {
                 <svg viewBox="0 0 1200 620" fill="none" className="w-full block rounded-[2px]" style={{ background: '#fafaf8' }}>
                   {/* ── SIDEBAR ── */}
                   <rect width="200" height="620" fill="#0c0f14" />
-                  <rect x="18" y="14" width="12" height="12" fill="#C8A75E" opacity="0.85" />
-                  <rect x="36" y="16" width="64" height="4.5" rx="2" fill="#d4d4cf" opacity="0.5" />
-                  <rect x="36" y="23" width="38" height="3" rx="1.5" fill="#5c6370" opacity="0.25" />
-                  <rect x="12" y="42" width="176" height="36" fill="#1e2129" opacity="0.55" />
-                  <rect x="22" y="50" width="18" height="18" fill="#C8A75E" opacity="0.1" />
-                  <rect x="46" y="54" width="72" height="4" rx="2" fill="#d4d4cf" opacity="0.4" />
-                  <rect x="46" y="61" width="42" height="2.5" rx="1.25" fill="#5c6370" opacity="0.2" />
 
-                  {/* Nav */}
+                  {/* Logo area */}
+                  <rect x="16" y="12" width="14" height="14" rx="3" stroke="#C8A75E" strokeWidth="1" fill="none" opacity="0.7" />
+                  <path d="M21 17 L23 19.5 L28 15" stroke="#C8A75E" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.6" />
+                  <text x="38" y="23" fill="#d4d4cf" fontSize="5.5" fontWeight="700" fontFamily="system-ui" letterSpacing="1">CONSENTHAUL</text>
+
+                  {/* Org switcher */}
+                  <rect x="12" y="38" width="176" height="30" rx="4" fill="#1e2129" opacity="0.7" />
+                  <rect x="22" y="46" width="14" height="14" rx="3" fill="#C8A75E" opacity="0.15" />
+                  <text x="28" y="56" textAnchor="middle" fill="#C8A75E" fontSize="5.5" fontWeight="700" fontFamily="system-ui">A</text>
+                  <text x="44" y="53" fill="#d4d4cf" fontSize="5" fontWeight="600" fontFamily="system-ui" opacity="0.7">Acme Freight LLC</text>
+                  <text x="44" y="61" fill="#5c6370" fontSize="3.5" fontFamily="system-ui" opacity="0.5">Owner</text>
+                  <path d="M172 52 l4 3 4-3" stroke="#5c6370" strokeWidth="0.8" strokeLinecap="round" opacity="0.3" />
+
+                  {/* Nav items with labels */}
                   {[
-                    { y: 92, w: 56, a: true },
-                    { y: 116, w: 38, a: false },
-                    { y: 140, w: 48, a: false },
-                    { y: 164, w: 52, a: false },
-                    { y: 188, w: 32, a: false },
-                    { y: 212, w: 18, a: false },
-                    { y: 236, w: 44, a: false },
+                    { y: 84, label: 'Dashboard', icon: 'grid', a: true },
+                    { y: 108, label: 'Drivers', icon: 'users', a: false },
+                    { y: 132, label: 'Consents', icon: 'file', a: false },
+                    { y: 156, label: 'Templates', icon: 'layout', a: false },
+                    { y: 180, label: 'Billing', icon: 'credit', a: false },
+                    { y: 210, label: 'Settings', icon: 'gear', a: false },
+                    { y: 234, label: 'API Docs', icon: 'code', a: false },
                   ].map((n, i) => (
                     <g key={i}>
-                      {n.a && <rect x="8" y={n.y - 2} width="184" height="22" fill="#C8A75E" opacity="0.1" />}
-                      <rect x="22" y={n.y + 3} width="9" height="9" rx="1.5" fill={n.a ? '#C8A75E' : '#5c6370'} opacity={n.a ? 0.7 : 0.25} />
-                      <rect x="38" y={n.y + 5} width={n.w} height="3.5" rx="1.75" fill={n.a ? '#C8A75E' : '#6b6f76'} opacity={n.a ? 0.6 : 0.22} />
-                      {n.a && <rect x="180" y={n.y + 6} width="4" height="4" fill="#C8A75E" opacity="0.55" />}
+                      {n.a && <rect x="6" y={n.y - 2} width="188" height="22" rx="4" fill="#C8A75E" opacity="0.08" />}
+                      {n.a && <rect x="6" y={n.y + 2} width="2" height="14" rx="1" fill="#C8A75E" opacity="0.7" />}
+                      <text x="38" y={n.y + 13} fill={n.a ? '#C8A75E' : '#6b6f76'} fontSize="5" fontWeight={n.a ? '600' : '500'} fontFamily="system-ui" opacity={n.a ? 0.85 : 0.45}>{n.label}</text>
                     </g>
                   ))}
 
+                  {/* Sidebar divider */}
+                  <line x1="16" y1="258" x2="184" y2="258" stroke="#1e2129" strokeWidth="0.5" />
+
+                  {/* Credits indicator */}
+                  <rect x="14" y="270" width="172" height="34" rx="4" fill="#C8A75E" opacity="0.05" />
+                  <text x="24" y="283" fill="#C8A75E" fontSize="4" fontWeight="600" fontFamily="system-ui" opacity="0.5" letterSpacing="0.5">CREDITS REMAINING</text>
+                  <text x="24" y="296" fill="#C8A75E" fontSize="9" fontWeight="800" fontFamily="system-ui" opacity="0.7">47</text>
+                  <text x="48" y="296" fill="#5c6370" fontSize="4" fontFamily="system-ui" opacity="0.35">of 50 purchased</text>
+                  <rect x="120" y="281" width="52" height="14" rx="3" fill="#C8A75E" opacity="0.12" />
+                  <text x="146" y="290.5" textAnchor="middle" fill="#C8A75E" fontSize="4" fontWeight="600" fontFamily="system-ui" opacity="0.6">Buy More</text>
+
                   {/* Sidebar user */}
-                  <line x1="12" y1="568" x2="188" y2="568" stroke="#1e2129" />
-                  <rect x="22" y="580" width="20" height="20" fill="#1e2129" />
-                  <text x="32" y="594" textAnchor="middle" fill="#C8A75E" fontSize="6" fontWeight="700" fontFamily="system-ui">JS</text>
-                  <rect x="48" y="583" width="56" height="4" rx="2" fill="#d4d4cf" opacity="0.4" />
-                  <rect x="48" y="590" width="80" height="2.5" rx="1.25" fill="#5c6370" opacity="0.2" />
+                  <line x1="12" y1="572" x2="188" y2="572" stroke="#1e2129" strokeWidth="0.5" />
+                  <rect x="20" y="582" width="20" height="20" rx="4" fill="#1e2129" />
+                  <text x="30" y="595" textAnchor="middle" fill="#C8A75E" fontSize="6" fontWeight="700" fontFamily="system-ui">JS</text>
+                  <text x="48" y="591" fill="#d4d4cf" fontSize="4.5" fontWeight="500" fontFamily="system-ui" opacity="0.6">John Sandoval</text>
+                  <text x="48" y="599" fill="#5c6370" fontSize="3.5" fontFamily="system-ui" opacity="0.35">john@acmefreight.com</text>
 
-                  {/* ── HEADER ── */}
+                  {/* ── HEADER BAR ── */}
                   <rect x="200" y="0" width="1000" height="42" fill="white" />
-                  <line x1="200" y1="42" x2="1200" y2="42" stroke="#e8e8e3" />
-                  <rect x="220" y="15" width="64" height="5" rx="2" fill="#0c0f14" opacity="0.6" />
-                  <rect x="1008" y="10" width="68" height="20" fill="none" stroke="#e8e8e3" />
-                  <circle cx="1020" cy="20" r="4" fill="#C8A75E" opacity="0.5" />
-                  <rect x="1028" y="17.5" width="24" height="3.5" rx="1.75" fill="#3a3f49" opacity="0.4" />
-                  <rect x="1092" y="10" width="22" height="22" fill="#0c0f14" />
-                  <text x="1103" y="25" textAnchor="middle" fill="white" fontSize="6" fontWeight="700" fontFamily="system-ui">JS</text>
+                  <line x1="200" y1="42" x2="1200" y2="42" stroke="#e8e8e3" strokeWidth="0.5" />
+                  <text x="224" y="26" fill="#0c0f14" fontSize="7" fontWeight="700" fontFamily="system-ui">Dashboard</text>
 
-                  {/* ── MAIN ── */}
-                  <rect x="228" y="60" width="22" height="1.5" fill="#C8A75E" />
-                  <rect x="228" y="70" width="80" height="6" rx="2" fill="#0c0f14" opacity="0.6" />
-                  <rect x="228" y="82" width="200" height="3" rx="1.5" fill="#8b919a" opacity="0.3" />
+                  {/* Search bar */}
+                  <rect x="860" y="10" width="180" height="22" rx="4" fill="none" stroke="#e8e8e3" strokeWidth="0.5" />
+                  <text x="876" y="24" fill="#b5b5ae" fontSize="4.5" fontFamily="system-ui">Search drivers, consents...</text>
+                  <rect x="1010" y="14" width="20" height="13" rx="2" fill="#f0f0ec" />
+                  <text x="1020" y="23" textAnchor="middle" fill="#8b919a" fontSize="4" fontWeight="600" fontFamily="system-ui">/</text>
 
-                  {/* Stat cards */}
+                  {/* New Consent button */}
+                  <rect x="1054" y="10" width="72" height="22" rx="4" fill="#0c0f14" />
+                  <text x="1076" y="24" fill="white" fontSize="4.5" fontWeight="600" fontFamily="system-ui">+ New Consent</text>
+
+                  {/* User avatar */}
+                  <rect x="1140" y="10" width="22" height="22" rx="4" fill="#0c0f14" />
+                  <text x="1151" y="24" textAnchor="middle" fill="white" fontSize="5.5" fontWeight="700" fontFamily="system-ui">JS</text>
+
+                  {/* ── MAIN CONTENT ── */}
+
+                  {/* Page title area */}
+                  <rect x="228" y="58" width="22" height="1.5" rx="0.75" fill="#C8A75E" />
+                  <text x="228" y="76" fill="#0c0f14" fontSize="9" fontWeight="800" fontFamily="system-ui" opacity="0.85">Overview</text>
+                  <text x="228" y="86" fill="#8b919a" fontSize="4" fontFamily="system-ui" opacity="0.5">Last 30 days</text>
+
+                  {/* ── STAT CARDS ── */}
                   {[
-                    { x: 228, v: '24' },
-                    { x: 464, v: '156' },
-                    { x: 700, v: '12' },
-                    { x: 936, v: '47', gold: true },
+                    { x: 228, label: 'Total Drivers', value: '24', sub: '+3 this month', color: '#0c0f14' },
+                    { x: 464, label: 'Consents Sent', value: '156', sub: '142 signed', color: '#0c0f14' },
+                    { x: 700, label: 'Pending', value: '12', sub: '8 opened, 4 sent', color: '#f59e0b' },
+                    { x: 936, label: 'Credits', value: '47', sub: '$0.75 avg cost', color: '#C8A75E', gold: true },
                   ].map((c, i) => (
                     <g key={i} opacity="0">
                       <animate attributeName="opacity" from="0" to="1" dur="0.35s" begin={`${0.15 + i * 0.1}s`} fill="freeze" />
-                      <rect x={c.x} y="98" width="206" height="76" fill="white" stroke="#e8e8e3" />
-                      <rect x={c.x + 12} y="110" width="10" height="10" rx="2" fill={c.gold ? '#C8A75E' : '#8b919a'} opacity="0.2" />
-                      <path d={`M${c.x + 186} 114 l6 0`} stroke="#d4d4cf" strokeWidth="1.5" strokeLinecap="round" opacity="0.4" />
-                      <path d={`M${c.x + 190} 112 l2 2 -2 2`} stroke="#d4d4cf" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" opacity="0.4" />
-                      <text x={c.x + 12} y="148" fill="#0c0f14" fontSize="18" fontWeight="800" fontFamily="system-ui" opacity="0.8">{c.v}</text>
-                      <rect x={c.x + 12} y="155" width={36 + i * 6} height="3" rx="1.5" fill="#3a3f49" opacity="0.4" />
-                      <rect x={c.x + 12} y="162" width={24 + i * 3} height="2.5" rx="1.25" fill="#b5b5ae" opacity="0.3" />
+                      <rect x={c.x} y="98" width="206" height="76" rx="4" fill="white" stroke="#e8e8e3" strokeWidth="0.5" />
+
+                      {/* Card label */}
+                      <text x={c.x + 14} y="116" fill="#8b919a" fontSize="4" fontWeight="500" fontFamily="system-ui">{c.label}</text>
+
+                      {/* Value */}
+                      <text x={c.x + 14} y="148" fill={c.gold ? '#C8A75E' : '#0c0f14'} fontSize="20" fontWeight="800" fontFamily="system-ui" opacity="0.85">{c.value}</text>
+
+                      {/* Subtext */}
+                      <text x={c.x + 14} y="162" fill="#8b919a" fontSize="3.8" fontFamily="system-ui" opacity="0.5">{c.sub}</text>
+
+                      {/* Mini sparkline */}
+                      <path
+                        d={`M${c.x + 140} 155 l8 -${3 + i} l8 ${2 + i * 0.5} l8 -${4 + i} l8 ${1} l8 -${2 + i * 0.3} l12 -3`}
+                        stroke={c.gold ? '#C8A75E' : '#0c0f14'} strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.2"
+                      />
                     </g>
                   ))}
 
-                  {/* Table */}
+                  {/* ── RECENT CONSENTS TABLE ── */}
                   <g opacity="0">
                     <animate attributeName="opacity" from="0" to="1" dur="0.4s" begin="0.6s" fill="freeze" />
-                    <rect x="228" y="192" width="914" height="232" fill="white" stroke="#e8e8e3" />
-                    <rect x="244" y="206" width="95" height="5" rx="2" fill="#0c0f14" opacity="0.45" />
-                    <rect x="1068" y="206" width="40" height="3.5" rx="1.75" fill="#0c0f14" opacity="0.2" />
-                    <line x1="244" y1="222" x2="1126" y2="222" stroke="#e8e8e3" />
-                    <rect x="244" y="228" width="40" height="2.5" rx="1.25" fill="#8b919a" opacity="0.3" />
-                    <rect x="480" y="228" width="24" height="2.5" rx="1.25" fill="#8b919a" opacity="0.3" />
-                    <rect x="660" y="228" width="32" height="2.5" rx="1.25" fill="#8b919a" opacity="0.3" />
-                    <rect x="850" y="228" width="24" height="2.5" rx="1.25" fill="#8b919a" opacity="0.3" />
-                    <rect x="1020" y="228" width="28" height="2.5" rx="1.25" fill="#8b919a" opacity="0.3" />
+                    <rect x="228" y="192" width="914" height="240" rx="4" fill="white" stroke="#e8e8e3" strokeWidth="0.5" />
+
+                    {/* Table header */}
+                    <text x="244" y="210" fill="#0c0f14" fontSize="5.5" fontWeight="700" fontFamily="system-ui" opacity="0.7">Recent Consents</text>
+                    <text x="1100" y="210" fill="#0c0f14" fontSize="4" fontFamily="system-ui" opacity="0.25" textAnchor="end">View All</text>
+
+                    {/* Column headers */}
+                    <line x1="244" y1="220" x2="1126" y2="220" stroke="#e8e8e3" strokeWidth="0.5" />
+                    <text x="244" y="232" fill="#8b919a" fontSize="3.8" fontWeight="600" fontFamily="system-ui" letterSpacing="0.3">DRIVER</text>
+                    <text x="440" y="232" fill="#8b919a" fontSize="3.8" fontWeight="600" fontFamily="system-ui" letterSpacing="0.3">TYPE</text>
+                    <text x="620" y="232" fill="#8b919a" fontSize="3.8" fontWeight="600" fontFamily="system-ui" letterSpacing="0.3">STATUS</text>
+                    <text x="790" y="232" fill="#8b919a" fontSize="3.8" fontWeight="600" fontFamily="system-ui" letterSpacing="0.3">SENT VIA</text>
+                    <text x="920" y="232" fill="#8b919a" fontSize="3.8" fontWeight="600" fontFamily="system-ui" letterSpacing="0.3">DATE</text>
+                    <text x="1070" y="232" fill="#8b919a" fontSize="3.8" fontWeight="600" fontFamily="system-ui" letterSpacing="0.3">ACTION</text>
+                    <line x1="244" y1="238" x2="1126" y2="238" stroke="#f0f0ec" strokeWidth="0.5" />
                   </g>
 
-                  {/* Table rows */}
+                  {/* Table rows with real data */}
                   {[
-                    { y: 240, nw: 50, tw: 58, sc: '#28c840', sw: 32 },
-                    { y: 264, nw: 62, tw: 68, sc: '#0c0f14', sw: 22 },
-                    { y: 288, nw: 56, tw: 58, sc: '#C8A75E', sw: 36 },
-                    { y: 312, nw: 46, tw: 34, sc: '#febc2e', sw: 40 },
-                    { y: 336, nw: 58, tw: 58, sc: '#28c840', sw: 32 },
-                    { y: 360, nw: 52, tw: 46, sc: '#0c0f14', sw: 28 },
-                    { y: 384, nw: 44, tw: 58, sc: '#28c840', sw: 32 },
-                  ].map((r, i) => (
-                    <g key={i} opacity="0">
-                      <animate attributeName="opacity" from="0" to="1" dur="0.3s" begin={`${0.7 + i * 0.08}s`} fill="freeze" />
-                      <line x1="244" y1={r.y} x2="1126" y2={r.y} stroke="#f0f0ec" />
-                      <rect x="244" y={r.y + 9} width={r.nw} height="3.5" rx="1.75" fill="#0c0f14" opacity="0.5" />
-                      <rect x="480" y={r.y + 9} width={r.tw} height="3.5" rx="1.75" fill="#6b6f76" opacity="0.3" />
-                      <rect x="660" y={r.y + 6} width={r.sw + 8} height="12" fill={r.sc} opacity="0.08" />
-                      <rect x="664" y={r.y + 9.5} width={r.sw - 4} height="3" rx="1.5" fill={r.sc} opacity="0.6" />
-                      <rect x="850" y={r.y + 9} width="28" height="3" rx="1.5" fill="#8b919a" opacity="0.22" />
-                      <rect x="1020" y={r.y + 9} width="20" height="3" rx="1.5" fill="#0c0f14" opacity="0.1" />
-                    </g>
-                  ))}
+                    { name: 'Carlos Mendez', cdl: 'TX-28491037', type: 'Limited Query', status: 'Signed', sc: '#28c840', via: 'SMS', date: 'Feb 21, 2026', action: 'PDF' },
+                    { name: 'James Wheeler', cdl: 'CA-99173822', type: 'Pre-Employment', status: 'Viewed', sc: '#3b82f6', via: 'WhatsApp', date: 'Feb 21, 2026', action: 'Resend' },
+                    { name: 'Maria Santos', cdl: 'FL-55920184', type: 'Limited Query', status: 'Signed', sc: '#28c840', via: 'Email', date: 'Feb 20, 2026', action: 'PDF' },
+                    { name: 'Robert Jackson', cdl: 'OH-41038276', type: 'Blanket', status: 'Pending', sc: '#f59e0b', via: 'SMS', date: 'Feb 20, 2026', action: 'Resend' },
+                    { name: 'David Nguyen', cdl: 'IL-73829104', type: 'Limited Query', status: 'Signed', sc: '#28c840', via: 'SMS', date: 'Feb 19, 2026', action: 'PDF' },
+                    { name: 'Sarah Mitchell', cdl: 'PA-62048391', type: 'Limited Query', status: 'Expired', sc: '#ef4444', via: 'Email', date: 'Feb 14, 2026', action: 'Retry' },
+                    { name: 'Luis Hernandez', cdl: 'AZ-88210473', type: 'Pre-Employment', status: 'Signed', sc: '#28c840', via: 'WhatsApp', date: 'Feb 13, 2026', action: 'PDF' },
+                  ].map((r, i) => {
+                    const y = 244 + i * 26;
+                    return (
+                      <g key={i} opacity="0">
+                        <animate attributeName="opacity" from="0" to="1" dur="0.3s" begin={`${0.7 + i * 0.07}s`} fill="freeze" />
+                        <line x1="244" y1={y} x2="1126" y2={y} stroke="#f0f0ec" strokeWidth="0.3" />
 
-                  {/* Quick actions */}
-                  {[228, 534, 840].map((x, i) => (
+                        {/* Driver name + CDL */}
+                        <text x="244" y={y + 12} fill="#0c0f14" fontSize="4.5" fontWeight="600" fontFamily="system-ui" opacity="0.75">{r.name}</text>
+                        <text x="244" y={y + 19} fill="#8b919a" fontSize="3.2" fontFamily="system-ui" opacity="0.4">{r.cdl}</text>
+
+                        {/* Consent type */}
+                        <text x="440" y={y + 14} fill="#6b6f76" fontSize="4" fontFamily="system-ui" opacity="0.55">{r.type}</text>
+
+                        {/* Status badge */}
+                        <rect x="620" y={y + 5} width={r.status.length * 4.2 + 14} height="14" rx="3" fill={r.sc} opacity="0.08" />
+                        <circle cx="628" cy={y + 12} r="2" fill={r.sc} opacity="0.5" />
+                        <text x="634" y={y + 15} fill={r.sc} fontSize="3.8" fontWeight="600" fontFamily="system-ui" opacity="0.75">{r.status}</text>
+
+                        {/* Sent via */}
+                        <text x="790" y={y + 14} fill="#6b6f76" fontSize="4" fontFamily="system-ui" opacity="0.45">{r.via}</text>
+
+                        {/* Date */}
+                        <text x="920" y={y + 14} fill="#8b919a" fontSize="3.8" fontFamily="system-ui" opacity="0.4">{r.date}</text>
+
+                        {/* Action link */}
+                        <text x="1070" y={y + 14} fill={r.action === 'PDF' ? '#0c0f14' : '#C8A75E'} fontSize="3.8" fontWeight="600" fontFamily="system-ui" opacity="0.5" textDecoration="underline">{r.action}</text>
+                      </g>
+                    );
+                  })}
+
+                  {/* ── QUICK ACTIONS ROW ── */}
+                  {[
+                    { x: 228, title: 'New Consent', desc: 'Send a consent request to a driver' },
+                    { x: 534, title: 'Add Driver', desc: 'Add a new driver to your roster' },
+                    { x: 840, title: 'Import CSV', desc: 'Bulk import drivers from spreadsheet' },
+                  ].map((a, i) => (
                     <g key={i} opacity="0">
                       <animate attributeName="opacity" from="0" to="1" dur="0.3s" begin={`${1.3 + i * 0.1}s`} fill="freeze" />
-                      <rect x={x} y="440" width="276" height="50" fill="white" stroke="#e8e8e3" />
-                      <rect x={x + 12} y="452" width="24" height="24" fill="#0c0f14" />
-                      <rect x={x + 18} y="458" width="12" height="12" rx="1" fill="#C8A75E" opacity="0.4" />
-                      <rect x={x + 46} y="456" width={44 + i * 8} height="4" rx="2" fill="#0c0f14" opacity="0.5" />
-                      <rect x={x + 46} y="464" width={56 + i * 4} height="2.5" rx="1.25" fill="#8b919a" opacity="0.25" />
+                      <rect x={a.x} y="448" width="276" height="44" rx="4" fill="white" stroke="#e8e8e3" strokeWidth="0.5" />
+
+                      {/* Icon box */}
+                      <rect x={a.x + 12} y="458" width="24" height="24" rx="4" fill="#0c0f14" />
+                      {i === 0 && <path d={`M${a.x + 24} 465 v10 M${a.x + 19} 470 h10`} stroke="#C8A75E" strokeWidth="1.2" strokeLinecap="round" />}
+                      {i === 1 && <>
+                        <circle cx={a.x + 24} cy={467} r="3" stroke="#C8A75E" strokeWidth="1" fill="none" />
+                        <path d={`M${a.x + 19} 477 a8 6 0 0 1 10 0`} stroke="#C8A75E" strokeWidth="1" fill="none" strokeLinecap="round" />
+                      </>}
+                      {i === 2 && <>
+                        <path d={`M${a.x + 20} 467 h8 v8 h-8 z`} stroke="#C8A75E" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d={`M${a.x + 22} 472 l2 2 4 -4`} stroke="#C8A75E" strokeWidth="0.8" strokeLinecap="round" strokeLinejoin="round" />
+                      </>}
+
+                      {/* Text */}
+                      <text x={a.x + 46} y={466} fill="#0c0f14" fontSize="4.5" fontWeight="600" fontFamily="system-ui" opacity="0.7">{a.title}</text>
+                      <text x={a.x + 46} y={475} fill="#8b919a" fontSize="3.5" fontFamily="system-ui" opacity="0.4">{a.desc}</text>
                     </g>
                   ))}
 
-                  {/* Warning bar */}
+                  {/* ── WARNING BAR — Low credits ── */}
                   <g opacity="0">
                     <animate attributeName="opacity" from="0" to="1" dur="0.3s" begin="1.6s" fill="freeze" />
-                    <rect x="228" y="506" width="914" height="36" fill="#fffbeb" stroke="#fde68a" strokeWidth="0.5" />
-                    <circle cx="248" cy="524" r="6" fill="#f59e0b" opacity="0.15" />
-                    <path d="M246 522 l2 4 2-4" stroke="#f59e0b" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" opacity="0.6" />
-                    <rect x="262" y="519" width="100" height="3.5" rx="1.75" fill="#92400e" opacity="0.45" />
-                    <rect x="262" y="526" width="180" height="2.5" rx="1.25" fill="#92400e" opacity="0.25" />
-                    <rect x="1058" y="514" width="68" height="20" fill="#0c0f14" />
-                    <rect x="1068" y="521" width="48" height="3" rx="1.5" fill="white" opacity="0.8" />
+                    <rect x="228" y="506" width="914" height="34" rx="4" fill="#fffbeb" stroke="#fde68a" strokeWidth="0.5" />
+                    <circle cx="248" cy="523" r="6" fill="#f59e0b" opacity="0.12" />
+                    <text x="248" y="526" textAnchor="middle" fill="#f59e0b" fontSize="7" fontWeight="700" fontFamily="system-ui" opacity="0.5">!</text>
+                    <text x="262" y="520" fill="#92400e" fontSize="4.2" fontWeight="600" fontFamily="system-ui" opacity="0.6">Low credit balance</text>
+                    <text x="262" y="528" fill="#92400e" fontSize="3.5" fontFamily="system-ui" opacity="0.35">You have 3 credits remaining. Purchase more to continue sending consents.</text>
+                    <rect x="1060" y="512" width="62" height="20" rx="3" fill="#0c0f14" />
+                    <text x="1091" y="525" textAnchor="middle" fill="white" fontSize="3.8" fontWeight="600" fontFamily="system-ui" opacity="0.85">Buy Credits</text>
                   </g>
 
-                  {/* Animated accents */}
-                  <circle cx="656" cy="255" r="2.5" fill="#28c840" opacity="0">
-                    <animate attributeName="opacity" values="0;0.45;0" dur="2.5s" begin="2s" repeatCount="indefinite" />
-                    <animate attributeName="r" values="2.5;6;2.5" dur="2.5s" begin="2s" repeatCount="indefinite" />
+                  {/* Subtle live indicator */}
+                  <circle cx="656" cy="255" r="2" fill="#28c840" opacity="0">
+                    <animate attributeName="opacity" values="0;0.4;0" dur="2.5s" begin="2s" repeatCount="indefinite" />
+                    <animate attributeName="r" values="2;5;2" dur="2.5s" begin="2s" repeatCount="indefinite" />
                   </circle>
-                  <circle cx="1050" cy="20" r="2" fill="#C8A75E" opacity="0">
-                    <animate attributeName="opacity" values="0;0.6;0" dur="3s" begin="4s" repeatCount="indefinite" />
-                    <animate attributeName="r" values="2;6;2" dur="3s" begin="4s" repeatCount="indefinite" />
-                  </circle>
-                  <rect x="228" y="384" width="914" height="24" fill="#C8A75E" opacity="0">
-                    <animate attributeName="opacity" values="0;0.04;0" dur="4s" begin="3s" repeatCount="indefinite" />
-                  </rect>
                 </svg>
               </div>
             </div>
@@ -211,13 +258,13 @@ export function DashboardPreview() {
         </div>
 
         {/* ══════════════════════════════════════════════════════════════════
-            iPHONE — realistic frame
+            iPHONE — Driver signing experience
         ══════════════════════════════════════════════════════════════════ */}
         <div
           className="relative z-[2] -ml-6 sm:-ml-10 lg:-ml-14 mb-4 sm:mb-6 lg:mb-8 shrink-0 w-[120px] sm:w-[155px] lg:w-[180px]"
           style={{ transform: 'rotate(3deg)' }}
         >
-          {/* Phone body — rounded aluminum frame */}
+          {/* Phone body */}
           <div className="bg-[#1a1a1c] rounded-[18px] sm:rounded-[24px] lg:rounded-[30px] p-[3px] sm:p-[4px] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5),_inset_0_0_0_1px_rgba(255,255,255,0.05)]">
             {/* Inner black bezel */}
             <div className="bg-[#000] rounded-[15px] sm:rounded-[20px] lg:rounded-[26px] overflow-hidden">
@@ -248,83 +295,109 @@ export function DashboardPreview() {
                 <rect x="312" y="7" width="1.5" height="5" rx="0.75" fill="#0c0f14" opacity="0.4" />
                 <rect x="292" y="6" width="16" height="7" rx="1.5" fill="#28c840" opacity="0.75" />
 
-                {/* App header */}
-                <rect y="20" width="340" height="40" fill="#0c0f14" />
-                <rect x="14" y="32" width="10" height="10" fill="#C8A75E" opacity="0.7" />
-                <rect x="30" y="33" width="64" height="4.5" rx="2" fill="#d4d4cf" opacity="0.45" />
-                <rect x="30" y="41" width="38" height="3" rx="1.5" fill="#5c6370" opacity="0.25" />
+                {/* App header — dark bar */}
+                <rect y="20" width="340" height="38" fill="#0c0f14" />
+                <rect x="14" y="30" width="10" height="10" rx="2" stroke="#C8A75E" strokeWidth="0.8" fill="none" opacity="0.6" />
+                <path d="M17 33 L19 35.5 L23 31" stroke="#C8A75E" strokeWidth="0.8" strokeLinecap="round" strokeLinejoin="round" opacity="0.5" />
+                <text x="30" y="37" fill="#d4d4cf" fontSize="5" fontWeight="700" fontFamily="system-ui" letterSpacing="0.8" opacity="0.7">CONSENTHAUL</text>
+
+                {/* Language toggle */}
+                <rect x="260" y="30" width="60" height="16" rx="8" fill="#1e2129" />
+                <rect x="262" y="32" width="28" height="12" rx="6" fill="#C8A75E" opacity="0.2" />
+                <text x="276" y="41" textAnchor="middle" fill="#C8A75E" fontSize="5" fontWeight="700" fontFamily="system-ui" opacity="0.8">EN</text>
+                <text x="304" y="41" textAnchor="middle" fill="#5c6370" fontSize="5" fontWeight="600" fontFamily="system-ui" opacity="0.4">ES</text>
 
                 {/* Gold accent line */}
-                <rect y="60" width="340" height="1.5" fill="#C8A75E" opacity="0.35" />
+                <rect y="58" width="340" height="1.5" fill="#C8A75E" opacity="0.3" />
 
-                {/* ── PDF Content ── */}
-                <rect x="20" y="72" width="300" height="20" fill="#0c0f14" opacity="0.03" />
-                <text x="170" y="86" textAnchor="middle" fill="#0c0f14" fontSize="8" fontWeight="800" fontFamily="system-ui" letterSpacing="2" opacity="0.6">FMCSA CONSENT FORM</text>
+                {/* ── CONSENT DOCUMENT ── */}
 
-                {/* SIGNED badge */}
+                {/* Title */}
+                <text x="170" y="80" textAnchor="middle" fill="#0c0f14" fontSize="7" fontWeight="800" fontFamily="system-ui" letterSpacing="1.5" opacity="0.55">FMCSA CLEARINGHOUSE</text>
+                <text x="170" y="92" textAnchor="middle" fill="#0c0f14" fontSize="6" fontWeight="700" fontFamily="system-ui" letterSpacing="1" opacity="0.4">LIMITED QUERY CONSENT</text>
+
+                {/* SIGNED badge — animates in */}
                 <g opacity="0">
                   <animate attributeName="opacity" from="0" to="1" dur="0.5s" begin="1s" fill="freeze" />
-                  <rect x="115" y="100" width="110" height="24" fill="#28c840" opacity="0.07" />
-                  <circle cx="136" cy="112" r="6.5" fill="#28c840" opacity="0.12" />
-                  <path d="M133 112 L135.5 114.5 L140 109.5" stroke="#28c840" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.75" />
-                  <text x="178" y="115.5" textAnchor="middle" fill="#28c840" fontSize="7" fontWeight="800" fontFamily="system-ui" letterSpacing="1.2" opacity="0.75">SIGNED</text>
+                  <rect x="110" y="102" width="120" height="22" rx="4" fill="#28c840" opacity="0.06" />
+                  <circle cx="130" cy="113" r="5.5" fill="#28c840" opacity="0.1" />
+                  <path d="M127 113 L129.5 115.5 L134 110" stroke="#28c840" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.7" />
+                  <text x="180" y="116" textAnchor="middle" fill="#28c840" fontSize="6" fontWeight="800" fontFamily="system-ui" letterSpacing="1" opacity="0.7">SIGNED</text>
                 </g>
 
-                <line x1="20" y1="134" x2="320" y2="134" stroke="#e8e8e3" />
+                <line x1="20" y1="132" x2="320" y2="132" stroke="#e8e8e3" strokeWidth="0.5" />
 
-                {/* Driver info */}
+                {/* Driver info fields — real labels and values */}
                 {[
-                  { y: 146, lw: 32, vw: 90 },
-                  { y: 164, lw: 38, vw: 70 },
-                  { y: 182, lw: 26, vw: 82 },
-                  { y: 200, lw: 44, vw: 55 },
-                  { y: 218, lw: 36, vw: 48 },
+                  { y: 146, label: 'Driver Name', value: 'Carlos Mendez' },
+                  { y: 162, label: 'CDL Number', value: 'TX-28491037' },
+                  { y: 178, label: 'DOB', value: '03/14/1988' },
+                  { y: 194, label: 'Carrier', value: 'Acme Freight LLC' },
+                  { y: 210, label: 'Consent Type', value: 'Limited Query' },
                 ].map((f, i) => (
                   <g key={i}>
-                    <rect x="20" y={f.y} width={f.lw} height="3" rx="1.5" fill="#8b919a" opacity="0.28" />
-                    <rect x="110" y={f.y} width={f.vw} height="3.5" rx="1.75" fill="#0c0f14" opacity="0.45" />
+                    <text x="24" y={f.y + 4} fill="#8b919a" fontSize="4" fontWeight="500" fontFamily="system-ui" opacity="0.6">{f.label}</text>
+                    <text x="120" y={f.y + 4} fill="#0c0f14" fontSize="4.5" fontWeight="600" fontFamily="system-ui" opacity="0.7">{f.value}</text>
                   </g>
                 ))}
 
-                {/* Consent text */}
-                <rect x="20" y="244" width="70" height="3" rx="1.5" fill="#8b919a" opacity="0.35" />
-                <line x1="20" y1="252" x2="320" y2="252" stroke="#e8e8e3" />
-                {[262, 274, 286, 298, 310, 322, 334, 350, 362, 374, 386, 398].map((y, i) => (
-                  <rect key={y} x="20" y={y} width={i === 7 || i === 11 ? 160 : (i === 3 ? 280 : 300)} height="2.5" rx="1.25" fill="#6b6f76" opacity={i === 7 || i === 11 ? 0.12 : 0.14} />
-                ))}
+                {/* Consent body header */}
+                <line x1="20" y1="228" x2="320" y2="228" stroke="#e8e8e3" strokeWidth="0.5" />
+                <text x="24" y="242" fill="#0c0f14" fontSize="4.5" fontWeight="700" fontFamily="system-ui" opacity="0.5">Consent Authorization</text>
 
-                {/* Checkbox */}
+                {/* Consent body — actual text lines */}
+                <text x="24" y="256" fill="#6b6f76" fontSize="3.5" fontFamily="system-ui" opacity="0.45">I hereby authorize the above-named carrier/employer</text>
+                <text x="24" y="264" fill="#6b6f76" fontSize="3.5" fontFamily="system-ui" opacity="0.45">to conduct a limited query of the FMCSA Commercial</text>
+                <text x="24" y="272" fill="#6b6f76" fontSize="3.5" fontFamily="system-ui" opacity="0.45">{"Driver's License Drug and Alcohol Clearinghouse to"}</text>
+                <text x="24" y="280" fill="#6b6f76" fontSize="3.5" fontFamily="system-ui" opacity="0.45">determine whether drug or alcohol violation information</text>
+                <text x="24" y="288" fill="#6b6f76" fontSize="3.5" fontFamily="system-ui" opacity="0.45">about me exists in the Clearinghouse.</text>
+
+                <text x="24" y="304" fill="#6b6f76" fontSize="3.5" fontFamily="system-ui" opacity="0.45">I understand that if the limited query shows that drug</text>
+                <text x="24" y="312" fill="#6b6f76" fontSize="3.5" fontFamily="system-ui" opacity="0.45">or alcohol violation information about me exists in the</text>
+                <text x="24" y="320" fill="#6b6f76" fontSize="3.5" fontFamily="system-ui" opacity="0.45">Clearinghouse, FMCSA will not disclose that information</text>
+                <text x="24" y="328" fill="#6b6f76" fontSize="3.5" fontFamily="system-ui" opacity="0.45">to the employer without first obtaining additional</text>
+                <text x="24" y="336" fill="#6b6f76" fontSize="3.5" fontFamily="system-ui" opacity="0.45">specific consent from me. 49 CFR Part 40.</text>
+
+                {/* Checkbox acknowledgment */}
                 <g opacity="0">
                   <animate attributeName="opacity" from="0" to="1" dur="0.4s" begin="1.3s" fill="freeze" />
-                  <rect x="20" y="416" width="300" height="30" fill="#0c0f14" opacity="0.02" />
-                  <rect x="24" y="424" width="10" height="10" fill="none" stroke="#0c0f14" strokeWidth="0.8" opacity="0.3" />
-                  <path d="M26 429 L28 431 L32 426" stroke="#0c0f14" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" opacity="0.5" />
-                  <rect x="42" y="424" width="240" height="2.5" rx="1.25" fill="#6b6f76" opacity="0.2" />
-                  <rect x="42" y="431" width="160" height="2.5" rx="1.25" fill="#6b6f76" opacity="0.15" />
+                  <rect x="20" y="352" width="300" height="28" rx="4" fill="#0c0f14" opacity="0.02" />
+                  <rect x="26" y="360" width="10" height="10" rx="2" fill="none" stroke="#0c0f14" strokeWidth="0.7" opacity="0.25" />
+                  <path d="M28 365 L30 367 L34 362" stroke="#0c0f14" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" opacity="0.5" />
+                  <text x="42" y="366" fill="#6b6f76" fontSize="3.5" fontFamily="system-ui" opacity="0.45">I have read and understand the above consent</text>
+                  <text x="42" y="374" fill="#6b6f76" fontSize="3.5" fontFamily="system-ui" opacity="0.4">and I agree to authorize this query.</text>
                 </g>
 
-                {/* Signature */}
-                <rect x="20" y="458" width="55" height="3" rx="1.5" fill="#8b919a" opacity="0.35" />
-                <line x1="20" y1="466" x2="320" y2="466" stroke="#e8e8e3" />
-                <rect x="20" y="474" width="300" height="60" fill="#fafaf8" stroke="#e8e8e3" strokeDasharray="3 3" />
+                {/* Signature area */}
+                <text x="24" y="398" fill="#8b919a" fontSize="4" fontWeight="600" fontFamily="system-ui" opacity="0.45">Signature</text>
+                <line x1="20" y1="404" x2="320" y2="404" stroke="#e8e8e3" strokeWidth="0.5" />
+                <rect x="20" y="410" width="300" height="56" rx="4" fill="#fafaf8" stroke="#e8e8e3" strokeDasharray="3 3" strokeWidth="0.5" />
+
+                {/* Animated signature drawing */}
                 <g opacity="0">
                   <animate attributeName="opacity" from="0" to="1" dur="0.7s" begin="1.5s" fill="freeze" />
                   <path
-                    d="M45 510 C55 490, 72 492, 82 502 S100 516, 115 500 S130 484, 148 500 S165 510, 180 498 C190 488, 198 500, 215 496 S240 502, 260 494"
-                    stroke="#0c0f14" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.55"
+                    d="M45 444 C55 424, 72 426, 82 436 S100 450, 115 434 S130 418, 148 434 S165 444, 180 432 C190 422, 198 434, 215 430 S240 436, 260 428"
+                    stroke="#0c0f14" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.5"
                   />
                 </g>
 
-                {/* Date + IP */}
-                <rect x="20" y="548" width="38" height="2.5" rx="1.25" fill="#8b919a" opacity="0.25" />
-                <rect x="70" y="548" width="72" height="3" rx="1.5" fill="#0c0f14" opacity="0.35" />
-                <rect x="20" y="560" width="22" height="2.5" rx="1.25" fill="#8b919a" opacity="0.25" />
-                <rect x="70" y="560" width="95" height="3" rx="1.5" fill="#0c0f14" opacity="0.35" />
+                {/* Date + IP info */}
+                <text x="24" y="484" fill="#8b919a" fontSize="3.5" fontFamily="system-ui" opacity="0.4">Signed on</text>
+                <text x="70" y="484" fill="#0c0f14" fontSize="3.8" fontWeight="500" fontFamily="system-ui" opacity="0.5">Feb 21, 2026 at 2:14 PM CST</text>
+                <text x="24" y="494" fill="#8b919a" fontSize="3.5" fontFamily="system-ui" opacity="0.4">IP Address</text>
+                <text x="70" y="494" fill="#0c0f14" fontSize="3.8" fontWeight="500" fontFamily="system-ui" opacity="0.5">172.58.xxx.xxx</text>
+                <text x="24" y="504" fill="#8b919a" fontSize="3.5" fontFamily="system-ui" opacity="0.4">Consent ID</text>
+                <text x="70" y="504" fill="#0c0f14" fontSize="3.8" fontWeight="500" fontFamily="system-ui" opacity="0.5">CNS-2026-00847</text>
 
-                {/* Download button */}
-                <rect y="584" width="340" height="46" fill="#0c0f14" />
-                <rect x="88" y="595" width="164" height="24" fill="#C8A75E" opacity="0.9" />
-                <text x="170" y="611" textAnchor="middle" fill="#0c0f14" fontSize="7" fontWeight="800" fontFamily="system-ui" letterSpacing="1.5">DOWNLOAD PDF</text>
+                {/* Compliance badge */}
+                <rect x="20" y="518" width="300" height="22" rx="4" fill="#0c0f14" opacity="0.02" />
+                <text x="170" y="532" textAnchor="middle" fill="#8b919a" fontSize="3.2" fontFamily="system-ui" opacity="0.35">ESIGN Act & UETA Compliant  ·  Retained 3 Years  ·  49 CFR §40</text>
+
+                {/* Download PDF button */}
+                <rect y="550" width="340" height="80" fill="#fafaf8" />
+                <rect x="24" y="558" width="292" height="36" rx="6" fill="#C8A75E" opacity="0.9" />
+                <text x="170" y="580" textAnchor="middle" fill="#0c0f14" fontSize="6" fontWeight="800" fontFamily="system-ui" letterSpacing="1.2">DOWNLOAD SIGNED PDF</text>
 
                 {/* Home indicator */}
                 <rect y="630" width="340" height="50" fill="white" />
@@ -333,7 +406,7 @@ export function DashboardPreview() {
             </div>
           </div>
 
-          {/* Connection line */}
+          {/* Connection line between laptop and phone */}
           <svg className="absolute -left-5 top-[30%] w-7 h-14 pointer-events-none hidden sm:block" viewBox="0 0 28 56" fill="none">
             <path d="M0 28 C14 28, 14 14, 28 14" stroke="#C8A75E" strokeWidth="0.6" strokeDasharray="2 3" opacity="0.25">
               <animate attributeName="opacity" values="0.1;0.3;0.1" dur="3s" repeatCount="indefinite" />
@@ -347,18 +420,18 @@ export function DashboardPreview() {
       {/* Labels */}
       <div className="absolute -right-2 top-[10%] hidden xl:flex items-center gap-2" style={{ animation: 'lbl 0.4s 1.5s both' }}>
         <div className="w-5 h-px bg-[#C8A75E]/25" />
-        <span className="text-[0.5rem] font-bold text-[#C8A75E]/40 uppercase tracking-[0.15em]">Live dashboard</span>
+        <span className="text-[0.5rem] font-bold text-[#C8A75E]/40 uppercase tracking-[0.15em]">Admin dashboard</span>
       </div>
       <div className="absolute -right-2 top-[45%] hidden xl:flex items-center gap-2" style={{ animation: 'lbl 0.4s 1.8s both' }}>
         <div className="w-5 h-px bg-[#C8A75E]/25" />
-        <span className="text-[0.5rem] font-bold text-[#C8A75E]/40 uppercase tracking-[0.15em]">Consent tracking</span>
+        <span className="text-[0.5rem] font-bold text-[#C8A75E]/40 uppercase tracking-[0.15em]">Real-time tracking</span>
       </div>
       <div className="absolute right-[10%] -bottom-6 hidden xl:flex items-center gap-2" style={{ animation: 'lbl 0.4s 2.1s both' }}>
         <div className="w-5 h-px bg-[#C8A75E]/25" />
-        <span className="text-[0.5rem] font-bold text-[#C8A75E]/40 uppercase tracking-[0.15em]">Signed PDF</span>
+        <span className="text-[0.5rem] font-bold text-[#C8A75E]/40 uppercase tracking-[0.15em]">Driver signs on phone</span>
       </div>
       <div className="absolute -left-2 top-[28%] hidden xl:flex items-center gap-2" style={{ animation: 'lbl 0.4s 2s both' }}>
-        <span className="text-[0.5rem] font-bold text-[#C8A75E]/40 uppercase tracking-[0.15em]">Navigation</span>
+        <span className="text-[0.5rem] font-bold text-[#C8A75E]/40 uppercase tracking-[0.15em]">Fleet management</span>
         <div className="w-5 h-px bg-[#C8A75E]/25" />
       </div>
 

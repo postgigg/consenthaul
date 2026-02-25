@@ -83,6 +83,14 @@ export async function POST(
       );
     }
 
+    // Fetch organization name for messaging
+    const { data: orgData } = await supabase
+      .from('organizations')
+      .select('name')
+      .eq('id', consent.organization_id)
+      .single();
+    const companyName = orgData?.name ?? undefined;
+
     // 4. Build signing URL
     const signingUrl = `${process.env.NEXT_PUBLIC_APP_URL}/sign/${consent.signing_token}`;
 
@@ -106,6 +114,7 @@ export async function POST(
           to: consent.delivery_address,
           driverName: driverFullName,
           signingUrl,
+          companyName,
           language: consent.language,
         });
         deliverySid = result.sid;
@@ -114,6 +123,7 @@ export async function POST(
           to: consent.delivery_address,
           driverName: driverFullName,
           signingUrl,
+          companyName,
           language: consent.language,
         });
         deliverySid = result.sid;
@@ -122,6 +132,7 @@ export async function POST(
           to: consent.delivery_address,
           driverName: driverFullName,
           signingUrl,
+          companyName,
           language: consent.language,
         });
         deliverySid = result.messageId;

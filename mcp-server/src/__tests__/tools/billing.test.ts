@@ -41,10 +41,10 @@ describe('billing tools', () => {
       const result = await billingTools.list_credit_packs.handler(client);
       const data = result as { packs: { credits: number; price_usd: number; popular?: boolean }[] };
 
-      expect(data.packs[0]).toMatchObject({ credits: 10, price_usd: 15 });
-      expect(data.packs[1]).toMatchObject({ credits: 50, price_usd: 50, popular: true });
-      expect(data.packs[2]).toMatchObject({ credits: 200, price_usd: 150 });
-      expect(data.packs[3]).toMatchObject({ credits: 1000, price_usd: 500 });
+      expect(data.packs[0]).toMatchObject({ credits: 10, price_usd: 30 });
+      expect(data.packs[1]).toMatchObject({ credits: 50, price_usd: 125, popular: true });
+      expect(data.packs[2]).toMatchObject({ credits: 200, price_usd: 400 });
+      expect(data.packs[3]).toMatchObject({ credits: 1000, price_usd: 1500 });
     });
   });
 });

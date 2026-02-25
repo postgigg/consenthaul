@@ -20,24 +20,24 @@ export const billingTools = {
         packs: [
           {
             credits: 10,
-            price_usd: 15,
-            per_consent_usd: 1.5,
+            price_usd: 30,
+            per_consent_usd: 3.0,
           },
           {
             credits: 50,
-            price_usd: 50,
-            per_consent_usd: 1.0,
+            price_usd: 125,
+            per_consent_usd: 2.5,
             popular: true,
           },
           {
             credits: 200,
-            price_usd: 150,
-            per_consent_usd: 0.75,
+            price_usd: 400,
+            per_consent_usd: 2.0,
           },
           {
             credits: 1000,
-            price_usd: 500,
-            per_consent_usd: 0.5,
+            price_usd: 1500,
+            per_consent_usd: 1.5,
           },
         ],
         purchase_url: "https://app.consenthaul.com/billing",

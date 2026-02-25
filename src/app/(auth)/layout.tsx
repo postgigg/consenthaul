@@ -47,7 +47,7 @@ export default function AuthLayout({
             </div>
             <div className="w-px bg-[#1e2129]" />
             <div>
-              <p className="text-[#C8A75E] text-2xl font-bold tabular-nums">$0.50</p>
+              <p className="text-[#C8A75E] text-2xl font-bold tabular-nums">$1.50</p>
               <p className="text-[#5c6370] text-xs uppercase tracking-wider mt-0.5">Per consent</p>
             </div>
             <div className="w-px bg-[#1e2129]" />
