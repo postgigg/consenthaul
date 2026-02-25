@@ -6,6 +6,8 @@ import { SIGNING_TOKEN_DEFAULT_TTL_HOURS } from '@/lib/constants';
 import { sendConsentSMS } from '@/lib/messaging/sms';
 import { sendConsentWhatsApp } from '@/lib/messaging/whatsapp';
 import { sendConsentEmail } from '@/lib/messaging/email';
+import { generalLimiter } from '@/lib/rate-limiters';
+import { getClientIp } from '@/lib/rate-limit';
 import type { Database } from '@/types/database';
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
@@ -17,6 +19,16 @@ type ConsentRow = Database['public']['Tables']['consents']['Row'];
 // ---------------------------------------------------------------------------
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit
+    const ip = getClientIp(request);
+    const rl = generalLimiter.check(ip);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Too Many Requests', message: 'Rate limit exceeded. Try again later.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } },
+      );
+    }
+
     const supabase = createClient();
 
     // 1. Authenticate
@@ -94,9 +106,9 @@ export async function POST(request: NextRequest) {
     let deliveryAddress = input.delivery_address;
     if (!deliveryAddress) {
       if (input.delivery_method === 'email') {
-        deliveryAddress = driver.email ?? undefined;
+        deliveryAddress = driver.email?.trim() ?? undefined;
       } else if (input.delivery_method === 'sms' || input.delivery_method === 'whatsapp') {
-        deliveryAddress = driver.phone ?? undefined;
+        deliveryAddress = driver.phone?.trim() ?? undefined;
       }
     }
 
@@ -110,29 +122,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 5. Deduct credit via RPC
-    const { data: creditDeducted, error: creditError } = await supabase.rpc('deduct_credit', {
-      p_org_id: orgId,
-      p_consent_id: '', // placeholder — consent not yet created
-      p_user_id: user.id,
-    });
-
-    if (creditError || !creditDeducted) {
-      return NextResponse.json(
-        {
-          error: 'Payment Required',
-          message: 'Insufficient credits. Please purchase more credits to send consents.',
-        },
-        { status: 402 },
-      );
-    }
-
-    // 6. Generate signing token
+    // 5. Generate signing token (no side effects)
     const signingToken = generateSigningToken();
     const ttlHours = input.token_ttl_hours ?? SIGNING_TOKEN_DEFAULT_TTL_HOURS;
     const tokenExpiresAt = new Date(Date.now() + ttlHours * 60 * 60 * 1000).toISOString();
 
-    // 7. Create the consent record
+    // 6. Create the consent record first (before deducting credit)
     const { data: consentData, error: insertError } = await supabase
       .from('consents')
       .insert({
@@ -140,7 +135,7 @@ export async function POST(request: NextRequest) {
         driver_id: input.driver_id,
         created_by: user.id,
         consent_type: input.consent_type ?? 'limited_query',
-        status: input.delivery_method === 'manual' ? 'pending' : 'sent',
+        status: 'pending',
         language: input.language ?? driver.preferred_language ?? 'en',
         consent_start_date: input.consent_start_date ?? new Date().toISOString().slice(0, 10),
         consent_end_date: input.consent_end_date ?? null,
@@ -164,8 +159,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update the credit transaction with the real consent id (fire-and-forget)
-    // The RPC used a placeholder; we update the most recent deduction for this org.
+    // 7. Deduct credit using the real consent ID
+    const { data: creditDeducted, error: creditError } = await supabase.rpc('deduct_credit', {
+      p_org_id: orgId,
+      p_consent_id: consent.id,
+      p_user_id: user.id,
+    });
+
+    if (creditError || !creditDeducted) {
+      // Rollback: delete the pending consent
+      await supabase.from('consents').delete().eq('id', consent.id);
+      return NextResponse.json(
+        {
+          error: 'Payment Required',
+          message: 'Insufficient credits. Please purchase more credits to send consents.',
+        },
+        { status: 402 },
+      );
+    }
+
+    // Update status to 'sent' for non-manual delivery
+    if (input.delivery_method !== 'manual') {
+      await supabase
+        .from('consents')
+        .update({ status: 'sent' })
+        .eq('id', consent.id);
+    }
 
     // 8. Build signing URL
     const signingUrl = `${process.env.NEXT_PUBLIC_APP_URL}/sign/${signingToken}`;
@@ -248,7 +267,7 @@ export async function POST(request: NextRequest) {
       await supabase.from('notifications').insert({
         organization_id: orgId,
         consent_id: consent.id,
-        type: 'consent_request',
+        type: 'consent_link',
         channel: input.delivery_method,
         recipient: deliveryAddress,
         message_body: null,

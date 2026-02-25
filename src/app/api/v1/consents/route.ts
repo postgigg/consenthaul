@@ -94,9 +94,9 @@ export async function POST(request: NextRequest) {
     let deliveryAddress = input.delivery_address;
     if (!deliveryAddress) {
       if (input.delivery_method === 'email') {
-        deliveryAddress = driver.email ?? undefined;
+        deliveryAddress = driver.email?.trim() ?? undefined;
       } else if (input.delivery_method === 'sms' || input.delivery_method === 'whatsapp') {
-        deliveryAddress = driver.phone ?? undefined;
+        deliveryAddress = driver.phone?.trim() ?? undefined;
       }
     }
 
@@ -110,26 +110,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 4. Deduct credit
-    const { data: creditDeducted, error: creditError } = await supabase.rpc('deduct_credit', {
-      p_org_id: orgId,
-      p_consent_id: '',
-      p_user_id: auth.keyId, // attribute to the API key
-    });
-
-    if (creditError || !creditDeducted) {
-      return NextResponse.json(
-        { error: 'Payment Required', message: 'Insufficient credits.' },
-        { status: 402 },
-      );
-    }
-
-    // 5. Generate signing token
+    // 4. Generate signing token (no side effects)
     const signingToken = generateSigningToken();
     const ttlHours = input.token_ttl_hours ?? SIGNING_TOKEN_DEFAULT_TTL_HOURS;
     const tokenExpiresAt = new Date(Date.now() + ttlHours * 60 * 60 * 1000).toISOString();
 
-    // 6. Create consent record
+    // 5. Create consent record first (before deducting credit)
     const { data: consentData, error: insertError } = await supabase
       .from('consents')
       .insert({
@@ -137,7 +123,7 @@ export async function POST(request: NextRequest) {
         driver_id: input.driver_id,
         created_by: auth.keyId,
         consent_type: input.consent_type ?? 'limited_query',
-        status: input.delivery_method === 'manual' ? 'pending' : 'sent',
+        status: 'pending',
         language: input.language ?? driver.preferred_language ?? 'en',
         consent_start_date: input.consent_start_date ?? new Date().toISOString().slice(0, 10),
         consent_end_date: input.consent_end_date ?? null,
@@ -159,6 +145,30 @@ export async function POST(request: NextRequest) {
         { error: 'Internal Error', message: 'Failed to create consent record.' },
         { status: 500 },
       );
+    }
+
+    // 6. Deduct credit using the real consent ID
+    const { data: creditDeducted, error: creditError } = await supabase.rpc('deduct_credit', {
+      p_org_id: orgId,
+      p_consent_id: consent.id,
+      p_user_id: auth.keyId,
+    });
+
+    if (creditError || !creditDeducted) {
+      // Rollback: delete the pending consent
+      await supabase.from('consents').delete().eq('id', consent.id);
+      return NextResponse.json(
+        { error: 'Payment Required', message: 'Insufficient credits.' },
+        { status: 402 },
+      );
+    }
+
+    // Update status to 'sent' for non-manual delivery
+    if (input.delivery_method !== 'manual') {
+      await supabase
+        .from('consents')
+        .update({ status: 'sent' })
+        .eq('id', consent.id);
     }
 
     // 7. Build signing URL
@@ -226,7 +236,7 @@ export async function POST(request: NextRequest) {
       await supabase.from('notifications').insert({
         organization_id: orgId,
         consent_id: consent.id,
-        type: 'consent_request',
+        type: 'consent_link',
         channel: input.delivery_method,
         recipient: deliveryAddress,
         external_id: deliverySid,

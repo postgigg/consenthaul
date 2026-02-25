@@ -4,6 +4,8 @@ import { csvDriverRowSchema } from '@/lib/validators';
 import { MAX_CSV_ROWS } from '@/lib/constants';
 import { parse } from 'csv-parse/sync';
 import type { CSVImportResult, CSVImportError } from '@/types/driver';
+import { generalLimiter } from '@/lib/rate-limiters';
+import { getClientIp } from '@/lib/rate-limit';
 import type { Database } from '@/types/database';
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
@@ -13,6 +15,16 @@ type ProfileRow = Database['public']['Tables']['profiles']['Row'];
 // ---------------------------------------------------------------------------
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit
+    const ip = getClientIp(request);
+    const rl = generalLimiter.check(ip);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Too Many Requests', message: 'Rate limit exceeded. Try again later.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } },
+      );
+    }
+
     const supabase = createClient();
 
     // 1. Authenticate

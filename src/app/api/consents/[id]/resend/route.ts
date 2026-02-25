@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server';
 import { sendConsentSMS } from '@/lib/messaging/sms';
 import { sendConsentWhatsApp } from '@/lib/messaging/whatsapp';
 import { sendConsentEmail } from '@/lib/messaging/email';
+import { generalLimiter } from '@/lib/rate-limiters';
+import { getClientIp } from '@/lib/rate-limit';
 import type { Database } from '@/types/database';
 
 type ConsentRow = Database['public']['Tables']['consents']['Row'];
@@ -16,6 +18,16 @@ export async function POST(
   { params }: { params: { id: string } },
 ) {
   try {
+    // Rate limit
+    const ip = getClientIp(_request);
+    const rl = generalLimiter.check(ip);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Too Many Requests', message: 'Rate limit exceeded. Try again later.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } },
+      );
+    }
+
     const supabase = createClient();
     const { id } = params;
 
@@ -169,7 +181,7 @@ export async function POST(
       .from('notifications')
       .select('id, attempts')
       .eq('consent_id', id)
-      .eq('type', 'consent_request')
+      .eq('type', 'consent_link')
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
@@ -190,7 +202,7 @@ export async function POST(
       await supabase.from('notifications').insert({
         organization_id: consent.organization_id,
         consent_id: consent.id,
-        type: 'consent_request',
+        type: 'consent_link',
         channel: consent.delivery_method,
         recipient: consent.delivery_address,
         external_id: deliverySid,

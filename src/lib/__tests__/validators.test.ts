@@ -5,6 +5,7 @@ import {
   submitSignatureSchema,
   paginationSchema,
   updateDriverSchema,
+  csvDriverRowSchema,
 } from '../validators';
 
 describe('createDriverSchema', () => {
@@ -67,6 +68,28 @@ describe('createDriverSchema', () => {
     expect(createDriverSchema.safeParse({ ...valid, preferred_language: 'fr' }).success).toBe(false);
     expect(createDriverSchema.safeParse({ ...valid, preferred_language: 'es' }).success).toBe(true);
   });
+
+  it('rejects first_name longer than 100 characters', () => {
+    expect(createDriverSchema.safeParse({
+      ...valid,
+      first_name: 'a'.repeat(101),
+    }).success).toBe(false);
+  });
+
+  it('rejects last_name longer than 100 characters', () => {
+    expect(createDriverSchema.safeParse({
+      ...valid,
+      last_name: 'a'.repeat(101),
+    }).success).toBe(false);
+  });
+
+  it('accepts names at exactly 100 characters', () => {
+    expect(createDriverSchema.safeParse({
+      ...valid,
+      first_name: 'a'.repeat(100),
+      last_name: 'b'.repeat(100),
+    }).success).toBe(true);
+  });
 });
 
 describe('createConsentSchema', () => {
@@ -111,6 +134,40 @@ describe('createConsentSchema', () => {
   it('rejects negative token_ttl_hours', () => {
     expect(createConsentSchema.safeParse({ ...valid, token_ttl_hours: -1 }).success).toBe(false);
   });
+
+  it('rejects token_ttl_hours over 8760 (1 year)', () => {
+    expect(createConsentSchema.safeParse({ ...valid, token_ttl_hours: 8761 }).success).toBe(false);
+  });
+
+  it('accepts token_ttl_hours at exactly 8760', () => {
+    const result = createConsentSchema.safeParse({ ...valid, token_ttl_hours: 8760 });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.token_ttl_hours).toBe(8760);
+    }
+  });
+
+  it('trims whitespace from delivery_address', () => {
+    const result = createConsentSchema.safeParse({
+      ...valid,
+      delivery_address: '  +15551234567  ',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.delivery_address).toBe('+15551234567');
+    }
+  });
+
+  it('treats whitespace-only delivery_address as empty', () => {
+    const result = createConsentSchema.safeParse({
+      ...valid,
+      delivery_address: '   ',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.delivery_address).toBe('');
+    }
+  });
 });
 
 describe('submitSignatureSchema', () => {
@@ -131,6 +188,20 @@ describe('submitSignatureSchema', () => {
   it('accepts valid input', () => {
     expect(submitSignatureSchema.safeParse({
       signature_data: 'a'.repeat(100),
+      confirmed: true,
+    }).success).toBe(true);
+  });
+
+  it('rejects signature_data over 500,000 characters', () => {
+    expect(submitSignatureSchema.safeParse({
+      signature_data: 'a'.repeat(500_001),
+      confirmed: true,
+    }).success).toBe(false);
+  });
+
+  it('accepts signature_data at exactly 500,000 characters', () => {
+    expect(submitSignatureSchema.safeParse({
+      signature_data: 'a'.repeat(500_000),
       confirmed: true,
     }).success).toBe(true);
   });
@@ -201,5 +272,31 @@ describe('updateDriverSchema', () => {
   it('validates email if provided', () => {
     expect(updateDriverSchema.safeParse({ email: 'bad' }).success).toBe(false);
     expect(updateDriverSchema.safeParse({ email: 'good@test.com' }).success).toBe(true);
+  });
+
+  it('rejects first_name longer than 100 characters', () => {
+    expect(updateDriverSchema.safeParse({ first_name: 'a'.repeat(101) }).success).toBe(false);
+  });
+
+  it('rejects last_name longer than 100 characters', () => {
+    expect(updateDriverSchema.safeParse({ last_name: 'a'.repeat(101) }).success).toBe(false);
+  });
+});
+
+describe('csvDriverRowSchema', () => {
+  const valid = { first_name: 'Jane', last_name: 'Smith', email: 'jane@example.com' };
+
+  it('rejects first_name longer than 100 characters', () => {
+    expect(csvDriverRowSchema.safeParse({
+      ...valid,
+      first_name: 'a'.repeat(101),
+    }).success).toBe(false);
+  });
+
+  it('rejects last_name longer than 100 characters', () => {
+    expect(csvDriverRowSchema.safeParse({
+      ...valid,
+      last_name: 'a'.repeat(101),
+    }).success).toBe(false);
   });
 });

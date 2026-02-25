@@ -42,6 +42,7 @@ export function ConsentForm({ onSuccess }: ConsentFormProps) {
   const [driverSearch, setDriverSearch] = useState('');
   const [selectedDriver, setSelectedDriver] = useState<DriverRow | null>(null);
   const [showDriverDropdown, setShowDriverDropdown] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
   // Form fields
   const [consentType, setConsentType] = useState<ConsentType>('limited_query');
@@ -78,7 +79,10 @@ export function ConsentForm({ onSuccess }: ConsentFormProps) {
       }
 
       const { data } = await query;
-      if (data) setDrivers(data);
+      if (data) {
+        setDrivers(data);
+        setHighlightedIndex(-1);
+      }
     },
     [supabase],
   );
@@ -108,12 +112,43 @@ export function ConsentForm({ onSuccess }: ConsentFormProps) {
     setSelectedDriver(driver);
     setDriverSearch(`${driver.first_name} ${driver.last_name}`);
     setShowDriverDropdown(false);
+    setHighlightedIndex(-1);
+  }
+
+  function handleDriverKeyDown(e: React.KeyboardEvent) {
+    if (!showDriverDropdown || drivers.length === 0 || selectedDriver) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setHighlightedIndex((prev) => (prev < drivers.length - 1 ? prev + 1 : 0));
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : drivers.length - 1));
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (highlightedIndex >= 0 && highlightedIndex < drivers.length) {
+          selectDriver(drivers[highlightedIndex]);
+        }
+        break;
+      case 'Escape':
+        setShowDriverDropdown(false);
+        setHighlightedIndex(-1);
+        break;
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedDriver) {
       setError('Please select a driver.');
+      return;
+    }
+
+    if (endDate && !durationOfEmployment && startDate && endDate < startDate) {
+      setError('End date must be on or after the start date.');
       return;
     }
 
@@ -140,7 +175,7 @@ export function ConsentForm({ onSuccess }: ConsentFormProps) {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error ?? 'Failed to create consent request.');
+        setError(data.message ?? data.error ?? 'Failed to create consent request.');
         return;
       }
 
@@ -190,6 +225,7 @@ export function ConsentForm({ onSuccess }: ConsentFormProps) {
                   if (selectedDriver) setSelectedDriver(null);
                 }}
                 onFocus={() => setShowDriverDropdown(true)}
+                onKeyDown={handleDriverKeyDown}
                 className="pl-10"
                 autoComplete="off"
               />
@@ -199,14 +235,17 @@ export function ConsentForm({ onSuccess }: ConsentFormProps) {
                   role="listbox"
                   aria-label="Driver suggestions"
                 >
-                  {drivers.map((driver) => (
+                  {drivers.map((driver, index) => (
                     <li key={driver.id}>
                       <button
                         type="button"
-                        className="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm hover:bg-[#fafaf8] transition-colors"
+                        className={`flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition-colors ${
+                          index === highlightedIndex ? 'bg-[#f0f0ec]' : 'hover:bg-[#fafaf8]'
+                        }`}
                         onClick={() => selectDriver(driver)}
+                        onMouseEnter={() => setHighlightedIndex(index)}
                         role="option"
-                        aria-selected={false}
+                        aria-selected={index === highlightedIndex}
                       >
                         <div>
                           <span className="font-medium text-[#0c0f14]">
@@ -228,9 +267,40 @@ export function ConsentForm({ onSuccess }: ConsentFormProps) {
               )}
             </div>
             {selectedDriver && (
-              <p className="text-xs text-green-600">
-                Selected: {selectedDriver.first_name} {selectedDriver.last_name}
-              </p>
+              <div className="border border-[#e8e8e3] bg-[#fafaf8] px-4 py-3 mt-2">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-[#0c0f14]">
+                    {selectedDriver.first_name} {selectedDriver.last_name}
+                  </span>
+                  <span className="text-xs text-green-600 font-medium">Selected</span>
+                </div>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs text-[#6b6f76]">
+                  {selectedDriver.phone && (
+                    <div>
+                      <span className="text-[#8b919a]">Phone:</span>{' '}
+                      <span className="text-[#3a3f49]">{selectedDriver.phone}</span>
+                    </div>
+                  )}
+                  {selectedDriver.email && (
+                    <div>
+                      <span className="text-[#8b919a]">Email:</span>{' '}
+                      <span className="text-[#3a3f49]">{selectedDriver.email}</span>
+                    </div>
+                  )}
+                  {selectedDriver.cdl_number && (
+                    <div>
+                      <span className="text-[#8b919a]">CDL:</span>{' '}
+                      <span className="text-[#3a3f49]">{selectedDriver.cdl_number}</span>
+                    </div>
+                  )}
+                  {selectedDriver.cdl_state && (
+                    <div>
+                      <span className="text-[#8b919a]">CDL State:</span>{' '}
+                      <span className="text-[#3a3f49]">{selectedDriver.cdl_state}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
           </div>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Table,
   TableHeader,
@@ -16,6 +16,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ConsentStatusBadge } from '@/components/consent/ConsentStatus';
@@ -64,6 +73,20 @@ export function ConsentTable({ onView }: ConsentTableProps) {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const perPage = 25;
 
+  // Feedback banner
+  const [feedback, setFeedback] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
+  const feedbackTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  function showFeedback(type: 'error' | 'success', message: string) {
+    setFeedback({ type, message });
+    clearTimeout(feedbackTimer.current);
+    feedbackTimer.current = setTimeout(() => setFeedback(null), 5000);
+  }
+
+  // Resend confirmation dialog
+  const [resendTarget, setResendTarget] = useState<string | null>(null);
+  const [resendingIds, setResendingIds] = useState<Set<string>>(new Set());
+
   const fetchConsents = useCallback(async () => {
     setLoading(true);
     try {
@@ -82,9 +105,11 @@ export function ConsentTable({ onView }: ConsentTableProps) {
       if (res.ok) {
         setConsents(data.data ?? []);
         setTotalPages(data.total_pages ?? 1);
+      } else {
+        showFeedback('error', data.message ?? 'Failed to load consents.');
       }
     } catch {
-      // Silently fail; user can retry
+      showFeedback('error', 'Failed to load consents. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -109,24 +134,41 @@ export function ConsentTable({ onView }: ConsentTableProps) {
   }
 
   async function handleResend(consentId: string) {
+    setResendTarget(null);
+    setResendingIds((prev) => new Set(prev).add(consentId));
     try {
-      await fetch(`/api/consents/${consentId}/resend`, { method: 'POST' });
-      fetchConsents();
+      const res = await fetch(`/api/consents/${consentId}/resend`, { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        showFeedback('success', data.data?.message ?? 'Consent link resent successfully.');
+        fetchConsents();
+      } else {
+        showFeedback('error', data.message ?? 'Failed to resend consent link.');
+      }
     } catch {
-      // Silently fail
+      showFeedback('error', 'Failed to resend consent link. Please try again.');
+    } finally {
+      setResendingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(consentId);
+        return next;
+      });
     }
   }
 
   async function handleDownloadPDF(consentId: string) {
     try {
       const res = await fetch(`/api/consents/${consentId}/pdf`);
-      if (!res.ok) return;
+      if (!res.ok) {
+        showFeedback('error', 'Failed to download PDF.');
+        return;
+      }
       const data = await res.json();
       if (data.url) {
         window.open(data.url, '_blank', 'noopener');
       }
     } catch {
-      // Silently fail
+      showFeedback('error', 'Failed to download PDF. Please try again.');
     }
   }
 
@@ -138,6 +180,20 @@ export function ConsentTable({ onView }: ConsentTableProps) {
 
   return (
     <div className="space-y-4">
+      {/* Feedback banner */}
+      {feedback && (
+        <div
+          className={`px-4 py-3 text-sm border ${
+            feedback.type === 'error'
+              ? 'border-red-200 bg-red-50 text-red-700'
+              : 'border-green-200 bg-green-50 text-green-700'
+          }`}
+          role="alert"
+        >
+          {feedback.message}
+        </div>
+      )}
+
       {/* Filter bar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative flex-1 max-w-sm">
@@ -258,7 +314,9 @@ export function ConsentTable({ onView }: ConsentTableProps) {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleResend(consent.id)}
+                          onClick={() => setResendTarget(consent.id)}
+                          loading={resendingIds.has(consent.id)}
+                          disabled={resendingIds.has(consent.id)}
                           aria-label="Resend consent"
                         >
                           <RefreshCw className="h-4 w-4" />
@@ -301,6 +359,26 @@ export function ConsentTable({ onView }: ConsentTableProps) {
           </div>
         </div>
       )}
+
+      {/* Resend confirmation dialog */}
+      <Dialog open={!!resendTarget} onOpenChange={(open) => { if (!open) setResendTarget(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Resend Consent Link</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to resend the signing link? The driver will receive a new notification.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button onClick={() => resendTarget && handleResend(resendTarget)}>
+              Resend
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -21,11 +21,14 @@ const mockInsert = vi.fn(() => ({ select: vi.fn(() => ({ single: mockSingle })) 
 const mockUpdate = vi.fn(() => ({ eq: vi.fn() }));
 const mockRpc = vi.fn();
 
+const mockDelete = vi.fn(() => ({ eq: vi.fn() }));
+
 const mockSupabase = {
   from: vi.fn(() => ({
     select: mockSelect,
     insert: mockInsert,
     update: mockUpdate,
+    delete: mockDelete,
     eq: mockEqChain,
   })),
   rpc: mockRpc,
@@ -112,7 +115,8 @@ describe('POST /api/v1/consents', () => {
     mockAuth.mockResolvedValue({ orgId: TEST_ORG_ID, keyId: TEST_KEY_ID, scopes: ['consents:write'] });
     mockSingle
       .mockReturnValueOnce({ data: { name: 'Test Co' }, error: null }) // org lookup
-      .mockReturnValueOnce({ data: TEST_DRIVER, error: null }); // driver found
+      .mockReturnValueOnce({ data: TEST_DRIVER, error: null }) // driver found
+      .mockReturnValueOnce({ data: TEST_CONSENT, error: null }); // consent inserted (now before credit)
     mockRpc.mockReturnValueOnce({ data: false, error: null }); // credit deduction fails
 
     const res = await POST(makeReq({
@@ -126,9 +130,9 @@ describe('POST /api/v1/consents', () => {
     mockAuth.mockResolvedValue({ orgId: TEST_ORG_ID, keyId: TEST_KEY_ID, scopes: ['consents:write'] });
     mockSingle
       .mockReturnValueOnce({ data: { name: 'Test Co' }, error: null }) // org lookup
-      .mockReturnValueOnce({ data: TEST_DRIVER, error: null }); // driver found
+      .mockReturnValueOnce({ data: TEST_DRIVER, error: null }) // driver found
+      .mockReturnValueOnce({ data: TEST_CONSENT, error: null }); // consent inserted (now before credit)
     mockRpc.mockReturnValueOnce({ data: true, error: null }); // credit deducted
-    mockSingle.mockReturnValueOnce({ data: TEST_CONSENT, error: null }); // consent inserted
 
     const res = await POST(makeReq({
       method: 'POST',
@@ -143,9 +147,9 @@ describe('POST /api/v1/consents', () => {
     const emailDriver = { ...TEST_DRIVER, email: 'test@example.com' };
     mockSingle
       .mockReturnValueOnce({ data: { name: 'Test Co' }, error: null }) // org lookup
-      .mockReturnValueOnce({ data: emailDriver, error: null }); // driver found
-    mockRpc.mockReturnValueOnce({ data: true, error: null });
-    mockSingle.mockReturnValueOnce({ data: { ...TEST_CONSENT, delivery_method: 'email' }, error: null });
+      .mockReturnValueOnce({ data: emailDriver, error: null }) // driver found
+      .mockReturnValueOnce({ data: { ...TEST_CONSENT, delivery_method: 'email' }, error: null }); // consent inserted
+    mockRpc.mockReturnValueOnce({ data: true, error: null }); // credit deducted
 
     const res = await POST(makeReq({
       method: 'POST',
@@ -159,9 +163,9 @@ describe('POST /api/v1/consents', () => {
     mockAuth.mockResolvedValue({ orgId: TEST_ORG_ID, keyId: TEST_KEY_ID, scopes: ['consents:write'] });
     mockSingle
       .mockReturnValueOnce({ data: { name: 'Test Co' }, error: null }) // org lookup
-      .mockReturnValueOnce({ data: TEST_DRIVER, error: null }); // driver found
-    mockRpc.mockReturnValueOnce({ data: true, error: null });
-    mockSingle.mockReturnValueOnce({ data: TEST_CONSENT, error: null });
+      .mockReturnValueOnce({ data: TEST_DRIVER, error: null }) // driver found
+      .mockReturnValueOnce({ data: TEST_CONSENT, error: null }); // consent inserted
+    mockRpc.mockReturnValueOnce({ data: true, error: null }); // credit deducted
     mockSendSMS.mockRejectedValueOnce(new Error('Twilio error'));
 
     const res = await POST(makeReq({
