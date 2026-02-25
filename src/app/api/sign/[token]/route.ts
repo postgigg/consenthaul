@@ -352,10 +352,12 @@ export async function POST(
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://consenthaul.com';
     const dashboardUrl = `${baseUrl}/consents`;
 
-    supabase
-      .from('profiles')
-      .select('email')
-      .eq('organization_id', consent.organization_id)
+    Promise.resolve(
+      supabase
+        .from('profiles')
+        .select('email')
+        .eq('organization_id', consent.organization_id)
+    )
       .then(({ data: profiles }) => {
         const emails = (profiles ?? [])
           .map((p: { email: string | null }) => p.email)

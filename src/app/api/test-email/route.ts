@@ -46,7 +46,9 @@ export async function GET() {
           state: 'TX',
           zip: '77001',
         },
-      } as Record<string, unknown>,
+        signer_ip: null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
       driver: {
         first_name: 'John',
         last_name: 'Doe',
