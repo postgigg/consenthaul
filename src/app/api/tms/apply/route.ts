@@ -7,9 +7,9 @@ import { getClientIp } from '@/lib/rate-limit';
 import {
   TMS_PARTNER_PACKS,
   TMS_ONBOARDING_FEE_CENTS,
-  TMS_SIGNUP_DISCOUNT,
   AUTO_CREATE_CARRIER_FEE_CENTS,
 } from '@/lib/stripe/credits';
+import { provisionPartner } from '@/lib/partner-provisioning';
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -52,9 +52,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Apply 25% signup discount to pack price when purchased during application
+    // Apply per-pack signup discount to pack price when purchased during application
     const discountedPackPriceCents = pack
-      ? Math.round(pack.price_cents * (1 - TMS_SIGNUP_DISCOUNT))
+      ? Math.round(pack.price_cents * (1 - pack.signup_discount))
       : 0;
 
     // Calculate total
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
         price_data: {
           currency: 'usd',
           product_data: {
-            name: `${pack.name} Credit Pack — ${pack.credits.toLocaleString()} consents (25% signup discount)`,
+            name: `${pack.name} Credit Pack — ${pack.credits.toLocaleString()} consents (${Math.round(pack.signup_discount * 100)}% signup discount)`,
             description: `${pack.per_consent}/consent — ${pack.description}`,
           },
           unit_amount: discountedPackPriceCents,
@@ -169,12 +169,15 @@ export async function POST(request: NextRequest) {
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL!;
 
-    // If total is $0 (free onboarding, no pack, no migration), skip Stripe
+    // If total is $0 (free onboarding, no pack, no migration), skip Stripe and provision directly
     if (totalAmountCents === 0) {
       await supabase
         .from('partner_applications')
         .update({ status: 'paid' })
         .eq('id', appId);
+
+      // Provision partner account immediately (user, org, API keys, welcome email)
+      await provisionPartner(appId);
 
       return NextResponse.json({
         checkout_url: `${appUrl}/tms/apply/success?app_id=${appId}`,

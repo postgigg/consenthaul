@@ -759,6 +759,7 @@ interface SendPartnerWelcomeParams {
   packCredits: number | null;
   sandboxKeyPrefix: string;
   liveKeyPrefix: string;
+  loginLink?: string | null;
 }
 
 export async function sendPartnerWelcomeEmail({
@@ -769,6 +770,7 @@ export async function sendPartnerWelcomeEmail({
   packCredits,
   sandboxKeyPrefix,
   liveKeyPrefix,
+  loginLink,
 }: SendPartnerWelcomeParams): Promise<void> {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://consenthaul.com';
 
@@ -852,12 +854,16 @@ export async function sendPartnerWelcomeEmail({
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 24px;">
       <tr>
         <td align="center" style="background-color:#C8A75E;">
-          <a href="${appUrl}/dashboard" target="_blank" style="display:inline-block;padding:14px 36px;font-size:14px;font-weight:700;color:#0c0f14;text-decoration:none;letter-spacing:0.05em;text-transform:uppercase;">
-            OPEN YOUR DASHBOARD
+          <a href="${loginLink || `${appUrl}/login`}" target="_blank" style="display:inline-block;padding:14px 36px;font-size:14px;font-weight:700;color:#0c0f14;text-decoration:none;letter-spacing:0.05em;text-transform:uppercase;">
+            LOG IN TO YOUR DASHBOARD
           </a>
         </td>
       </tr>
     </table>
+
+    <p style="margin:0 0 24px;font-size:13px;line-height:1.5;color:#8b919a;text-align:center;">
+      ${loginLink ? 'This login link expires in 24 hours. After that, use the login page to sign in.' : 'Use your email to sign in at the login page.'}
+    </p>
 
     <hr style="border:none;border-top:1px solid #e8e8e3;margin:24px 0;" />
 

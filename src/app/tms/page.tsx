@@ -12,7 +12,7 @@ import { TerminalTyping } from '@/components/landing/TerminalTyping';
 export const metadata: Metadata = {
   title: 'TMS Partner Integration — Embed FMCSA Consent into Your Platform | ConsentHaul',
   description:
-    'Integrate FMCSA Clearinghouse consent collection into your TMS with 4 API calls. Your carriers send a link, drivers sign in 60 seconds, signed PDF filed automatically. Credit packs starting at $0.25/consent.',
+    'Integrate FMCSA Clearinghouse consent collection into your TMS with 4 API calls. Your carriers send a link, drivers sign in 60 seconds, signed PDF filed automatically. Credit packs starting at $0.50/consent.',
 };
 
 // ---------------------------------------------------------------------------
@@ -66,23 +66,23 @@ const BUILD_VS_BUY = [
   { label: 'Bilingual EN/ES support', build: 'Build it', buy: 'Included' },
   { label: 'SMS/WhatsApp/Email delivery', build: 'Twilio integration', buy: 'Included' },
   { label: 'Ongoing maintenance', build: 'Your engineers', buy: 'Our problem' },
-  { label: 'Per-consent cost', build: '$3\u2013$8 (fully loaded)', buy: '$1.00 starting, $0.25 at scale' },
+  { label: 'Per-consent cost', build: '$3\u2013$8 (fully loaded)', buy: '$1.00 starting, $0.50 at scale' },
 ];
 
 const PRICING_TIERS = [
-  { name: 'Starter', credits: '100,000', price: '$75,000', fullPrice: '$100,000', per: '$1.00', optional: true },
-  { name: 'Scale', credits: '500,000', price: '$187,500', fullPrice: '$250,000', per: '$0.50', popular: true, optional: true },
-  { name: 'Enterprise', credits: '1,000,000', price: '$187,500', fullPrice: '$250,000', per: '$0.25', optional: true },
+  { name: 'Starter', credits: '100,000', price: '$75,000', fullPrice: '$100,000', per: '$1.00', discount: '25%', optional: true },
+  { name: 'Scale', credits: '500,000', price: '$281,250', fullPrice: '$375,000', per: '$0.75', discount: '25%', popular: true, optional: true },
+  { name: 'Enterprise', credits: '1,000,000', price: '$325,000', fullPrice: '$500,000', per: '$0.50', discount: '35%', optional: true },
 ];
 
 const REVENUE_MODELS = [
   {
     title: 'Bundle',
-    desc: 'Include 50 consents/month in your top-tier plan. Increase plan price by $75. Cost to you: $37.50\u2013$75. Pure margin.',
+    desc: 'Include 50 consents/month in your top-tier plan. Increase plan price by $75. Cost to you: $25\u2013$50. Pure margin.',
   },
   {
     title: 'Pass-Through',
-    desc: 'Charge carriers $2.50\u2013$3.00/consent. Your cost: $0.29\u2013$1.00. They still save vs. paper and competitors.',
+    desc: 'Charge carriers $2.50\u2013$3.00/consent. Your cost: $0.50\u2013$1.00. They still save vs. paper and competitors.',
   },
   {
     title: 'Freemium Upsell',
@@ -110,10 +110,6 @@ const FEATURES = [
   {
     title: 'Real-Time Status Tracking',
     desc: 'Webhook-ready status flow: pending \u2192 sent \u2192 delivered \u2192 opened \u2192 signed. Full visibility for your carriers.',
-  },
-  {
-    title: 'Dedicated Partner Support',
-    desc: 'Priority support, integration assistance, custom SLAs for enterprise partners. We\u2019re invested in your success.',
   },
 ];
 
@@ -238,7 +234,7 @@ export default function TMSPartnerPage() {
               {/* Stats strip */}
               <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 border border-[#e8e8e3]">
                 {[
-                  { value: '$0.29', label: 'per consent at scale' },
+                  { value: '$0.50', label: 'per consent at scale' },
                   { value: '4', label: 'API calls to integrate' },
                   { value: '60s', label: 'driver signs on phone' },
                   { value: '3yr', label: 'automatic DOT retention' },
@@ -467,7 +463,7 @@ export default function TMSPartnerPage() {
               the More You Buy.
             </h2>
             <p className="text-sm text-[#6b6f76] max-w-xs">
-              Direct customers pay $1.50&ndash;$3.00/consent. As a TMS partner, you buy credit packs starting at 10K. The more you buy, the less you pay.
+              Direct customers pay $1.50&ndash;$3.00/consent. As a TMS partner, you buy credit packs starting at 100K. The more you buy, the less you pay.
             </p>
           </div>
 
@@ -505,7 +501,7 @@ export default function TMSPartnerPage() {
                     </span>
                   </p>
                   <p className={`text-xs font-medium mt-1 ${tier.popular ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                    25% off at signup
+                    {tier.discount} off at signup
                   </p>
                   <p className={`text-sm mt-0.5 ${tier.popular ? 'text-[#8b919a]' : 'text-[#6b6f76]'}`}>
                     {tier.per} per consent
@@ -530,16 +526,11 @@ export default function TMSPartnerPage() {
                   Get started with sandbox keys, integration support, and a dedicated partner channel at no cost. Credit packs are optional &mdash; purchase during signup for 25% off.
                 </p>
               </div>
-              <div className="grid sm:grid-cols-3 gap-0 border border-[#1e2129] flex-1">
+              <div className="grid sm:grid-cols-2 gap-0 border border-[#1e2129] flex-1">
                 <div className="p-5 border-b sm:border-b-0 sm:border-r border-[#1e2129]">
                   <p className="text-2xl font-bold text-[#C8A75E] tracking-tight" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>Sandbox</p>
                   <p className="text-sm text-[#8b919a] mt-1">API keys &amp; documentation</p>
                   <p className="text-xs text-[#5c6370] mt-2">Unlimited test credits, full API access from day one</p>
-                </div>
-                <div className="p-5 border-b sm:border-b-0 sm:border-r border-[#1e2129]">
-                  <p className="text-2xl font-bold text-[#C8A75E] tracking-tight" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>Support</p>
-                  <p className="text-sm text-[#8b919a] mt-1">Dedicated partner channel</p>
-                  <p className="text-xs text-[#5c6370] mt-2">Integration assistance, architecture review, onboarding calls</p>
                 </div>
                 <div className="p-5">
                   <p className="text-2xl font-bold text-[#C8A75E] tracking-tight" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>Migration</p>
@@ -585,7 +576,7 @@ export default function TMSPartnerPage() {
           </h2>
 
           <p className="text-[#8b919a] text-base mb-12 max-w-2xl">
-            Bundle consent into your subscription or charge per-consent. At $0.29&ndash;$1.00/consent cost, even a $2.50 pass-through gives you massive margin on a feature your carriers need anyway.
+            Bundle consent into your subscription or charge per-consent. At $0.50&ndash;$1.00/consent cost, even a $2.50 pass-through gives you massive margin on a feature your carriers need anyway.
           </p>
 
           <div className="grid md:grid-cols-3 gap-0 border border-[#1e2129]">

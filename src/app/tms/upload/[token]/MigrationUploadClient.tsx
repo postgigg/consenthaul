@@ -44,8 +44,8 @@ function formatCents(cents: number): string {
 const CARRIERS_TEMPLATE = `company_name,dot_number,mc_number,phone,email,contact_name
 "ABC Trucking","1234567","MC-987654","(555) 111-2222","dispatch@abctrucking.com","Mike Johnson"`;
 
-const DRIVERS_TEMPLATE = `carrier_company_name,first_name,last_name,phone,email,cdl_number,cdl_state
-"ABC Trucking","John","Smith","(555) 333-4444","john.smith@email.com","D1234567","CA"`;
+const DRIVERS_TEMPLATE = `carrier_company_name,first_name,last_name,phone,email,cdl_number,cdl_state,resend_date
+"ABC Trucking","John","Smith","(555) 333-4444","john.smith@email.com","D1234567","CA","2026-06-15"`;
 
 function downloadTemplate(filename: string, content: string) {
   const blob = new Blob([content], { type: 'text/csv' });

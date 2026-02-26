@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import Stripe from 'stripe';
 import { CREDIT_PACKS, TMS_PARTNER_PACKS } from '@/lib/stripe/credits';
-import { sendPartnerReceiptEmail, sendPartnerWelcomeEmail } from '@/lib/messaging/email';
-import { generateApiKey } from '@/lib/tokens';
+import { sendPartnerReceiptEmail } from '@/lib/messaging/email';
+import { provisionPartner } from '@/lib/partner-provisioning';
 import { webhookLimiter } from '@/lib/rate-limiters';
 import { getClientIp } from '@/lib/rate-limit';
 import type { Database } from '@/types/database';
@@ -318,155 +318,15 @@ async function handlePartnerApplicationPayment(session: Stripe.Checkout.Session)
     console.error('[Stripe webhook] Failed to send receipt email:', emailErr);
   }
 
-  // Begin provisioning
-  await supabase
-    .from('partner_applications')
-    .update({ status: 'provisioning' })
-    .eq('id', applicationId);
+  // Provision partner account (user, org, API keys, credits, migration token, welcome email)
+  const stripeCustomerId =
+    typeof session.customer === 'string'
+      ? session.customer
+      : session.customer?.id ?? null;
 
-  try {
-    // 1. Create auth user → handle_new_user() trigger fires (creates org + profile + 3 credits)
-    const tempPassword = `Partner_${Date.now()}_${Math.random().toString(36).slice(2)}!`;
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email: application.contact_email,
-      password: tempPassword,
-      email_confirm: true,
-      user_metadata: {
-        full_name: application.contact_name,
-        company_name: application.company_name,
-      },
-    });
-
-    if (authError || !authData.user) {
-      console.error('[Stripe webhook] Failed to create partner user:', authError);
-      return;
-    }
-
-    const userId = authData.user.id;
-
-    // Give the trigger a moment to complete, then fetch the org it created
-    // The handle_new_user trigger creates the org synchronously so it should be available
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('organization_id')
-      .eq('id', userId)
-      .single();
-
-    if (!profileData) {
-      console.error('[Stripe webhook] Profile not found after user creation');
-      return;
-    }
-
-    const orgId = (profileData as { organization_id: string }).organization_id;
-
-    // 2. Update org: set name, is_partner, stripe_customer_id
-    const stripeCustomerId =
-      typeof session.customer === 'string'
-        ? session.customer
-        : session.customer?.id ?? null;
-
-    await supabase
-      .from('organizations')
-      .update({
-        name: application.company_name,
-        is_partner: true,
-        stripe_customer_id: stripeCustomerId,
-      })
-      .eq('id', orgId);
-
-    // 3. Add selected credit pack via RPC
-    if (pack) {
-      await supabase.rpc('add_credits', {
-        p_org_id: orgId,
-        p_amount: pack.credits,
-        p_stripe_payment_id: paymentIntentId,
-        p_description: `TMS Partner ${pack.name} pack (${pack.credits.toLocaleString()} credits)`,
-      });
-    }
-
-    // 4. Generate sandbox + live API keys
-    const sandboxKey = generateApiKey('test');
-    const liveKey = generateApiKey('live');
-
-    await supabase.from('api_keys').insert({
-      organization_id: orgId,
-      name: 'Partner Sandbox Key',
-      key_prefix: sandboxKey.prefix,
-      key_hash: sandboxKey.hash,
-      scopes: ['consents:read', 'consents:write', 'drivers:read', 'drivers:write'],
-      is_active: true,
-      created_by: userId,
-      last_used_at: null,
-      expires_at: null,
-    });
-
-    await supabase.from('api_keys').insert({
-      organization_id: orgId,
-      name: 'Partner Live Key',
-      key_prefix: liveKey.prefix,
-      key_hash: liveKey.hash,
-      scopes: ['consents:read', 'consents:write', 'drivers:read', 'drivers:write'],
-      is_active: true,
-      created_by: userId,
-      last_used_at: null,
-      expires_at: null,
-    });
-
-    // 5. If auto_create_carriers: create carrier sub-orgs
-    // (Full CSV parsing & driver import deferred to onboarding specialist workflow)
-    // For now, mark the intent — the specialist will process during kickoff
-
-    // 6. Update application → active
-    await supabase
-      .from('partner_applications')
-      .update({
-        status: 'active',
-        organization_id: orgId,
-        provisioned_at: new Date().toISOString(),
-      })
-      .eq('id', applicationId);
-
-    // 7. Audit log
-    await supabase.from('audit_log').insert({
-      organization_id: orgId,
-      actor_id: null,
-      actor_type: 'system',
-      action: 'partner.provisioned',
-      resource_type: 'partner_application',
-      resource_id: applicationId,
-      details: {
-        company_name: application.company_name,
-        pack_id: application.selected_pack_id,
-        credits: pack?.credits ?? 0,
-        stripe_session_id: session.id,
-        stripe_payment_intent: paymentIntentId,
-        auto_create_carriers: application.auto_create_carriers,
-        has_migration_data: application.has_migration_data,
-      },
-    });
-
-    // 8. Send partner welcome email
-    try {
-      await sendPartnerWelcomeEmail({
-        to: application.contact_email,
-        contactName: application.contact_name,
-        companyName: application.company_name,
-        packName: pack?.name ?? 'Partner',
-        packCredits: pack?.credits ?? application.selected_pack_credits,
-        sandboxKeyPrefix: sandboxKey.prefix,
-        liveKeyPrefix: liveKey.prefix,
-      });
-      console.log(`[Stripe webhook] Partner welcome email sent to ${application.contact_email}`);
-    } catch (emailErr) {
-      console.error('[Stripe webhook] Failed to send partner welcome email:', emailErr);
-    }
-
-    console.log(
-      `[Stripe webhook] Partner ${application.company_name} provisioned: org=${orgId}, ` +
-      `credits=${pack?.credits ?? 0}, api_keys=2`,
-    );
-  } catch (provisionError) {
-    console.error('[Stripe webhook] Partner provisioning failed:', provisionError);
-    // Leave status as 'provisioning' — admin can manually retry
-  }
+  await provisionPartner(applicationId, {
+    stripePaymentIntentId: paymentIntentId,
+    stripeCustomerId,
+    stripeSessionId: session.id,
+  });
 }

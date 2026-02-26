@@ -72,6 +72,8 @@ export interface TmsPartnerPack {
   price_cents: number;
   per_consent: string;
   description: string;
+  /** Signup discount for this pack (e.g. 0.25 = 25% off, 0.35 = 35% off) */
+  signup_discount: number;
 }
 
 export const TMS_PARTNER_PACKS: TmsPartnerPack[] = [
@@ -82,33 +84,42 @@ export const TMS_PARTNER_PACKS: TmsPartnerPack[] = [
     price_cents: 10_000_000,
     per_consent: '$1.00',
     description: 'Minimum partner pack — 100K consents to get started',
+    signup_discount: 0.25,
   },
   {
     id: 'tms_scale',
     name: 'Scale',
     credits: 500_000,
-    price_cents: 25_000_000,
-    per_consent: '$0.50',
+    price_cents: 37_500_000,
+    per_consent: '$0.75',
     description: 'Best value for established TMS platforms',
+    signup_discount: 0.25,
   },
   {
     id: 'tms_enterprise',
     name: 'Enterprise',
     credits: 1_000_000,
-    price_cents: 25_000_000,
-    per_consent: '$0.25',
+    price_cents: 50_000_000,
+    per_consent: '$0.50',
     description: 'Maximum volume — lowest per-consent cost',
+    signup_discount: 0.35,
+  },
+  {
+    id: 'tms_mega',
+    name: 'Mega',
+    credits: 5_000_000,
+    price_cents: 125_000_000,
+    per_consent: '$0.25',
+    description: 'Highest volume — 5M consents at the lowest rate',
+    signup_discount: 0.25,
   },
 ];
 
 /** One-time partner onboarding fee: Free */
 export const TMS_ONBOARDING_FEE_CENTS = 0;
 
-/** Signup discount on credit packs: 25% off when purchased during partner application */
-export const TMS_SIGNUP_DISCOUNT = 0.25;
-
 /** Data migration fee per GB: $17/GB */
 export const MIGRATION_PRICE_PER_GB_CENTS = 1700;
 
-/** Flat fee to auto-create carrier sub-organizations: $500 */
-export const AUTO_CREATE_CARRIER_FEE_CENTS = 50_000;
+/** Flat fee to auto-create carrier sub-organizations: $5,000 */
+export const AUTO_CREATE_CARRIER_FEE_CENTS = 500_000;

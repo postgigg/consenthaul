@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { CreditBalance } from '@/components/billing/CreditBalance';
@@ -171,9 +172,17 @@ export default async function PartnerDashboardPage() {
       {/* Migration Status */}
       {migration && (
         <section>
-          <h2 className="text-sm font-bold text-[#8b919a] uppercase tracking-wider mb-4">
-            Migration Status
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-bold text-[#8b919a] uppercase tracking-wider">
+              Migration Status
+            </h2>
+            <Link
+              href="/partner/migration"
+              className="text-xs font-medium text-[#C8A75E] hover:text-[#b8974e] transition-colors"
+            >
+              Migration API Docs &rarr;
+            </Link>
+          </div>
           <PartnerMigrationStatus
             totalBytes={migration.total_bytes}
             carrierCount={migration.carrier_count}

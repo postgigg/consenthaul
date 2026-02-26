@@ -208,6 +208,7 @@ export const partnerMigrationSchema = z.object({
   migration_file_paths: z.array(z.string()).optional().default([]),
   migration_total_bytes: z.number().int().min(0).optional().default(0),
   migration_fee_cents: z.number().int().min(0).optional().default(0),
+  migration_estimated_gb: z.number().int().min(0).optional().default(0),
   auto_create_carriers: z.boolean().optional().default(false),
   auto_create_fee_cents: z.number().int().min(0).optional().default(0),
 });
@@ -261,6 +262,7 @@ export const migrationIngestDriverSchema = z.object({
   email: z.string().email().optional(),
   cdl_number: z.string().max(30).optional(),
   cdl_state: z.string().max(2).optional(),
+  resend_date: z.string().max(10).optional(),
 });
 
 export type MigrationIngestDriver = z.infer<typeof migrationIngestDriverSchema>;

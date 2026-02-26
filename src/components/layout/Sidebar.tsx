@@ -19,6 +19,7 @@ import {
   LifeBuoy,
   Shield,
   Building2,
+  Database as DatabaseIcon,
 } from 'lucide-react';
 import { LogoFull } from '@/components/brand/Logo';
 import { OrgSwitcher } from '@/components/layout/OrgSwitcher';
@@ -59,6 +60,13 @@ const partnerNavItem: NavItem = {
   partner: true,
 };
 
+const migrationApiNavItem: NavItem = {
+  label: 'Migration API',
+  href: '/partner/migration',
+  icon: DatabaseIcon,
+  partner: true,
+};
+
 export function Sidebar({ profile, organization }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -66,7 +74,7 @@ export function Sidebar({ profile, organization }: SidebarProps) {
   const [signingOut, setSigningOut] = useState(false);
 
   const navItems: NavItem[] = organization.is_partner
-    ? [baseNavItems[0], partnerNavItem, ...baseNavItems.slice(1)]
+    ? [baseNavItems[0], partnerNavItem, migrationApiNavItem, ...baseNavItems.slice(1)]
     : baseNavItems;
 
   function isActive(href: string) {

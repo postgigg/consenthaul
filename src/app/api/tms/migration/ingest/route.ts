@@ -18,7 +18,7 @@ const ingestRequestSchema = z.object({
 
 // CSV column orders
 const CARRIER_COLS = ['company_name', 'dot_number', 'mc_number', 'phone', 'email', 'contact_name'];
-const DRIVER_COLS = ['carrier_company_name', 'first_name', 'last_name', 'phone', 'email', 'cdl_number', 'cdl_state'];
+const DRIVER_COLS = ['carrier_company_name', 'first_name', 'last_name', 'phone', 'email', 'cdl_number', 'cdl_state', 'resend_date'];
 
 function escapeCSV(val: string | undefined | null): string {
   const s = val ?? '';

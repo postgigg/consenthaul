@@ -6,7 +6,6 @@ import { Upload, Download, Link2, Code2, Search, Copy, Check, FileText } from 'l
 import {
   TMS_PARTNER_PACKS,
   TMS_ONBOARDING_FEE_CENTS,
-  TMS_SIGNUP_DISCOUNT,
   AUTO_CREATE_CARRIER_FEE_CENTS,
   MIGRATION_PRICE_PER_GB_CENTS,
   type TmsPartnerPack,
@@ -88,6 +87,7 @@ interface MigrationInfo {
   migration_file_paths: string[];
   migration_total_bytes: number;
   migration_fee_cents: number;
+  migration_estimated_gb: number;
   auto_create_carriers: boolean;
   auto_create_fee_cents: number;
   transfer_token: string | null;
@@ -99,8 +99,8 @@ interface MigrationInfo {
 const CARRIERS_TEMPLATE = `company_name,dot_number,mc_number,phone,email,contact_name
 "ABC Trucking","1234567","MC-987654","(555) 111-2222","dispatch@abctrucking.com","Mike Johnson"`;
 
-const DRIVERS_TEMPLATE = `carrier_company_name,first_name,last_name,phone,email,cdl_number,cdl_state
-"ABC Trucking","John","Smith","(555) 333-4444","john.smith@email.com","D1234567","CA"`;
+const DRIVERS_TEMPLATE = `carrier_company_name,first_name,last_name,phone,email,cdl_number,cdl_state,resend_date
+"ABC Trucking","John","Smith","(555) 333-4444","john.smith@email.com","D1234567","CA","2026-06-15"`;
 
 function downloadTemplate(filename: string, content: string) {
   const blob = new Blob([content], { type: 'text/csv' });
@@ -203,6 +203,7 @@ export function PartnerApplicationWizard() {
     migration_file_paths: [],
     migration_total_bytes: 0,
     migration_fee_cents: 0,
+    migration_estimated_gb: 0,
     auto_create_carriers: false,
     auto_create_fee_cents: 0,
     transfer_token: null,
@@ -227,6 +228,10 @@ export function PartnerApplicationWizard() {
   const [partnerAgreementAccepted, setPartnerAgreementAccepted] = useState(false);
   const [dataProcessingAccepted, setDataProcessingAccepted] = useState(false);
   const [legalSignatoryName, setLegalSignatoryName] = useState('');
+
+  // Step 6: Review policies
+  const [refundPolicyAccepted, setRefundPolicyAccepted] = useState(false);
+  const [cancellationPolicyAccepted, setCancellationPolicyAccepted] = useState(false);
 
   // Computed
   const annualEstimate = estimateAnnual(volume.carrier_count_range, volume.consents_per_carrier_month);
@@ -434,13 +439,11 @@ export function PartnerApplicationWizard() {
   // ---------------------------------------------------------------------------
 
   async function handleSubmit() {
-    if (!selectedPack) return;
-
     setSubmitting(true);
     setError('');
 
     try {
-      const payload = {
+      const payload: Record<string, unknown> = {
         ...company,
         website_url: company.website_url ? normalizeUrl(company.website_url) : undefined,
         carrier_count_range: volume.carrier_count_range,
@@ -454,13 +457,16 @@ export function PartnerApplicationWizard() {
         transfer_token: migration.transfer_token,
         auto_create_carriers: migration.auto_create_carriers,
         auto_create_fee_cents: migration.auto_create_carriers ? AUTO_CREATE_CARRIER_FEE_CENTS : 0,
-        selected_pack_id: selectedPack.id,
-        selected_pack_credits: selectedPack.credits,
-        selected_pack_price_cents: discountedPackCents,
         partner_agreement_accepted: partnerAgreementAccepted as true,
         data_processing_accepted: dataProcessingAccepted as true,
         legal_signatory_name: legalSignatoryName,
       };
+
+      if (selectedPack) {
+        payload.selected_pack_id = selectedPack.id;
+        payload.selected_pack_credits = selectedPack.credits;
+        payload.selected_pack_price_cents = discountedPackCents;
+      }
 
       const res = await fetch('/api/tms/apply', {
         method: 'POST',
@@ -494,7 +500,7 @@ export function PartnerApplicationWizard() {
 
   // Total calculation (25% discount on pack when purchased during signup)
   const discountedPackCents = selectedPack
-    ? Math.round(selectedPack.price_cents * (1 - TMS_SIGNUP_DISCOUNT))
+    ? Math.round(selectedPack.price_cents * (1 - selectedPack.signup_discount))
     : 0;
   const totalCents =
     TMS_ONBOARDING_FEE_CENTS +
@@ -751,267 +757,104 @@ export function PartnerApplicationWizard() {
           <div>
             <p className="mb-4 text-sm font-medium text-[#3a3f49]">Data Migration (Optional)</p>
             <p className="mb-4 text-sm text-[#8b919a]">
-              Transfer your existing carrier/driver data into ConsentHaul. Upload CSV files, share a link with your data team, or use the API.
+              Migrate your existing carrier and driver data into ConsentHaul. After your account is created, you&apos;ll receive a secure transfer token to upload data via CSV or API.
               Migration is billed at <span className="font-medium text-[#0c0f14]">{formatCents(MIGRATION_PRICE_PER_GB_CENTS)}/GB</span> (minimum {formatCents(MIGRATION_PRICE_PER_GB_CENTS)}).
             </p>
 
             <div className="space-y-4">
-              {/* CSV Template Downloads */}
-              <div className="border border-[#e8e8e3] p-4">
-                <p className="text-xs font-medium text-[#8b919a] uppercase tracking-wider mb-3">
-                  CSV Templates
-                </p>
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    type="button"
-                    onClick={() => downloadTemplate('carriers.csv', CARRIERS_TEMPLATE)}
-                    className="flex items-center gap-2 px-3 py-2 border border-[#e8e8e3] text-sm text-[#3a3f49] hover:border-[#C8A75E] transition-colors"
-                  >
-                    <Download className="h-4 w-4" />
-                    carriers.csv
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => downloadTemplate('drivers.csv', DRIVERS_TEMPLATE)}
-                    className="flex items-center gap-2 px-3 py-2 border border-[#e8e8e3] text-sm text-[#3a3f49] hover:border-[#C8A75E] transition-colors"
-                  >
-                    <Download className="h-4 w-4" />
-                    drivers.csv
-                  </button>
+              {/* Opt-in toggle */}
+              <label className="flex items-start gap-3 p-4 border border-[#e8e8e3] cursor-pointer hover:border-[#d4d4cf] transition-colors">
+                <input
+                  type="checkbox"
+                  checked={migration.has_migration_data}
+                  onChange={(e) =>
+                    setMigration((prev) => ({
+                      ...prev,
+                      has_migration_data: e.target.checked,
+                      migration_estimated_gb: e.target.checked ? prev.migration_estimated_gb : 0,
+                      migration_fee_cents: e.target.checked ? prev.migration_fee_cents : 0,
+                      migration_total_bytes: e.target.checked ? prev.migration_total_bytes : 0,
+                    }))
+                  }
+                  className="mt-0.5 h-4 w-4 accent-[#C8A75E]"
+                />
+                <div>
+                  <p className="text-sm font-medium text-[#0c0f14]">
+                    I have existing data to migrate
+                  </p>
+                  <p className="text-xs text-[#8b919a] mt-0.5">
+                    Carrier lists, driver records, or historical consent data you want imported into ConsentHaul.
+                  </p>
                 </div>
-                <p className="mt-2 text-xs text-[#8b919a]">
-                  Use <code className="text-[#0c0f14] bg-[#f0f0ec] px-1">carrier_company_name</code> in drivers.csv to link drivers to their carrier in carriers.csv.
-                </p>
-              </div>
+              </label>
 
-              {/* Three transfer method cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {/* Upload Here */}
-                <button
-                  type="button"
-                  onClick={() => setActiveMethod(activeMethod === 'upload' ? null : 'upload')}
-                  className={`flex flex-col items-center p-4 border text-center transition-colors ${
-                    activeMethod === 'upload'
-                      ? 'border-[#C8A75E] bg-[#C8A75E]/5'
-                      : 'border-[#e8e8e3] hover:border-[#d4d4cf]'
-                  }`}
-                >
-                  <Upload className="h-6 w-6 text-[#C8A75E] mb-2" />
-                  <p className="text-sm font-medium text-[#0c0f14]">Upload Here</p>
-                  <p className="text-xs text-[#8b919a] mt-1">Drag & drop CSV files</p>
-                </button>
-
-                {/* Share Upload Link */}
-                <button
-                  type="button"
-                  onClick={() => setActiveMethod(activeMethod === 'link' ? null : 'link')}
-                  className={`flex flex-col items-center p-4 border text-center transition-colors ${
-                    activeMethod === 'link'
-                      ? 'border-[#C8A75E] bg-[#C8A75E]/5'
-                      : 'border-[#e8e8e3] hover:border-[#d4d4cf]'
-                  }`}
-                >
-                  <Link2 className="h-6 w-6 text-[#C8A75E] mb-2" />
-                  <p className="text-sm font-medium text-[#0c0f14]">Share Upload Link</p>
-                  <p className="text-xs text-[#8b919a] mt-1">Send to your data team</p>
-                </button>
-
-                {/* Migration API */}
-                <button
-                  type="button"
-                  onClick={() => setActiveMethod(activeMethod === 'api' ? null : 'api')}
-                  className={`flex flex-col items-center p-4 border text-center transition-colors ${
-                    activeMethod === 'api'
-                      ? 'border-[#C8A75E] bg-[#C8A75E]/5'
-                      : 'border-[#e8e8e3] hover:border-[#d4d4cf]'
-                  }`}
-                >
-                  <Code2 className="h-6 w-6 text-[#C8A75E] mb-2" />
-                  <p className="text-sm font-medium text-[#0c0f14]">Migration API</p>
-                  <p className="text-xs text-[#8b919a] mt-1">POST data programmatically</p>
-                </button>
-              </div>
-
-              {/* Upload Here panel */}
-              {activeMethod === 'upload' && (
-                <div className="space-y-3">
-                  <div
-                    onDrop={handleDrop}
-                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                    onDragLeave={(e) => { e.preventDefault(); setDragOver(false); }}
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`border-2 border-dashed p-8 text-center cursor-pointer transition-colors ${
-                      dragOver
-                        ? 'border-[#C8A75E] bg-[#fafaf8]'
-                        : 'border-[#d4d4cf] hover:border-[#C8A75E]'
-                    }`}
-                  >
-                    <Upload className="h-8 w-8 text-[#8b919a] mx-auto mb-2" />
-                    <p className="text-sm text-[#3a3f49]">
-                      {uploading ? 'Uploading...' : 'Drag & drop CSV files here, or click to browse'}
-                    </p>
-                    <p className="text-xs text-[#8b919a] mt-1">
-                      Files upload directly to secure storage. No size limit.
-                    </p>
+              {/* GB estimate — only if opted in */}
+              {migration.has_migration_data && (
+                <div className="border border-[#e8e8e3] p-4">
+                  <label className={labelCls}>Estimated Data Size (GB)</label>
+                  <p className="text-xs text-[#8b919a] mb-2">
+                    How much carrier/driver data do you need to migrate? Enter your estimated total in GB.
+                  </p>
+                  <div className="flex items-center gap-3">
                     <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".csv"
-                      multiple
-                      className="hidden"
+                      type="number"
+                      min={0}
+                      step={1}
+                      value={migration.migration_estimated_gb || ''}
+                      placeholder="e.g. 5"
                       onChange={(e) => {
-                        if (e.target.files) handleFiles(Array.from(e.target.files));
+                        const gb = Math.max(0, parseInt(e.target.value) || 0);
+                        const feeCents = gb > 0 ? gb * MIGRATION_PRICE_PER_GB_CENTS : 0;
+                        setMigration((prev) => ({
+                          ...prev,
+                          migration_estimated_gb: gb,
+                          migration_fee_cents: feeCents,
+                          migration_total_bytes: gb * 1024 * 1024 * 1024,
+                        }));
                       }}
+                      className={inputCls + ' max-w-[120px]'}
                     />
-                  </div>
-                </div>
-              )}
-
-              {/* Share Upload Link panel */}
-              {activeMethod === 'link' && (
-                <div className="border border-[#e8e8e3] p-4 space-y-3">
-                  {!shareableUrl ? (
-                    <Button
-                      onClick={handleGenerateLink}
-                      loading={generatingLink}
-                      variant="gold"
-                      className="w-full"
-                    >
-                      <Link2 className="h-4 w-4 mr-2" />
-                      Generate Upload Link
-                    </Button>
-                  ) : (
-                    <div className="space-y-2">
-                      <p className="text-xs font-medium text-[#8b919a] uppercase tracking-wider">
-                        Share this link with your data team
-                      </p>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={shareableUrl}
-                          readOnly
-                          className="flex-1 border border-[#e8e8e3] px-3 py-2 text-sm text-[#0c0f14] bg-[#fafaf8] focus:outline-none"
-                        />
-                        <Button onClick={handleCopyLink} variant="outline" className="shrink-0">
-                          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                        </Button>
-                      </div>
-                      <p className="text-xs text-[#8b919a]">
-                        Link expires in 7 days. Anyone with this link can upload files.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Migration API panel */}
-              {activeMethod === 'api' && (
-                <div className="border border-[#e8e8e3] p-4 space-y-3">
-                  {!migration.transfer_token ? (
-                    <div>
-                      <p className="text-sm text-[#8b919a] mb-3">
-                        Generate a transfer token first, then use it to POST data via the API.
-                      </p>
-                      <Button
-                        onClick={async () => {
-                          setError('');
-                          try {
-                            await ensureTransferToken();
-                          } catch (err) {
-                            setError(err instanceof Error ? err.message : 'Failed to create token');
-                          }
-                        }}
-                        variant="gold"
-                        className="w-full"
-                      >
-                        Generate API Token
-                      </Button>
-                    </div>
-                  ) : (
-                    <div>
-                      <p className="text-xs font-medium text-[#8b919a] uppercase tracking-wider mb-2">
-                        API Endpoint
-                      </p>
-                      <div className="bg-[#0c0f14] text-[#e8e8e3] p-3 text-xs font-mono overflow-x-auto whitespace-pre">
-{`curl -X POST ${typeof window !== 'undefined' ? window.location.origin : ''}/api/tms/migration/ingest \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "token": "${migration.transfer_token}",
-    "type": "carriers",
-    "data": [
-      {
-        "company_name": "ABC Trucking",
-        "dot_number": "1234567",
-        "mc_number": "MC-987654"
-      }
-    ]
-  }'`}
-                      </div>
-                      <p className="text-xs text-[#8b919a] mt-2">
-                        Use <code className="text-[#0c0f14] bg-[#f0f0ec] px-1">&quot;type&quot;: &quot;drivers&quot;</code> for driver records. Max 10,000 records per request.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Uploaded file list */}
-              {migration.uploaded_files.length > 0 && (
-                <div className="border border-[#e8e8e3] divide-y divide-[#e8e8e3]">
-                  {migration.uploaded_files.map((file, i) => (
-                    <div key={i} className="flex items-center gap-3 px-4 py-2">
-                      <FileText className="h-4 w-4 text-[#8b919a] shrink-0" />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm text-[#0c0f14] truncate">{file.name}</p>
-                        <p className="text-xs text-[#8b919a]">{formatBytes(file.size_bytes)}</p>
-                      </div>
-                    </div>
-                  ))}
-                  <div className="px-4 py-2 bg-[#fafaf8]">
-                    <p className="text-xs text-[#8b919a]">
-                      {migration.uploaded_files.length} file(s) — {formatBytes(migration.migration_total_bytes)} total
-                    </p>
-                    {migration.migration_fee_cents > 0 && (
-                      <p className="text-xs font-medium text-[#C8A75E] mt-0.5">
-                        Migration fee: {formatCents(migration.migration_fee_cents)}
-                      </p>
+                    <span className="text-sm text-[#8b919a]">GB</span>
+                    {migration.migration_estimated_gb > 0 && (
+                      <span className="text-sm font-medium text-[#C8A75E]">
+                        = {formatCents(migration.migration_estimated_gb * MIGRATION_PRICE_PER_GB_CENTS)} migration fee
+                      </span>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* Scan Files button */}
-              {migration.uploaded_files.length > 0 && migration.transfer_token && (
-                <Button
-                  onClick={handleParse}
-                  loading={parsing}
-                  variant="gold"
-                  className="w-full"
-                >
-                  <Search className="h-4 w-4 mr-2" />
-                  {parsing ? 'Scanning...' : 'Scan Files'}
-                </Button>
-              )}
-
-              {/* Parse result */}
-              {parseResult && (
-                <div className="border border-[#C8A75E]/30 bg-[#C8A75E]/5 p-4">
-                  <p className="text-sm font-medium text-[#0c0f14]">
-                    Found {parseResult.carrier_count.toLocaleString()} carrier{parseResult.carrier_count !== 1 ? 's' : ''} and{' '}
-                    {parseResult.driver_count.toLocaleString()} driver{parseResult.driver_count !== 1 ? 's' : ''}
+              {/* Migration methods preview */}
+              {migration.has_migration_data && (
+                <div className="border border-[#e8e8e3] p-4">
+                  <p className="text-xs font-medium text-[#8b919a] uppercase tracking-wider mb-3">
+                    After account creation, you can migrate data via:
                   </p>
-                  {parseResult.carrier_sample.length > 0 && (
-                    <p className="text-xs text-[#8b919a] mt-1">
-                      Carriers: {parseResult.carrier_sample.join(', ')}
-                      {parseResult.carrier_count > 3 && ', ...'}
-                    </p>
-                  )}
-                  {parseResult.driver_sample.length > 0 && (
-                    <p className="text-xs text-[#8b919a] mt-0.5">
-                      Drivers: {parseResult.driver_sample.join(', ')}
-                      {parseResult.driver_count > 3 && ', ...'}
-                    </p>
-                  )}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="flex flex-col items-center p-3 border border-[#e8e8e3] text-center">
+                      <Upload className="h-5 w-5 text-[#C8A75E] mb-1.5" />
+                      <p className="text-xs font-medium text-[#0c0f14]">CSV Upload</p>
+                      <p className="text-[0.65rem] text-[#8b919a] mt-0.5">Drag & drop files</p>
+                    </div>
+                    <div className="flex flex-col items-center p-3 border border-[#e8e8e3] text-center">
+                      <Link2 className="h-5 w-5 text-[#C8A75E] mb-1.5" />
+                      <p className="text-xs font-medium text-[#0c0f14]">Shareable Link</p>
+                      <p className="text-[0.65rem] text-[#8b919a] mt-0.5">Send to your data team</p>
+                    </div>
+                    <a
+                      href="/tms/migration-api"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center p-3 border border-[#e8e8e3] text-center hover:border-[#C8A75E] transition-colors"
+                    >
+                      <Code2 className="h-5 w-5 text-[#C8A75E] mb-1.5" />
+                      <p className="text-xs font-medium text-[#0c0f14]">Migration API</p>
+                      <p className="text-[0.65rem] text-[#C8A75E] mt-0.5">Learn more &rarr;</p>
+                    </a>
+                  </div>
+                  <p className="text-xs text-[#8b919a] mt-3">
+                    A secure transfer token will be generated automatically after your account is created.
+                  </p>
                 </div>
               )}
 
@@ -1034,7 +877,7 @@ export function PartnerApplicationWizard() {
                     Auto-create carrier sub-organizations (+{formatCents(AUTO_CREATE_CARRIER_FEE_CENTS)})
                   </p>
                   <p className="text-xs text-[#8b919a] mt-0.5">
-                    Each carrier in your CSV gets its own ConsentHaul org ID and API tokens. Recommended for multi-tenant deployments.
+                    Each carrier gets its own ConsentHaul org ID and API tokens. Recommended for multi-tenant deployments.
                   </p>
                 </div>
               </label>
@@ -1056,13 +899,14 @@ export function PartnerApplicationWizard() {
           <div>
             <p className="mb-2 text-sm font-medium text-[#3a3f49]">Select Your Credit Pack</p>
             <p className="mb-4 text-xs text-emerald-600 font-medium">
-              Save 25% on credit packs when you purchase during signup. You can also buy credits later at full price.
+              Save up to 35% on credit packs when you purchase during signup. You can also buy credits later at full price.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {TMS_PARTNER_PACKS.map((pack) => {
                 const isRecommended = pack.id === recommendedPackId;
                 const isSelected = selectedPack?.id === pack.id;
-                const discountedCents = Math.round(pack.price_cents * (1 - TMS_SIGNUP_DISCOUNT));
+                const discountedCents = Math.round(pack.price_cents * (1 - pack.signup_discount));
+                const discountPct = Math.round(pack.signup_discount * 100);
                 return (
                   <button
                     key={pack.id}
@@ -1081,7 +925,7 @@ export function PartnerApplicationWizard() {
                     <div className="flex items-center gap-2">
                       <p className="text-lg font-bold text-[#0c0f14]">{pack.name}</p>
                       <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        25% Off
+                        {discountPct}% Off
                       </span>
                     </div>
                     <p className="text-2xl font-bold text-[#0c0f14] mt-1">
@@ -1089,7 +933,8 @@ export function PartnerApplicationWizard() {
                       <span className="text-sm text-[#8b919a] line-through ml-2">{formatCents(pack.price_cents)}</span>
                     </p>
                     <p className="text-sm text-[#C8A75E] font-medium mt-1">
-                      {pack.credits.toLocaleString()} consents — {pack.per_consent}/each
+                      {pack.credits.toLocaleString()} consents — ${(discountedCents / pack.credits / 100).toFixed(2)}/each
+                      <span className="text-xs text-[#8b919a] line-through ml-1">{pack.per_consent}</span>
                     </p>
                     <p className="text-xs text-[#8b919a] mt-2">{pack.description}</p>
                   </button>
@@ -1097,9 +942,18 @@ export function PartnerApplicationWizard() {
               })}
             </div>
 
+            {/* Skip option */}
+            <button
+              type="button"
+              onClick={() => { setSelectedPack(null); setStep(5); }}
+              className="mt-4 w-full text-center py-3 border border-dashed border-[#d4d4cf] text-sm text-[#8b919a] hover:border-[#C8A75E] hover:text-[#C8A75E] transition-colors"
+            >
+              Skip — I&apos;ll buy credits later at full price
+            </button>
+
             <div className="mt-6 flex justify-between">
               <Button variant="outline" onClick={() => setStep(3)}>Back</Button>
-              <Button onClick={() => setStep(5)} disabled={!selectedPack} variant="gold">
+              <Button onClick={() => setStep(5)} variant="gold">
                 Continue
               </Button>
             </div>
@@ -1117,18 +971,43 @@ export function PartnerApplicationWizard() {
               {/* Partner Agreement */}
               <div className="border border-[#e8e8e3] p-4">
                 <p className="text-xs font-bold text-[#8b919a] uppercase tracking-wider mb-2">
-                  ConsentHaul Partner Agreement
+                  ConsentHaul TMS Partner Agreement
                 </p>
-                <div className="h-40 overflow-y-auto border border-[#e8e8e3] bg-[#fafaf8] p-3 text-xs text-[#3a3f49] leading-relaxed mb-3">
-                  <p className="font-bold mb-2">CONSENTHAUL TMS PARTNER AGREEMENT</p>
-                  <p className="mb-2">This Partner Agreement (&quot;Agreement&quot;) is entered into between ConsentHaul, Inc. (&quot;ConsentHaul&quot;) and the Partner identified in the application form.</p>
-                  <p className="mb-2"><strong>1. Partner Rights.</strong> Partner receives a non-exclusive license to integrate ConsentHaul&apos;s FMCSA consent collection services into their TMS platform via API. Partner may resell consent services to their carrier customers.</p>
-                  <p className="mb-2"><strong>2. Onboarding.</strong> ConsentHaul provides integration support, sandbox API keys, and a dedicated partner channel as part of the onboarding fee.</p>
-                  <p className="mb-2"><strong>3. Credits.</strong> Partner purchases consent credits in bulk at negotiated rates. Credits do not expire. Credits are non-refundable after 30 days.</p>
-                  <p className="mb-2"><strong>4. Data Handling.</strong> All driver consent data is processed in accordance with FMCSA Clearinghouse regulations, the ESIGN Act, and UETA. ConsentHaul maintains SOC 2 Type II compliance.</p>
-                  <p className="mb-2"><strong>5. Sub-Organizations.</strong> If Partner elects auto-creation of carrier sub-organizations, each carrier receives its own organization ID, API keys, and isolated data scope.</p>
-                  <p className="mb-2"><strong>6. Term.</strong> This Agreement is effective upon payment and continues for 12 months, auto-renewing annually unless either party provides 60 days written notice of non-renewal.</p>
-                  <p className="mb-2"><strong>7. Limitation of Liability.</strong> Neither party&apos;s aggregate liability shall exceed the fees paid by Partner in the 12 months preceding the claim.</p>
+                <div className="h-64 overflow-y-auto border border-[#e8e8e3] bg-[#fafaf8] p-3 text-xs text-[#3a3f49] leading-relaxed mb-3">
+                  <p className="font-bold mb-2">WORKBIRD LLC d/b/a CONSENTHAUL — TMS PARTNER AGREEMENT</p>
+                  <p className="mb-1 text-[0.65rem] text-[#8b919a]">Effective upon electronic acceptance. Last updated February 2026.</p>
+
+                  <p className="mb-2">This TMS Partner Agreement (&quot;Agreement&quot;) is a legally binding contract between Workbird LLC, doing business as ConsentHaul (&quot;ConsentHaul,&quot; &quot;we,&quot; &quot;us&quot;), and the entity identified in the partner application form (&quot;Partner,&quot; &quot;you&quot;). By accepting this Agreement, you represent that you have the authority to bind your organization.</p>
+
+                  <p className="mb-2"><strong>1. LICENSE GRANT.</strong> Subject to payment of all applicable fees and compliance with this Agreement, ConsentHaul grants Partner a limited, non-exclusive, non-transferable, revocable license to: (a) access and use ConsentHaul&apos;s API solely to integrate FMCSA Clearinghouse consent collection into Partner&apos;s TMS platform; and (b) resell consent collection services to Partner&apos;s carrier customers using consumed credits. This license does not include any right to sublicense, reverse engineer, modify, create derivative works of, or otherwise exploit ConsentHaul&apos;s software, APIs, documentation, or intellectual property.</p>
+
+                  <p className="mb-2"><strong>2. INTELLECTUAL PROPERTY.</strong> ConsentHaul retains all right, title, and interest in and to the ConsentHaul platform, APIs, documentation, consent templates, PDF generation engine, delivery infrastructure, and all related intellectual property. Nothing in this Agreement transfers any ownership rights to Partner. Partner shall not: (a) use ConsentHaul&apos;s name, logo, or trademarks without prior written consent; (b) represent itself as ConsentHaul or imply any affiliation beyond the partner relationship; (c) attempt to access, copy, or extract the source code underlying ConsentHaul&apos;s services; or (d) build a competing consent collection product using knowledge gained through this partnership.</p>
+
+                  <p className="mb-2"><strong>3. FEES &amp; PAYMENT.</strong> (a) <em>Credit Packs.</em> Partner purchases consent credits at the rates specified during checkout. Credits are consumed upon each successful consent transaction. Credits purchased are non-refundable after thirty (30) calendar days from the date of purchase. Unused credits do not expire. (b) <em>Onboarding &amp; Service Fees.</em> All onboarding fees, data migration fees, auto-create fees, and add-on service fees are non-refundable once services have been initiated. (c) <em>Pricing Changes.</em> ConsentHaul reserves the right to modify credit pricing for future purchases with thirty (30) days&apos; written notice. Previously purchased credits are not affected by price changes. (d) <em>Taxes.</em> All fees are exclusive of taxes. Partner is responsible for all applicable sales, use, VAT, and withholding taxes. (e) <em>Signup Discounts.</em> Any discount applied during the initial partner application (including but not limited to signup discounts on credit packs) is a one-time promotional offer. Future credit purchases are at the then-current published rates.</p>
+
+                  <p className="mb-2"><strong>4. SERVICE LEVELS &amp; SUPPORT.</strong> (a) ConsentHaul will use commercially reasonable efforts to maintain 99.9% API uptime, measured monthly, excluding scheduled maintenance. (b) ConsentHaul provides integration support on a reasonable-efforts basis. Support does not include building, debugging, or maintaining Partner&apos;s integration code. (c) ConsentHaul may modify, update, or deprecate API endpoints with thirty (30) days&apos; notice. Partner is responsible for updating its integration accordingly.</p>
+
+                  <p className="mb-2"><strong>5. PROFESSIONAL SERVICES.</strong> (a) <em>Scope.</em> Any work requested by Partner beyond the standard integration support described in Section 4 — including but not limited to custom development, bespoke integrations, data transformations, dedicated engineering support, consulting, architecture reviews, training, or any other professional services — shall be governed by this Section. (b) <em>Rate.</em> Professional services are billed at Two Hundred Fifty Dollars ($250.00) per hour, billed in fifteen (15) minute increments. (c) <em>Minimum Engagement.</em> Each professional services engagement requires a minimum commitment of forty (40) hours (&quot;Minimum Engagement&quot;). The Minimum Engagement fee of Ten Thousand Dollars ($10,000.00) is due upon execution of a Statement of Work and is non-refundable once work has commenced. (d) <em>Statement of Work.</em> All professional services engagements require a signed Statement of Work (&quot;SOW&quot;) specifying scope, deliverables, timeline, and estimated hours. ConsentHaul is not obligated to perform any work without an executed SOW. (e) <em>Change Orders.</em> Any changes to the scope of an active SOW require a written change order signed by both parties. Additional hours beyond the original SOW estimate are billed at the same rate. (f) <em>Payment Terms.</em> Professional services invoices are due Net 15 from invoice date. Late payments accrue interest at 1.5% per month or the maximum rate permitted by law, whichever is lower. (g) <em>Intellectual Property.</em> All work product created during a professional services engagement is owned by ConsentHaul and licensed to Partner under the terms of Section 1. Custom integrations built for Partner are licensed for Partner&apos;s use only and may not be resold, redistributed, or sublicensed. (h) <em>No Obligation.</em> ConsentHaul reserves the right to decline any professional services request at its sole discretion.</p>
+
+                  <p className="mb-2"><strong>6. DATA &amp; COMPLIANCE.</strong> (a) All driver consent data is processed in accordance with FMCSA Clearinghouse regulations (49 CFR Part 40), the Electronic Signatures in Global and National Commerce Act (ESIGN Act), and the Uniform Electronic Transactions Act (UETA). (b) ConsentHaul maintains SOC 2 Type II compliance. (c) Partner shall not use ConsentHaul&apos;s services for any purpose other than FMCSA consent collection. (d) Partner is solely responsible for ensuring its carrier customers use the service in compliance with applicable law. ConsentHaul is not liable for Partner&apos;s or its customers&apos; regulatory violations.</p>
+
+                  <p className="mb-2"><strong>7. SUB-ORGANIZATIONS.</strong> If Partner elects auto-creation of carrier sub-organizations: (a) each carrier receives its own organization ID, API credentials, and isolated data scope; (b) Partner is responsible for managing carrier access and provisioning; (c) ConsentHaul is not responsible for any misuse of API credentials by Partner&apos;s carriers. The auto-create service fee is non-refundable once provisioning has begun.</p>
+
+                  <p className="mb-2"><strong>8. DATA MIGRATION.</strong> If Partner elects data migration services: (a) migration fees are calculated based on actual data volume at the published per-GB rate and are non-refundable once migration processing begins; (b) Partner warrants that all data submitted for migration is accurate, lawfully obtained, and that Partner has the right to transfer it; (c) ConsentHaul is not liable for data quality issues, formatting errors, or incomplete records in Partner-submitted data.</p>
+
+                  <p className="mb-2"><strong>9. TERM &amp; TERMINATION.</strong> (a) <em>Term.</em> This Agreement is effective upon acceptance and continues for twelve (12) months (&quot;Initial Term&quot;), automatically renewing for successive twelve-month periods unless either party provides sixty (60) days&apos; written notice of non-renewal. (b) <em>Termination for Cause.</em> Either party may terminate immediately upon written notice if the other party materially breaches this Agreement and fails to cure within thirty (30) days of notice. (c) <em>Effect of Termination.</em> Upon termination: remaining unused credits stay active for ninety (90) days; API access is revoked thirty (30) days after the effective termination date; FMCSA data retention obligations survive termination; Partner shall immediately cease using ConsentHaul&apos;s trademarks and remove all references to the partnership from its materials. (d) <em>No Refunds on Termination.</em> Termination does not entitle Partner to a refund of any previously paid fees, credits, or service charges.</p>
+
+                  <p className="mb-2"><strong>10. LIMITATION OF LIABILITY.</strong> (a) TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL CONSENTHAUL BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO LOSS OF PROFITS, REVENUE, DATA, OR BUSINESS OPPORTUNITY, REGARDLESS OF THE CAUSE OF ACTION OR THEORY OF LIABILITY. (b) CONSENTHAUL&apos;S TOTAL AGGREGATE LIABILITY UNDER THIS AGREEMENT SHALL NOT EXCEED THE FEES ACTUALLY PAID BY PARTNER TO CONSENTHAUL IN THE TWELVE (12) MONTHS IMMEDIATELY PRECEDING THE EVENT GIVING RISE TO THE CLAIM. (c) THE FOREGOING LIMITATIONS APPLY EVEN IF CONSENTHAUL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.</p>
+
+                  <p className="mb-2"><strong>11. DISCLAIMER OF WARRANTIES.</strong> THE CONSENTHAUL PLATFORM AND SERVICES ARE PROVIDED &quot;AS IS&quot; AND &quot;AS AVAILABLE.&quot; CONSENTHAUL EXPRESSLY DISCLAIMS ALL WARRANTIES, WHETHER EXPRESS, IMPLIED, OR STATUTORY, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT. CONSENTHAUL DOES NOT WARRANT THAT THE SERVICE WILL BE UNINTERRUPTED, ERROR-FREE, OR SECURE.</p>
+
+                  <p className="mb-2"><strong>12. INDEMNIFICATION.</strong> Partner shall indemnify, defend, and hold harmless ConsentHaul and its officers, directors, employees, and agents from and against any and all claims, damages, losses, liabilities, costs, and expenses (including reasonable attorneys&apos; fees) arising out of or relating to: (a) Partner&apos;s breach of this Agreement; (b) Partner&apos;s misuse of the ConsentHaul services; (c) any violation of law by Partner or Partner&apos;s carrier customers; (d) any claim by a third party resulting from Partner&apos;s use of the services or data processed through the platform.</p>
+
+                  <p className="mb-2"><strong>13. CONFIDENTIALITY.</strong> Each party shall treat the other party&apos;s confidential information (including API keys, pricing terms, and technical documentation) with at least the same degree of care it uses for its own confidential information. Neither party shall disclose the other&apos;s confidential information to third parties without prior written consent, except as required by law.</p>
+
+                  <p className="mb-2"><strong>14. GOVERNING LAW &amp; DISPUTE RESOLUTION.</strong> This Agreement shall be governed by the laws of the State of Delaware without regard to conflict of law principles. Any dispute arising under this Agreement shall be resolved exclusively in the state or federal courts located in Wilmington, Delaware. Both parties consent to personal jurisdiction in such courts. The prevailing party in any legal proceeding shall be entitled to recover reasonable attorneys&apos; fees and costs.</p>
+
+                  <p className="mb-2"><strong>15. MISCELLANEOUS.</strong> (a) <em>Entire Agreement.</em> This Agreement, together with the Data Processing Agreement and any order forms, constitutes the entire agreement between the parties. (b) <em>Amendments.</em> ConsentHaul may update this Agreement with thirty (30) days&apos; notice. Continued use after the notice period constitutes acceptance. (c) <em>Severability.</em> If any provision is held unenforceable, the remaining provisions continue in full force. (d) <em>Assignment.</em> Partner may not assign this Agreement without ConsentHaul&apos;s prior written consent. ConsentHaul may assign freely in connection with a merger, acquisition, or sale of substantially all assets. (e) <em>Force Majeure.</em> Neither party is liable for delays caused by events beyond reasonable control, including natural disasters, war, pandemic, or government action. (f) <em>No Waiver.</em> Failure to enforce any provision shall not constitute a waiver of future enforcement.</p>
                 </div>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -1138,7 +1017,7 @@ export function PartnerApplicationWizard() {
                     className="h-4 w-4 accent-[#C8A75E]"
                   />
                   <span className="text-sm text-[#0c0f14]">
-                    I accept the ConsentHaul Partner Agreement
+                    I have read and accept the ConsentHaul TMS Partner Agreement
                   </span>
                 </label>
               </div>
@@ -1148,13 +1027,29 @@ export function PartnerApplicationWizard() {
                 <p className="text-xs font-bold text-[#8b919a] uppercase tracking-wider mb-2">
                   Data Processing Agreement
                 </p>
-                <div className="h-32 overflow-y-auto border border-[#e8e8e3] bg-[#fafaf8] p-3 text-xs text-[#3a3f49] leading-relaxed mb-3">
+                <div className="h-48 overflow-y-auto border border-[#e8e8e3] bg-[#fafaf8] p-3 text-xs text-[#3a3f49] leading-relaxed mb-3">
                   <p className="font-bold mb-2">DATA PROCESSING AGREEMENT (DPA)</p>
-                  <p className="mb-2">This DPA supplements the Partner Agreement and governs the processing of personal data.</p>
-                  <p className="mb-2"><strong>Scope.</strong> ConsentHaul processes driver personal information (name, CDL number, contact details, consent records) on behalf of Partner&apos;s carrier customers.</p>
-                  <p className="mb-2"><strong>Purpose.</strong> Data is processed solely for FMCSA Clearinghouse consent collection, document generation, and compliance record-keeping.</p>
-                  <p className="mb-2"><strong>Retention.</strong> Signed consent documents are retained for a minimum of 3 years per FMCSA requirements. Data is deleted upon request after the retention period.</p>
-                  <p className="mb-2"><strong>Security.</strong> ConsentHaul implements encryption at rest and in transit, access controls, audit logging, and regular security assessments.</p>
+                  <p className="mb-1 text-[0.65rem] text-[#8b919a]">Supplement to the ConsentHaul TMS Partner Agreement.</p>
+
+                  <p className="mb-2">This Data Processing Agreement (&quot;DPA&quot;) forms part of the Partner Agreement and governs ConsentHaul&apos;s processing of personal data on behalf of Partner and Partner&apos;s carrier customers.</p>
+
+                  <p className="mb-2"><strong>1. DEFINITIONS.</strong> &quot;Personal Data&quot; means any information relating to an identified or identifiable natural person processed through ConsentHaul&apos;s services, including driver names, CDL numbers, contact details, signatures, consent records, and device metadata. &quot;Processing&quot; means any operation performed on Personal Data, including collection, recording, storage, retrieval, use, transmission, and deletion.</p>
+
+                  <p className="mb-2"><strong>2. SCOPE &amp; PURPOSE.</strong> ConsentHaul processes Personal Data solely for: (a) FMCSA Clearinghouse consent collection and document generation; (b) electronic signature capture, verification, and storage; (c) compliance record-keeping as required by 49 CFR Part 40; and (d) service delivery, analytics, and platform improvement. ConsentHaul shall not process Personal Data for any purpose not authorized under this DPA or the Partner Agreement.</p>
+
+                  <p className="mb-2"><strong>3. DATA OWNERSHIP.</strong> Partner and its carrier customers retain ownership of all Personal Data submitted to ConsentHaul. ConsentHaul does not acquire any ownership interest in Personal Data. However, ConsentHaul may use aggregated, anonymized, de-identified data for platform analytics, benchmarking, and service improvement.</p>
+
+                  <p className="mb-2"><strong>4. SECURITY MEASURES.</strong> ConsentHaul implements and maintains the following security measures: (a) AES-256 encryption of data at rest; (b) TLS 1.3 encryption of data in transit; (c) role-based access controls with principle of least privilege; (d) comprehensive audit logging of all data access; (e) regular penetration testing and vulnerability assessments; (f) SOC 2 Type II certification with annual third-party audits; (g) multi-factor authentication for all internal access; (h) automated monitoring and alerting for security events.</p>
+
+                  <p className="mb-2"><strong>5. DATA RETENTION &amp; DELETION.</strong> (a) Signed consent documents are retained for a minimum of three (3) years per FMCSA requirements. (b) Upon written request after the mandatory retention period, ConsentHaul will delete Personal Data within thirty (30) days, except where retention is required by law. (c) ConsentHaul may retain anonymized, aggregated data indefinitely. (d) Data retention obligations survive termination of the Partner Agreement.</p>
+
+                  <p className="mb-2"><strong>6. SUB-PROCESSORS.</strong> Partner acknowledges that ConsentHaul uses the following categories of sub-processors: cloud infrastructure providers, email/SMS delivery services, payment processors, and document storage services. ConsentHaul maintains contractual obligations with sub-processors that are no less protective than this DPA. ConsentHaul will provide thirty (30) days&apos; notice before engaging new categories of sub-processors.</p>
+
+                  <p className="mb-2"><strong>7. DATA BREACH NOTIFICATION.</strong> In the event of a confirmed data breach affecting Personal Data, ConsentHaul shall: (a) notify Partner without undue delay and in no event later than seventy-two (72) hours after becoming aware of the breach; (b) provide details of the nature, scope, and likely consequences of the breach; (c) take immediate steps to contain and remediate the breach; (d) cooperate with Partner in fulfilling any legal notification obligations.</p>
+
+                  <p className="mb-2"><strong>8. PARTNER OBLIGATIONS.</strong> Partner shall: (a) ensure all Personal Data submitted to ConsentHaul is collected lawfully and with appropriate consent; (b) not submit sensitive personal information beyond what is necessary for FMCSA consent collection; (c) notify ConsentHaul promptly of any data subject access requests or complaints; (d) ensure its carrier customers comply with applicable data protection requirements.</p>
+
+                  <p className="mb-2"><strong>9. LIABILITY.</strong> ConsentHaul&apos;s liability under this DPA is subject to the limitations set forth in the Partner Agreement. Partner is solely responsible for the accuracy and lawfulness of Personal Data submitted to ConsentHaul.</p>
                 </div>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -1164,14 +1059,14 @@ export function PartnerApplicationWizard() {
                     className="h-4 w-4 accent-[#C8A75E]"
                   />
                   <span className="text-sm text-[#0c0f14]">
-                    I accept the Data Processing Agreement
+                    I have read and accept the Data Processing Agreement
                   </span>
                 </label>
               </div>
 
               {/* Typed signature */}
               <div>
-                <label className={labelCls}>Legal Signatory Name *</label>
+                <label className={labelCls}>Authorized Signatory — Full Legal Name *</label>
                 <input
                   type="text"
                   value={legalSignatoryName}
@@ -1180,7 +1075,7 @@ export function PartnerApplicationWizard() {
                   className={inputCls}
                 />
                 <p className="mt-1 text-xs text-[#8b919a]">
-                  By typing your name, you acknowledge this constitutes a legally binding electronic signature under the ESIGN Act.
+                  By typing your name above, you represent that you are authorized to bind your organization and you acknowledge this constitutes a legally binding electronic signature pursuant to the Electronic Signatures in Global and National Commerce Act (15 U.S.C. &sect; 7001 et seq.) and applicable state law.
                 </p>
               </div>
             </div>
@@ -1197,7 +1092,7 @@ export function PartnerApplicationWizard() {
         {/* ----------------------------------------------------------------- */}
         {/* Step 6: Review & Pay */}
         {/* ----------------------------------------------------------------- */}
-        {step === 6 && selectedPack && (
+        {step === 6 && (
           <div>
             <p className="mb-4 text-sm font-medium text-[#3a3f49]">Review & Proceed to Payment</p>
 
@@ -1225,29 +1120,35 @@ export function PartnerApplicationWizard() {
                 </span>
               </div>
 
-              <div className="flex justify-between px-4 py-3">
-                <div>
-                  <span className="text-sm text-[#8b919a]">{selectedPack.name} Credit Pack</span>
-                  <p className="text-xs text-[#8b919a]">
-                    {selectedPack.credits.toLocaleString()} consents at {selectedPack.per_consent}/each
-                  </p>
-                  <p className="text-xs text-emerald-600 font-medium">25% signup discount applied</p>
+              {selectedPack && (
+                <div className="flex justify-between px-4 py-3">
+                  <div>
+                    <span className="text-sm text-[#8b919a]">{selectedPack.name} Credit Pack</span>
+                    <p className="text-xs text-[#8b919a]">
+                      {selectedPack.credits.toLocaleString()} consents at ${(discountedPackCents / selectedPack.credits / 100).toFixed(2)}/each <span className="line-through">{selectedPack.per_consent}</span>
+                    </p>
+                    <p className="text-xs text-emerald-600 font-medium">{Math.round(selectedPack.signup_discount * 100)}% signup discount applied</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm font-medium text-[#0c0f14]">
+                      {formatCents(discountedPackCents)}
+                    </span>
+                    <p className="text-xs text-[#8b919a] line-through">
+                      {formatCents(selectedPack.price_cents)}
+                    </p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <span className="text-sm font-medium text-[#0c0f14]">
-                    {formatCents(discountedPackCents)}
-                  </span>
-                  <p className="text-xs text-[#8b919a] line-through">
-                    {formatCents(selectedPack.price_cents)}
-                  </p>
-                </div>
-              </div>
+              )}
 
               {migration.has_migration_data && migration.migration_fee_cents > 0 && (
                 <div className="flex justify-between px-4 py-3">
                   <div>
                     <span className="text-sm text-[#8b919a]">Data Migration</span>
-                    <p className="text-xs text-[#8b919a]">{migration.uploaded_files.length} file(s)</p>
+                    <p className="text-xs text-[#8b919a]">
+                      {migration.migration_estimated_gb > 0
+                        ? `${migration.migration_estimated_gb} GB estimated`
+                        : `${migration.uploaded_files.length} file(s)`}
+                    </p>
                   </div>
                   <span className="text-sm font-medium text-[#0c0f14]">
                     {formatCents(migration.migration_fee_cents)}
@@ -1273,8 +1174,35 @@ export function PartnerApplicationWizard() {
               </div>
             </div>
 
+            {/* Policy checkboxes */}
+            <div className="space-y-3 mb-4">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={refundPolicyAccepted}
+                  onChange={(e) => setRefundPolicyAccepted(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 accent-[#C8A75E] shrink-0"
+                />
+                <span className="text-xs text-[#3a3f49] leading-relaxed">
+                  I acknowledge the <span className="font-medium text-[#0c0f14]">Refund Policy</span>: Credit packs are non-refundable after 30 days from purchase. Unused credits do not expire. Onboarding fees, migration fees, and add-on service fees are non-refundable once services have been initiated.
+                </span>
+              </label>
+
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={cancellationPolicyAccepted}
+                  onChange={(e) => setCancellationPolicyAccepted(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 accent-[#C8A75E] shrink-0"
+                />
+                <span className="text-xs text-[#3a3f49] leading-relaxed">
+                  I acknowledge the <span className="font-medium text-[#0c0f14]">Cancellation Policy</span>: Either party may cancel the partnership with 60 days written notice. Upon cancellation, remaining credits stay active until used. API access is revoked 30 days after the cancellation effective date. Data retention obligations per FMCSA continue regardless of cancellation.
+                </span>
+              </label>
+            </div>
+
             <p className="text-xs text-[#8b919a] mb-4">
-              Signed by <span className="font-medium text-[#0c0f14]">{legalSignatoryName}</span> — Partner Agreement & DPA accepted.
+              Signed by <span className="font-medium text-[#0c0f14]">{legalSignatoryName}</span> — Partner Agreement, DPA, Refund Policy & Cancellation Policy accepted.
             </p>
 
             {error && (
@@ -1287,7 +1215,12 @@ export function PartnerApplicationWizard() {
               <Button variant="outline" onClick={() => setStep(5)} disabled={submitting}>
                 Back
               </Button>
-              <Button onClick={handleSubmit} loading={submitting} variant="gold">
+              <Button
+                onClick={handleSubmit}
+                loading={submitting}
+                disabled={!refundPolicyAccepted || !cancellationPolicyAccepted}
+                variant="gold"
+              >
                 {submitting ? 'Submitting...' : totalCents > 0 ? 'Proceed to Payment' : 'Submit Application'}
               </Button>
             </div>

@@ -686,6 +686,7 @@ export interface Database {
           status: PartnerApplicationStatus;
           organization_id: string | null;
           provisioned_at: string | null;
+          magic_link: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -723,6 +724,7 @@ export interface Database {
           status?: PartnerApplicationStatus;
           organization_id?: string | null;
           provisioned_at?: string | null;
+          magic_link?: string | null;
           created_at?: string;
           updated_at?: string;
         };
