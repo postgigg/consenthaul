@@ -1220,9 +1220,9 @@ export function PartnerApplicationWizard() {
 
               {/* Line items */}
               <div className="flex justify-between px-4 py-3">
-                <span className="text-sm text-[#8b919a]">Partner Onboarding Fee</span>
-                <span className="text-sm font-medium text-[#0c0f14]">
-                  {formatCents(TMS_ONBOARDING_FEE_CENTS)}
+                <span className="text-sm text-[#8b919a]">Partner Onboarding</span>
+                <span className="text-sm font-medium text-emerald-600">
+                  Free
                 </span>
               </div>
 
@@ -1269,7 +1269,7 @@ export function PartnerApplicationWizard() {
               <div className="flex justify-between px-4 py-3 bg-[#fafaf8]">
                 <span className="text-sm font-bold text-[#0c0f14]">Total</span>
                 <span className="text-lg font-bold text-[#C8A75E]">
-                  {formatCents(totalCents)}
+                  {totalCents > 0 ? formatCents(totalCents) : 'Free'}
                 </span>
               </div>
             </div>
@@ -1289,7 +1289,7 @@ export function PartnerApplicationWizard() {
                 Back
               </Button>
               <Button onClick={handleSubmit} loading={submitting} variant="gold">
-                {submitting ? 'Redirecting to Stripe...' : 'Proceed to Payment'}
+                {submitting ? 'Submitting...' : totalCents > 0 ? 'Proceed to Payment' : 'Submit Application'}
               </Button>
             </div>
           </div>

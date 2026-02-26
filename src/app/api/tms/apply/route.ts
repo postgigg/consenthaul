@@ -108,8 +108,10 @@ export async function POST(request: NextRequest) {
     const appId = (application as { id: string }).id;
 
     // Build Stripe line items
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
-      {
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
+
+    if (TMS_ONBOARDING_FEE_CENTS > 0) {
+      lineItems.push({
         price_data: {
           currency: 'usd',
           product_data: {
@@ -119,8 +121,8 @@ export async function POST(request: NextRequest) {
           unit_amount: TMS_ONBOARDING_FEE_CENTS,
         },
         quantity: 1,
-      },
-    ];
+      });
+    }
 
     if (pack) {
       lineItems.push({
@@ -165,9 +167,22 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL!;
+
+    // If total is $0 (free onboarding, no pack, no migration), skip Stripe
+    if (totalAmountCents === 0) {
+      await supabase
+        .from('partner_applications')
+        .update({ status: 'paid' })
+        .eq('id', appId);
+
+      return NextResponse.json({
+        checkout_url: `${appUrl}/tms/apply/success?app_id=${appId}`,
+      });
+    }
+
     // Create Stripe checkout session
     const stripe = getStripe();
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL!;
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',

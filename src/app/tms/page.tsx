@@ -58,7 +58,7 @@ const PAIN_POINTS = [
 ];
 
 const BUILD_VS_BUY = [
-  { label: 'Development cost', build: '$150K\u2013$300K', buy: '$499 one-time onboarding' },
+  { label: 'Development cost', build: '$150K\u2013$300K', buy: 'Free onboarding' },
   { label: 'Time to ship', build: '6\u201312 months', buy: '1 sprint' },
   { label: 'FMCSA compliance liability', build: 'You own it', buy: 'We own it' },
   { label: 'ESIGN Act / UETA compliance', build: 'Your lawyers', buy: 'Our lawyers' },
@@ -149,7 +149,7 @@ const FAQS = [
   },
   {
     q: 'How do we get started?',
-    a: 'Email partnerships@consenthaul.com or apply online. Onboarding starts with a one-time $499 partner fee. We\u2019ll set up your partner account, sandbox keys, and schedule an integration kickoff call. Credit packs are optional during signup and come with a 25% discount.',
+    a: 'Email partnerships@consenthaul.com or apply online. Onboarding is free \u2014 we\u2019ll set up your partner account, sandbox keys, and schedule an integration kickoff call. Credit packs are optional during signup and come with a 25% discount.',
   },
 ];
 
@@ -525,10 +525,10 @@ export default function TMSPartnerPage() {
                   className="text-[2rem] font-bold text-white tracking-tight"
                   style={{ fontFamily: "'Geist', system-ui, sans-serif" }}
                 >
-                  $499
+                  Free
                 </p>
                 <p className="text-sm text-[#8b919a] mt-2 leading-relaxed">
-                  Get started with sandbox keys, integration support, and a dedicated partner channel. Credit packs are optional &mdash; purchase during signup for 25% off.
+                  Get started with sandbox keys, integration support, and a dedicated partner channel at no cost. Credit packs are optional &mdash; purchase during signup for 25% off.
                 </p>
               </div>
               <div className="grid sm:grid-cols-3 gap-0 border border-[#1e2129] flex-1">
