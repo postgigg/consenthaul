@@ -76,36 +76,28 @@ export interface TmsPartnerPack {
 
 export const TMS_PARTNER_PACKS: TmsPartnerPack[] = [
   {
-    id: 'tms_growth',
-    name: 'Growth',
+    id: 'tms_starter',
+    name: 'Starter',
     credits: 100_000,
-    price_cents: 7_500_000,
-    per_consent: '$0.75',
-    description: 'For growing platforms with 100+ carriers',
+    price_cents: 10_000_000,
+    per_consent: '$1.00',
+    description: 'Minimum partner pack — 100K consents to get started',
   },
   {
     id: 'tms_scale',
     name: 'Scale',
-    credits: 250_000,
-    price_cents: 12_500_000,
+    credits: 500_000,
+    price_cents: 25_000_000,
     per_consent: '$0.50',
     description: 'Best value for established TMS platforms',
   },
   {
     id: 'tms_enterprise',
     name: 'Enterprise',
-    credits: 500_000,
-    price_cents: 14_500_000,
-    per_consent: '$0.29',
-    description: 'Maximum volume — lowest per-consent cost',
-  },
-  {
-    id: 'tms_mega',
-    name: 'Mega',
     credits: 1_000_000,
-    price_cents: 15_000_000,
-    per_consent: '$0.15',
-    description: 'Highest volume — absolute lowest per-consent cost',
+    price_cents: 25_000_000,
+    per_consent: '$0.25',
+    description: 'Maximum volume — lowest per-consent cost',
   },
 ];
 
