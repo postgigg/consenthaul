@@ -606,8 +606,8 @@ interface SendPartnerReceiptParams {
   to: string;
   contactName: string;
   companyName: string;
-  packName: string;
-  packCredits: number;
+  packName: string | null;
+  packCredits: number | null;
   onboardingFeeCents: number;
   packPriceCents: number;
   migrationFeeCents: number;
@@ -755,8 +755,8 @@ interface SendPartnerWelcomeParams {
   to: string;
   contactName: string;
   companyName: string;
-  packName: string;
-  packCredits: number;
+  packName: string | null;
+  packCredits: number | null;
   sandboxKeyPrefix: string;
   liveKeyPrefix: string;
 }
@@ -787,7 +787,7 @@ export async function sendPartnerWelcomeEmail({
         <td style="background-color:#fffbeb;border-left:3px solid #C8A75E;padding:16px;">
           <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#92400e;letter-spacing:0.08em;text-transform:uppercase;">Partner Account Active</p>
           <p style="margin:0;font-size:15px;font-weight:600;color:#0c0f14;">
-            ${companyName} &mdash; ${packName} Pack (${packCredits.toLocaleString()} consents)
+            ${companyName}${packName && packCredits ? ` &mdash; ${packName} Pack (${packCredits.toLocaleString()} consents)` : ''}
           </p>
         </td>
       </tr>
@@ -871,7 +871,7 @@ export async function sendPartnerWelcomeEmail({
   const html = emailShell({
     lang: 'en',
     title: 'Welcome to ConsentHaul Partners',
-    preheader: `${companyName} is now a ConsentHaul partner — ${packCredits.toLocaleString()} credits ready.`,
+    preheader: `${companyName} is now a ConsentHaul partner${packCredits ? ` — ${packCredits.toLocaleString()} credits ready` : ''}.`,
     body,
     footerText: `You received this email because ${companyName} joined the ConsentHaul Partner Program.`,
   });

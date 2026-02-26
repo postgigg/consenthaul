@@ -231,9 +231,9 @@ export const partnerApplicationSchema = partnerCompanyInfoSchema
   .merge(partnerMigrationSchema)
   .merge(partnerLegalSchema)
   .extend({
-    selected_pack_id: z.string().min(1, 'Credit pack selection is required'),
-    selected_pack_credits: z.number().int().positive(),
-    selected_pack_price_cents: z.number().int().min(0),
+    selected_pack_id: z.string().min(1).optional(),
+    selected_pack_credits: z.number().int().positive().optional(),
+    selected_pack_price_cents: z.number().int().min(0).optional(),
   });
 
 export type PartnerApplicationInput = z.infer<typeof partnerApplicationSchema>;
