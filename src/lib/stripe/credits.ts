@@ -76,14 +76,6 @@ export interface TmsPartnerPack {
 
 export const TMS_PARTNER_PACKS: TmsPartnerPack[] = [
   {
-    id: 'tms_starter',
-    name: 'Starter',
-    credits: 10_000,
-    price_cents: 1_000_000,
-    per_consent: '$1.00',
-    description: 'For TMS platforms onboarding their first carriers',
-  },
-  {
     id: 'tms_growth',
     name: 'Growth',
     credits: 100_000,

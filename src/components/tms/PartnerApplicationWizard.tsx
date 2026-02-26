@@ -38,7 +38,6 @@ function estimateAnnual(carrierRange: string, consentsRange: string): number {
 }
 
 function recommendPack(annual: number): string {
-  if (annual <= 10_000) return 'tms_starter';
   if (annual <= 100_000) return 'tms_growth';
   if (annual <= 250_000) return 'tms_scale';
   if (annual <= 500_000) return 'tms_enterprise';

@@ -70,7 +70,6 @@ const BUILD_VS_BUY = [
 ];
 
 const PRICING_TIERS = [
-  { name: 'Starter', credits: '10,000', price: '$7,500', fullPrice: '$10,000', per: '$1.00', optional: true },
   { name: 'Growth', credits: '100,000', price: '$56,250', fullPrice: '$75,000', per: '$0.75', optional: true },
   { name: 'Scale', credits: '250,000', price: '$93,750', fullPrice: '$125,000', per: '$0.50', popular: true, optional: true },
   { name: 'Enterprise', credits: '500,000', price: '$108,750', fullPrice: '$145,000', per: '$0.29', optional: true },
@@ -473,7 +472,7 @@ export default function TMSPartnerPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-0 border border-[#d4d4cf]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0 border border-[#d4d4cf]">
             {PRICING_TIERS.map((tier, i) => (
               <div
                 key={tier.name}
