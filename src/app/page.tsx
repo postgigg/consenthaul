@@ -537,7 +537,7 @@ export default function LandingPage() {
             <div>
               <p className="text-[0.65rem] font-bold text-[#5c6370] uppercase tracking-[0.15em] mb-4">Company</p>
               <ul className="space-y-2.5">
-                <li><span className="text-sm text-[#8b919a]">Workbird LLC</span></li>
+                <li><span className="text-sm text-[#8b919a]">Flotac Ltd</span></li>
                 <li><Link href="mailto:support@consenthaul.com" className="text-sm text-[#8b919a] hover:text-[#C8A75E] transition-colors">support@consenthaul.com</Link></li>
               </ul>
             </div>
@@ -567,7 +567,7 @@ export default function LandingPage() {
             {/* Copyright bar */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
               <p className="text-[0.7rem] text-[#5c6370]">
-                &copy; {new Date().getFullYear()} ConsentHaul &middot; Operated by Workbird LLC
+                &copy; {new Date().getFullYear()} ConsentHaul &middot; Operated by Flotac Ltd
               </p>
               <div className="flex items-center gap-4">
                 <Link href="/terms" className="text-[0.7rem] text-[#5c6370] hover:text-[#8b919a] transition-colors">Terms</Link>

@@ -43,7 +43,7 @@ export default function PrivacyPage() {
             Privacy Policy
           </h1>
           <p className="mt-3 text-sm text-[#8b919a]">
-            Last updated: February 23, 2026 &middot; Operated by Workbird LLC
+            Last updated: February 23, 2026 &middot; Operated by Flotac Ltd
           </p>
         </div>
 
@@ -51,7 +51,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-lg font-bold text-[#0c0f14] tracking-tight mb-3" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>1. Introduction</h2>
             <p>
-              Workbird LLC (&quot;Company,&quot; &quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) operates the ConsentHaul platform (&quot;Service&quot;). This Privacy Policy explains how we collect, use, disclose, and safeguard your personal information when you use our Service. This policy applies to all users, including motor carriers, designated employer representatives (DERs), commercial driver&apos;s license (CDL) holders, and website visitors.
+              Flotac Ltd (&quot;Company,&quot; &quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) operates the ConsentHaul platform (&quot;Service&quot;). This Privacy Policy explains how we collect, use, disclose, and safeguard your personal information when you use our Service. This policy applies to all users, including motor carriers, designated employer representatives (DERs), commercial driver&apos;s license (CDL) holders, and website visitors.
             </p>
             <p className="mt-3">
               By using ConsentHaul, you consent to the data practices described in this policy. If you do not agree, please discontinue use of the Service.
@@ -215,7 +215,7 @@ export default function PrivacyPage() {
               For questions, concerns, or requests related to this Privacy Policy:
             </p>
             <div className="mt-3 border-l-2 border-[#C8A75E] pl-4 text-sm text-[#6b6f76]">
-              <p className="font-semibold text-[#0c0f14]">Workbird LLC</p>
+              <p className="font-semibold text-[#0c0f14]">Flotac Ltd</p>
               <p>Privacy inquiries: privacy@consenthaul.com</p>
               <p>General inquiries: legal@consenthaul.com</p>
               <p>Web: consenthaul.com</p>
@@ -227,7 +227,7 @@ export default function PrivacyPage() {
         <div className="mt-16 pt-8 border-t border-[#e8e8e3]">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <p className="text-[0.75rem] text-[#b5b5ae]">
-              &copy; {new Date().getFullYear()} ConsentHaul &middot; Operated by Workbird LLC
+              &copy; {new Date().getFullYear()} ConsentHaul &middot; Operated by Flotac Ltd
             </p>
             <div className="flex items-center gap-4">
               <Link href="/terms" className="text-[0.75rem] text-[#8b919a] hover:text-[#0c0f14] transition-colors">Terms of Service</Link>

@@ -58,7 +58,7 @@ const PAIN_POINTS = [
 ];
 
 const BUILD_VS_BUY = [
-  { label: 'Development cost', build: '$150K\u2013$300K', buy: 'Free onboarding' },
+  { label: 'Development cost', build: '$1M\u2013$5M', buy: 'Free onboarding' },
   { label: 'Time to ship', build: '6\u201312 months', buy: '1 sprint' },
   { label: 'FMCSA compliance liability', build: 'You own it', buy: 'We own it' },
   { label: 'ESIGN Act / UETA compliance', build: 'Your lawyers', buy: 'Our lawyers' },
@@ -857,7 +857,7 @@ export default function TMSPartnerPage() {
             <div>
               <p className="text-[0.65rem] font-bold text-[#5c6370] uppercase tracking-[0.15em] mb-4">Company</p>
               <ul className="space-y-2.5">
-                <li><span className="text-sm text-[#8b919a]">Workbird LLC</span></li>
+                <li><span className="text-sm text-[#8b919a]">Flotac Ltd</span></li>
                 <li><Link href="mailto:support@consenthaul.com" className="text-sm text-[#8b919a] hover:text-[#C8A75E] transition-colors">support@consenthaul.com</Link></li>
                 <li><Link href="mailto:partnerships@consenthaul.com" className="text-sm text-[#8b919a] hover:text-[#C8A75E] transition-colors">partnerships@consenthaul.com</Link></li>
               </ul>
@@ -888,7 +888,7 @@ export default function TMSPartnerPage() {
             {/* Copyright bar */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
               <p className="text-[0.7rem] text-[#5c6370]">
-                &copy; {new Date().getFullYear()} ConsentHaul &middot; Operated by Workbird LLC
+                &copy; {new Date().getFullYear()} ConsentHaul &middot; Operated by Flotac Ltd
               </p>
               <div className="flex items-center gap-4">
                 <Link href="/terms" className="text-[0.7rem] text-[#5c6370] hover:text-[#8b919a] transition-colors">Terms</Link>

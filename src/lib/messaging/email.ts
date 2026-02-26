@@ -89,7 +89,7 @@ function emailShell({
           <tr>
             <td style="padding:16px 32px;text-align:center;">
               <p style="margin:0;font-size:11px;color:#b5b5ae;">
-                &copy; ${new Date().getFullYear()} ConsentHaul &middot; Operated by Workbird LLC
+                &copy; ${new Date().getFullYear()} ConsentHaul &middot; Operated by Flotac Ltd
               </p>
             </td>
           </tr>

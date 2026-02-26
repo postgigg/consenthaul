@@ -82,9 +82,9 @@ export const metadata: Metadata = {
     'bulk CDL driver consent collection',
     'FMCSA consent record retention',
   ],
-  authors: [{ name: 'Workbird LLC' }],
-  creator: 'Workbird LLC',
-  publisher: 'Workbird LLC',
+  authors: [{ name: 'Flotac Ltd' }],
+  creator: 'Flotac Ltd',
+  publisher: 'Flotac Ltd',
   applicationName: 'ConsentHaul',
   category: 'Transportation Compliance Software',
   classification: 'Business Software',
@@ -155,7 +155,7 @@ const jsonLd = {
       url: SITE_URL,
       author: {
         '@type': 'Organization',
-        name: 'Workbird LLC',
+        name: 'Flotac Ltd',
         url: SITE_URL,
       },
       offers: {
@@ -225,11 +225,11 @@ const jsonLd = {
     {
       '@type': 'Organization',
       name: 'ConsentHaul',
-      legalName: 'Workbird LLC',
+      legalName: 'Flotac Ltd',
       url: SITE_URL,
       logo: `${SITE_URL}/logo.png`,
       description:
-        'ConsentHaul is operated by Workbird LLC. We provide a digital FMCSA consent form platform for motor carriers and fleet operators to collect DOT Clearinghouse limited query authorization from CDL drivers electronically, in compliance with 49 CFR Part 40. Our DOT consent management system supports SMS, WhatsApp, and email delivery.',
+        'ConsentHaul is operated by Flotac Ltd. We provide a digital FMCSA consent form platform for motor carriers and fleet operators to collect DOT Clearinghouse limited query authorization from CDL drivers electronically, in compliance with 49 CFR Part 40. Our DOT consent management system supports SMS, WhatsApp, and email delivery.',
       contactPoint: {
         '@type': 'ContactPoint',
         contactType: 'customer support',

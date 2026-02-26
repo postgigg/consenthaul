@@ -990,10 +990,10 @@ export function PartnerApplicationWizard() {
                   ConsentHaul TMS Partner Agreement
                 </p>
                 <div className="h-64 overflow-y-auto border border-[#e8e8e3] bg-[#fafaf8] p-3 text-xs text-[#3a3f49] leading-relaxed mb-3">
-                  <p className="font-bold mb-2">WORKBIRD LLC d/b/a CONSENTHAUL — TMS PARTNER AGREEMENT</p>
+                  <p className="font-bold mb-2">FLOTAC LTD d/b/a CONSENTHAUL — TMS PARTNER AGREEMENT</p>
                   <p className="mb-1 text-[0.65rem] text-[#8b919a]">Effective upon electronic acceptance. Last updated February 2026.</p>
 
-                  <p className="mb-2">This TMS Partner Agreement (&quot;Agreement&quot;) is a legally binding contract between Workbird LLC, doing business as ConsentHaul (&quot;ConsentHaul,&quot; &quot;we,&quot; &quot;us&quot;), and the entity identified in the partner application form (&quot;Partner,&quot; &quot;you&quot;). By accepting this Agreement, you represent that you have the authority to bind your organization.</p>
+                  <p className="mb-2">This TMS Partner Agreement (&quot;Agreement&quot;) is a legally binding contract between Flotac Ltd, doing business as ConsentHaul (&quot;ConsentHaul,&quot; &quot;we,&quot; &quot;us&quot;), and the entity identified in the partner application form (&quot;Partner,&quot; &quot;you&quot;). By accepting this Agreement, you represent that you have the authority to bind your organization.</p>
 
                   <p className="mb-2"><strong>1. LICENSE GRANT.</strong> Subject to payment of all applicable fees and compliance with this Agreement, ConsentHaul grants Partner a limited, non-exclusive, non-transferable, revocable license to: (a) access and use ConsentHaul&apos;s API solely to integrate FMCSA Clearinghouse consent collection into Partner&apos;s TMS platform; and (b) resell consent collection services to Partner&apos;s carrier customers using consumed credits. This license does not include any right to sublicense, reverse engineer, modify, create derivative works of, or otherwise exploit ConsentHaul&apos;s software, APIs, documentation, or intellectual property.</p>
 

@@ -6,7 +6,7 @@ import type { Database } from '@/types/database';
 
 type Enrollment = Database['public']['Tables']['outreach_enrollments']['Row'];
 
-const CAN_SPAM_FOOTER = `\n\n---\nConsentHaul | Workbird LLC\n1401 Lavaca St, #800, Austin, TX 78701\nTo stop receiving these emails: {{unsubscribe_link}}`;
+const CAN_SPAM_FOOTER = `\n\n---\nConsentHaul | Flotac Ltd\n1401 Lavaca St, #800, Austin, TX 78701\nTo stop receiving these emails: {{unsubscribe_link}}`;
 
 function getResend() {
   return new Resend(process.env.RESEND_API_KEY!);
@@ -172,7 +172,7 @@ async function processEnrollment(
   // Add CAN-SPAM footer with unsubscribe link
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://consenthaul.com';
   const unsubscribeUrl = `${appUrl}/api/outreach/unsubscribe/${enrollment.id}`;
-  const footerHtml = `<hr style="margin-top:24px;border:none;border-top:1px solid #e4e4e7"><p style="font-size:11px;color:#a1a1aa;margin-top:12px;">ConsentHaul | Workbird LLC | 1401 Lavaca St, #800, Austin, TX 78701<br><a href="${unsubscribeUrl}" style="color:#a1a1aa;">Unsubscribe</a></p>`;
+  const footerHtml = `<hr style="margin-top:24px;border:none;border-top:1px solid #e4e4e7"><p style="font-size:11px;color:#a1a1aa;margin-top:12px;">ConsentHaul | Flotac Ltd | 1401 Lavaca St, #800, Austin, TX 78701<br><a href="${unsubscribeUrl}" style="color:#a1a1aa;">Unsubscribe</a></p>`;
   bodyHtml += footerHtml;
   bodyText += CAN_SPAM_FOOTER.replace('{{unsubscribe_link}}', unsubscribeUrl);
 
