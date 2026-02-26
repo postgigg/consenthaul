@@ -8,6 +8,7 @@ import {
   TMS_ONBOARDING_FEE_CENTS,
   AUTO_CREATE_CARRIER_FEE_CENTS,
   MIGRATION_PRICE_PER_GB_CENTS,
+  WHITE_LABEL_FEE_CENTS,
   type TmsPartnerPack,
 } from '@/lib/stripe/credits';
 
@@ -90,6 +91,8 @@ interface MigrationInfo {
   migration_estimated_gb: number;
   auto_create_carriers: boolean;
   auto_create_fee_cents: number;
+  white_label: boolean;
+  white_label_fee_cents: number;
   transfer_token: string | null;
   carrier_count: number | null;
   driver_count: number | null;
@@ -210,6 +213,8 @@ export function PartnerApplicationWizard() {
     migration_estimated_gb: 0,
     auto_create_carriers: false,
     auto_create_fee_cents: 0,
+    white_label: false,
+    white_label_fee_cents: 0,
     transfer_token: null,
     carrier_count: null,
     driver_count: null,
@@ -473,6 +478,8 @@ export function PartnerApplicationWizard() {
         transfer_token: migration.transfer_token,
         auto_create_carriers: migration.auto_create_carriers,
         auto_create_fee_cents: migration.auto_create_carriers ? AUTO_CREATE_CARRIER_FEE_CENTS : 0,
+        white_label: migration.white_label,
+        white_label_fee_cents: migration.white_label ? WHITE_LABEL_FEE_CENTS : 0,
         partner_agreement_accepted: partnerAgreementAccepted as true,
         data_processing_accepted: dataProcessingAccepted as true,
         legal_signatory_name: legalSignatoryName,
@@ -522,7 +529,8 @@ export function PartnerApplicationWizard() {
     TMS_ONBOARDING_FEE_CENTS +
     discountedPackCents +
     (migration.has_migration_data ? migration.migration_fee_cents : 0) +
-    (migration.auto_create_carriers ? AUTO_CREATE_CARRIER_FEE_CENTS : 0);
+    (migration.auto_create_carriers ? AUTO_CREATE_CARRIER_FEE_CENTS : 0) +
+    (migration.white_label ? WHITE_LABEL_FEE_CENTS : 0);
 
   return (
     <div className="border border-[#e8e8e3] bg-white">
@@ -897,6 +905,30 @@ export function PartnerApplicationWizard() {
                   </p>
                 </div>
               </label>
+
+              {/* White-label signing experience toggle */}
+              <label className="flex items-start gap-3 p-4 border border-[#e8e8e3] cursor-pointer hover:border-[#d4d4cf] transition-colors">
+                <input
+                  type="checkbox"
+                  checked={migration.white_label}
+                  onChange={(e) =>
+                    setMigration((prev) => ({
+                      ...prev,
+                      white_label: e.target.checked,
+                      white_label_fee_cents: e.target.checked ? WHITE_LABEL_FEE_CENTS : 0,
+                    }))
+                  }
+                  className="mt-0.5 h-4 w-4 accent-[#C8A75E]"
+                />
+                <div>
+                  <p className="text-sm font-medium text-[#0c0f14]">
+                    White-label signing experience (+{formatCents(WHITE_LABEL_FEE_CENTS)})
+                  </p>
+                  <p className="text-xs text-[#8b919a] mt-0.5">
+                    Remove ConsentHaul branding from driver signing pages. Your logo and brand colors appear instead. Includes &ldquo;Powered by [Your Company]&rdquo; footer.
+                  </p>
+                </div>
+              </label>
             </div>
 
             <div className="mt-6 flex justify-between">
@@ -990,10 +1022,10 @@ export function PartnerApplicationWizard() {
                   ConsentHaul TMS Partner Agreement
                 </p>
                 <div className="h-64 overflow-y-auto border border-[#e8e8e3] bg-[#fafaf8] p-3 text-xs text-[#3a3f49] leading-relaxed mb-3">
-                  <p className="font-bold mb-2">FLOTAC LTD d/b/a CONSENTHAUL — TMS PARTNER AGREEMENT</p>
+                  <p className="font-bold mb-2">WORKBIRD LLC d/b/a CONSENTHAUL — TMS PARTNER AGREEMENT</p>
                   <p className="mb-1 text-[0.65rem] text-[#8b919a]">Effective upon electronic acceptance. Last updated February 2026.</p>
 
-                  <p className="mb-2">This TMS Partner Agreement (&quot;Agreement&quot;) is a legally binding contract between Flotac Ltd, doing business as ConsentHaul (&quot;ConsentHaul,&quot; &quot;we,&quot; &quot;us&quot;), and the entity identified in the partner application form (&quot;Partner,&quot; &quot;you&quot;). By accepting this Agreement, you represent that you have the authority to bind your organization.</p>
+                  <p className="mb-2">This TMS Partner Agreement (&quot;Agreement&quot;) is a legally binding contract between Workbird LLC, doing business as ConsentHaul (&quot;ConsentHaul,&quot; &quot;we,&quot; &quot;us&quot;), and the entity identified in the partner application form (&quot;Partner,&quot; &quot;you&quot;). By accepting this Agreement, you represent that you have the authority to bind your organization.</p>
 
                   <p className="mb-2"><strong>1. LICENSE GRANT.</strong> Subject to payment of all applicable fees and compliance with this Agreement, ConsentHaul grants Partner a limited, non-exclusive, non-transferable, revocable license to: (a) access and use ConsentHaul&apos;s API solely to integrate FMCSA Clearinghouse consent collection into Partner&apos;s TMS platform; and (b) resell consent collection services to Partner&apos;s carrier customers using consumed credits. This license does not include any right to sublicense, reverse engineer, modify, create derivative works of, or otherwise exploit ConsentHaul&apos;s software, APIs, documentation, or intellectual property.</p>
 
@@ -1177,6 +1209,15 @@ export function PartnerApplicationWizard() {
                   <span className="text-sm text-[#8b919a]">Auto-Create Carrier Sub-Orgs</span>
                   <span className="text-sm font-medium text-[#0c0f14]">
                     {formatCents(AUTO_CREATE_CARRIER_FEE_CENTS)}
+                  </span>
+                </div>
+              )}
+
+              {migration.white_label && (
+                <div className="flex justify-between px-4 py-3">
+                  <span className="text-sm text-[#8b919a]">White-Label Signing Experience</span>
+                  <span className="text-sm font-medium text-[#0c0f14]">
+                    {formatCents(WHITE_LABEL_FEE_CENTS)}
                   </span>
                 </div>
               )}

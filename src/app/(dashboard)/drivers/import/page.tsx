@@ -50,7 +50,7 @@ export default function DriverImportPage() {
           <li>
             Phone numbers should include country code (e.g., +10000000000)
           </li>
-          <li>Maximum 5,000 rows per import</li>
+          <li>Maximum 50 drivers per import. For larger imports, use the Migrate Fleet feature.</li>
         </ul>
       </div>
 

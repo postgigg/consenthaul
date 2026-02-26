@@ -18,6 +18,8 @@ import {
   Bot,
   LifeBuoy,
   Shield,
+  ShieldCheck,
+  Search,
   Building2,
   Database as DatabaseIcon,
 } from 'lucide-react';
@@ -45,6 +47,8 @@ const baseNavItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Drivers', href: '/drivers', icon: Users },
   { label: 'Consents', href: '/consents', icon: FileSignature },
+  { label: 'Compliance', href: '/compliance', icon: ShieldCheck },
+  { label: 'Queries', href: '/queries', icon: Search },
   { label: 'Templates', href: '/templates', icon: FileText },
   { label: 'Billing', href: '/billing', icon: CreditCard },
   { label: 'API', href: '/api-docs', icon: Code2 },

@@ -11,6 +11,25 @@ export const CREDIT_COST_PER_CONSENT = 1;
 export const SIGNUP_BONUS_CREDITS = 3;
 
 // ---------------------------------------------------------------------------
+// Automated reminders
+// ---------------------------------------------------------------------------
+
+/** How many days between automatic consent reminders */
+export const REMINDER_INTERVAL_DAYS = 2;
+
+/** Credits deducted per reminder sent */
+export const CREDIT_COST_PER_REMINDER = 1;
+
+/** Max consents to process per cron invocation */
+export const REMINDER_BATCH_SIZE = 50;
+
+/** Max re-consent requests to create per cron invocation */
+export const RECONSENT_BATCH_SIZE = 50;
+
+/** Consent statuses eligible for automated reminders */
+export const REMINDER_ELIGIBLE_STATUSES: ConsentStatus[] = ['pending', 'sent', 'delivered', 'opened'];
+
+// ---------------------------------------------------------------------------
 // Signing tokens
 // ---------------------------------------------------------------------------
 
@@ -50,8 +69,8 @@ export const CONSENT_STATUSES: ConsentStatus[] = [
 // CSV import
 // ---------------------------------------------------------------------------
 
-/** Maximum rows allowed in a single CSV driver import */
-export const MAX_CSV_ROWS = 5000;
+/** Maximum rows allowed in a single free CSV driver import */
+export const MAX_CSV_ROWS = 50;
 
 // ---------------------------------------------------------------------------
 // API rate limiting

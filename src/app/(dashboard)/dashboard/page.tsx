@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ConsentStatusBadge } from '@/components/consent/ConsentStatus';
+import { BatchReconsentButton } from '@/components/consent/BatchReconsentButton';
 import { formatDate } from '@/lib/utils';
 import {
   Users,
@@ -234,6 +235,7 @@ export default async function DashboardPage() {
             <CalendarClock className="h-4 w-4 text-[#8b919a]" />
             <CardTitle>Compliance Forecast</CardTitle>
           </div>
+          {expiringConsents.length > 0 && <BatchReconsentButton />}
         </CardHeader>
         <CardContent>
           {expiringConsents.length === 0 ? (

@@ -3,7 +3,8 @@ import { validateRequest } from 'twilio';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { webhookLimiter } from '@/lib/rate-limiters';
 import { getClientIp } from '@/lib/rate-limit';
-import type { Database, NotificationStatus, ConsentStatus } from '@/types/database';
+import { dispatchWebhookEvent } from '@/lib/webhooks';
+import type { Database, NotificationStatus, ConsentStatus, WebhookEventType } from '@/types/database';
 
 type NotificationRow = Database['public']['Tables']['notifications']['Row'];
 type ConsentRow = Database['public']['Tables']['consents']['Row'];
@@ -168,6 +169,15 @@ export async function POST(request: NextRequest) {
               .from('consents')
               .update(consentUpdate)
               .eq('id', notification.consent_id);
+
+            // Dispatch outgoing webhook (fire-and-forget)
+            const webhookEventType: WebhookEventType =
+              consentStatus === 'delivered' ? 'consent.delivered' : 'consent.failed';
+            dispatchWebhookEvent({
+              eventType: webhookEventType,
+              consentId: notification.consent_id,
+              organizationId: notification.organization_id,
+            }).catch(() => {});
           }
         }
       }

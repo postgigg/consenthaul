@@ -175,7 +175,7 @@ export function DriverImport() {
                 <p className="text-sm font-medium text-[#3a3f49]">
                   Drag & drop your CSV here, or click to browse
                 </p>
-                <p className="text-xs text-[#8b919a] mt-1">Maximum 5,000 rows per file</p>
+                <p className="text-xs text-[#8b919a] mt-1">Maximum 50 drivers per file</p>
               </>
             )}
             <input

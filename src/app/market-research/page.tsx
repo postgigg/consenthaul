@@ -955,7 +955,7 @@ export default function MarketResearchPage() {
         <div className="mx-auto max-w-6xl px-6 py-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <p className="text-[0.75rem] text-[#b5b5ae]">
-              &copy; {new Date().getFullYear()} ConsentHaul &middot; Operated by Flotac Ltd
+              &copy; {new Date().getFullYear()} ConsentHaul &middot; Operated by Workbird LLC
             </p>
             <div className="flex items-center gap-4">
               <Link href="/terms" className="text-[0.75rem] text-[#8b919a] hover:text-[#0c0f14] transition-colors">Terms</Link>

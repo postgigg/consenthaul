@@ -6,6 +6,7 @@ import { randomBytes } from 'crypto';
 
 // ---------------------------------------------------------------------------
 // POST /api/tms/upload-migration — Create a migration_transfers row with token
+// Supports both partner (application_id) and non-partner (organization_id) flows
 // ---------------------------------------------------------------------------
 export async function POST(request: NextRequest) {
   try {
@@ -17,33 +18,77 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json().catch(() => ({}));
     const applicationId: string | undefined = body.application_id;
+    const organizationId: string | undefined = body.organization_id;
 
-    // Require application_id
-    if (!applicationId) {
-      return NextResponse.json({ error: 'application_id is required' }, { status: 422 });
+    if (!applicationId && !organizationId) {
+      return NextResponse.json(
+        { error: 'application_id or organization_id is required' },
+        { status: 422 },
+      );
     }
 
     const supabase = createAdminClient();
 
-    // Verify the application exists
-    const { data: app, error: appError } = await supabase
-      .from('partner_applications')
-      .select('id')
-      .eq('id', applicationId)
-      .single();
+    if (applicationId) {
+      // Partner path: verify the application exists
+      const { data: app, error: appError } = await supabase
+        .from('partner_applications')
+        .select('id')
+        .eq('id', applicationId)
+        .single();
 
-    if (appError || !app) {
-      return NextResponse.json({ error: 'Application not found' }, { status: 404 });
+      if (appError || !app) {
+        return NextResponse.json({ error: 'Application not found' }, { status: 404 });
+      }
+
+      const token = randomBytes(16).toString('hex');
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+      const { data, error } = await supabase
+        .from('migration_transfers')
+        .insert({
+          token,
+          application_id: applicationId,
+          expires_at: expiresAt,
+        })
+        .select('id, token, expires_at')
+        .single();
+
+      if (error) {
+        console.error('[upload-migration] DB error:', error);
+        return NextResponse.json({ error: 'Failed to create transfer' }, { status: 500 });
+      }
+
+      return NextResponse.json({
+        token: data.token,
+        upload_url: `/tms/upload/${data.token}`,
+        expires_at: data.expires_at,
+      });
     }
 
-    const token = randomBytes(16).toString('hex'); // 32-char hex
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days
+    // Non-partner path: verify the org has an existing paid migration transfer
+    const { data: existingTransfer } = await supabase
+      .from('migration_transfers')
+      .select('id')
+      .eq('organization_id', organizationId!)
+      .limit(1)
+      .single();
+
+    if (!existingTransfer) {
+      return NextResponse.json(
+        { error: 'No migration transfer found for this organization. Please purchase a migration first.' },
+        { status: 404 },
+      );
+    }
+
+    const token = randomBytes(16).toString('hex');
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
     const { data, error } = await supabase
       .from('migration_transfers')
       .insert({
         token,
-        application_id: applicationId,
+        organization_id: organizationId!,
         expires_at: expiresAt,
       })
       .select('id, token, expires_at')

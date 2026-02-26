@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import Stripe from 'stripe';
 import { CREDIT_PACKS, TMS_PARTNER_PACKS } from '@/lib/stripe/credits';
+import { randomBytes } from 'crypto';
 import { sendPartnerReceiptEmail } from '@/lib/messaging/email';
 import { provisionPartner } from '@/lib/partner-provisioning';
 import { webhookLimiter } from '@/lib/rate-limiters';
@@ -65,6 +66,8 @@ export async function POST(request: NextRequest) {
           await handleServiceDeposit(session);
         } else if (session.metadata?.type === 'tms_partner_application') {
           await handlePartnerApplicationPayment(session);
+        } else if (session.metadata?.type === 'migration') {
+          await handleMigrationPayment(session);
         } else {
           await handleCheckoutCompleted(session);
         }
@@ -329,4 +332,80 @@ async function handlePartnerApplicationPayment(session: Stripe.Checkout.Session)
     stripeCustomerId,
     stripeSessionId: session.id,
   });
+}
+
+// ---------------------------------------------------------------------------
+// Handle migration payment checkout completion
+// ---------------------------------------------------------------------------
+
+async function handleMigrationPayment(session: Stripe.Checkout.Session) {
+  const supabase = createAdminClient();
+
+  const orgId = session.metadata?.organization_id;
+  const userId = session.metadata?.user_id;
+  const estimatedGb = session.metadata?.estimated_gb;
+
+  if (!orgId) {
+    console.error('[Stripe webhook] migration payment missing organization_id');
+    return;
+  }
+
+  const paymentIntentId =
+    typeof session.payment_intent === 'string'
+      ? session.payment_intent
+      : session.payment_intent?.id ?? session.id;
+
+  // Idempotency: check if we already created a migration_transfer for this payment
+  const { data: existing } = await supabase
+    .from('migration_transfers')
+    .select('id')
+    .eq('label', `stripe:${paymentIntentId}`)
+    .limit(1)
+    .single();
+
+  if (existing) {
+    console.log(
+      `[Stripe webhook] Duplicate migration payment — transfer already exists for ${paymentIntentId}`,
+    );
+    return;
+  }
+
+  // Generate transfer token
+  const token = randomBytes(16).toString('hex');
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days
+
+  const { error: insertError } = await supabase
+    .from('migration_transfers')
+    .insert({
+      token,
+      organization_id: orgId,
+      label: `stripe:${paymentIntentId}`,
+      expires_at: expiresAt,
+    });
+
+  if (insertError) {
+    console.error('[Stripe webhook] Failed to create migration transfer:', insertError);
+    return;
+  }
+
+  // Audit log
+  await supabase.from('audit_log').insert({
+    organization_id: orgId,
+    actor_id: userId ?? null,
+    actor_type: userId ? 'user' : 'system',
+    action: 'migration.purchased',
+    resource_type: 'migration_transfer',
+    resource_id: orgId,
+    details: {
+      estimated_gb: estimatedGb,
+      stripe_session_id: session.id,
+      stripe_payment_intent: paymentIntentId,
+      amount_total: session.amount_total,
+      currency: session.currency,
+    },
+  });
+
+  console.log(
+    `[Stripe webhook] Migration transfer created for org ${orgId} (${estimatedGb} GB, token: ${token.slice(0, 8)}...)`,
+  );
 }

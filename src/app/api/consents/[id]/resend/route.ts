@@ -5,6 +5,7 @@ import { sendConsentWhatsApp } from '@/lib/messaging/whatsapp';
 import { sendConsentEmail } from '@/lib/messaging/email';
 import { generalLimiter } from '@/lib/rate-limiters';
 import { getClientIp } from '@/lib/rate-limit';
+import { dispatchWebhookEvent } from '@/lib/webhooks';
 import type { Database } from '@/types/database';
 
 type ConsentRow = Database['public']['Tables']['consents']['Row'];
@@ -225,6 +226,13 @@ export async function POST(
         delivery_address: consent.delivery_address,
       },
     });
+
+    // Dispatch outgoing webhook (fire-and-forget)
+    dispatchWebhookEvent({
+      eventType: 'consent.sent',
+      consentId: id,
+      organizationId: consent.organization_id,
+    }).catch(() => {});
 
     return NextResponse.json({
       data: {

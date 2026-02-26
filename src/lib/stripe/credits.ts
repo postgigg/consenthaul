@@ -118,8 +118,14 @@ export const TMS_PARTNER_PACKS: TmsPartnerPack[] = [
 /** One-time partner onboarding fee: Free */
 export const TMS_ONBOARDING_FEE_CENTS = 0;
 
-/** Data migration fee per GB: $17/GB */
+/** Data migration fee per GB for TMS partners: $17/GB */
 export const MIGRATION_PRICE_PER_GB_CENTS = 1700;
+
+/** Data migration fee per GB for non-partner orgs: $35/GB */
+export const MIGRATION_STANDARD_PRICE_PER_GB_CENTS = 3500;
 
 /** Flat fee to auto-create carrier sub-organizations: $5,000 */
 export const AUTO_CREATE_CARRIER_FEE_CENTS = 500_000;
+
+/** One-time fee for white-label signing experience: $2,500 */
+export const WHITE_LABEL_FEE_CENTS = 250_000;

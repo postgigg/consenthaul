@@ -5,10 +5,12 @@ import { Badge } from '@/components/ui/badge';
 import { ConsentStatusBadge } from '@/components/consent/ConsentStatus';
 import { formatDate } from '@/lib/utils';
 import { DriverDetailActions } from './actions';
+import { ContactLog } from '@/components/consent/ContactLog';
 import type { Database } from '@/types/database';
 
 type DriverRow = Database['public']['Tables']['drivers']['Row'];
 type ConsentRow = Database['public']['Tables']['consents']['Row'];
+type NotificationRow = Database['public']['Tables']['notifications']['Row'];
 
 export const metadata = {
   title: 'Driver Detail | ConsentHaul',
@@ -46,6 +48,18 @@ export default async function DriverDetailPage({
     .order('created_at', { ascending: false });
 
   const driverConsents = (consentsData ?? []) as ConsentRow[];
+
+  // Fetch notifications for all of this driver's consents
+  const consentIds = driverConsents.map((c) => c.id);
+  let driverNotifications: NotificationRow[] = [];
+  if (consentIds.length > 0) {
+    const { data: notificationsData } = await supabase
+      .from('notifications')
+      .select('*')
+      .in('consent_id', consentIds)
+      .order('created_at', { ascending: false });
+    driverNotifications = (notificationsData ?? []) as NotificationRow[];
+  }
 
   const consentTypeLabel: Record<string, string> = {
     limited_query: 'Limited Query',
@@ -171,6 +185,9 @@ export default async function DriverDetailPage({
           )}
         </CardContent>
       </Card>
+
+      {/* Contact Log — all notifications across this driver's consents */}
+      <ContactLog notifications={driverNotifications} />
     </div>
   );
 }

@@ -157,6 +157,16 @@
   animation: stagger-fade-in 0.4s ease-out both;
 }
 
+/* Infinite marquee ticker */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   @keyframes float1 { 0%, 100% { transform: none; } }
   @keyframes float2 { 0%, 100% { transform: none; } }
@@ -173,4 +183,5 @@
   .slide-in-left { animation: none; opacity: 1; transform: none; }
   .animate-fade-in { animation: none; opacity: 1; }
   .stagger-fade-in { animation: none; opacity: 1; transform: none; }
+  .animate-marquee { animation: none; }
 }

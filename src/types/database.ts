@@ -18,6 +18,22 @@ export type RegulatoryAlertStatus = 'new' | 'reviewing' | 'action_required' | 'r
 // Partner application types
 export type PartnerApplicationStatus = 'pending' | 'paid' | 'provisioning' | 'active' | 'rejected';
 
+// Webhook types
+export type WebhookEventStatus = 'pending' | 'delivering' | 'delivered' | 'failed' | 'exhausted';
+
+// Query tracking types
+export type QueryType = 'limited' | 'pre_employment';
+export type QueryResult = 'no_violations' | 'violations_found' | 'pending' | 'error';
+export type WebhookEventType =
+  | 'consent.created'
+  | 'consent.sent'
+  | 'consent.delivered'
+  | 'consent.opened'
+  | 'consent.signed'
+  | 'consent.failed'
+  | 'consent.expired'
+  | 'consent.revoked';
+
 // Outreach types
 export type PipelineStage = 'lead' | 'contacted' | 'replied' | 'demo' | 'trial' | 'customer' | 'lost';
 export type CampaignStatus = 'draft' | 'active' | 'paused' | 'completed';
@@ -781,6 +797,100 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['partner_organizations']['Insert']>;
         Relationships: [];
       };
+      webhook_endpoints: {
+        Row: {
+          id: string;
+          organization_id: string;
+          url: string;
+          description: string | null;
+          secret: string;
+          events: string[];
+          is_active: boolean;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          url: string;
+          description?: string | null;
+          secret: string;
+          events: string[];
+          is_active?: boolean;
+          created_by: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['webhook_endpoints']['Insert']>;
+        Relationships: [];
+      };
+      webhook_events: {
+        Row: {
+          id: string;
+          endpoint_id: string;
+          organization_id: string;
+          event_type: string;
+          consent_id: string | null;
+          payload: Json;
+          status: WebhookEventStatus;
+          attempts: number;
+          max_attempts: number;
+          last_attempt_at: string | null;
+          next_retry_at: string | null;
+          response_status: number | null;
+          response_body: string | null;
+          error_message: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          endpoint_id: string;
+          organization_id: string;
+          event_type: string;
+          consent_id?: string | null;
+          payload?: Json;
+          status?: WebhookEventStatus;
+          attempts?: number;
+          max_attempts?: number;
+          last_attempt_at?: string | null;
+          next_retry_at?: string | null;
+          response_status?: number | null;
+          response_body?: string | null;
+          error_message?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['webhook_events']['Insert']>;
+        Relationships: [];
+      };
+      query_records: {
+        Row: {
+          id: string;
+          organization_id: string;
+          driver_id: string;
+          consent_id: string | null;
+          query_type: QueryType;
+          query_date: string;
+          result: QueryResult;
+          result_notes: string | null;
+          recorded_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          driver_id: string;
+          consent_id?: string | null;
+          query_type?: QueryType;
+          query_date: string;
+          result?: QueryResult;
+          result_notes?: string | null;
+          recorded_by?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['query_records']['Insert']>;
+        Relationships: [];
+      };
     };
     Functions: {
       get_user_org_id: {
@@ -788,7 +898,7 @@ export interface Database {
         Returns: string;
       };
       deduct_credit: {
-        Args: { p_org_id: string; p_consent_id: string; p_user_id: string };
+        Args: { p_org_id: string; p_consent_id: string; p_user_id: string | null };
         Returns: boolean;
       };
       add_credits: {

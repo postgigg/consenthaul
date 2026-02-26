@@ -526,9 +526,9 @@ export default function LandingPage() {
             <div>
               <p className="text-[0.65rem] font-bold text-[#5c6370] uppercase tracking-[0.15em] mb-4">Product</p>
               <ul className="space-y-2.5">
-                <li><span className="text-sm text-[#8b919a]/50 cursor-not-allowed">Get Started</span></li>
-                <li><span className="text-sm text-[#8b919a]/50 cursor-not-allowed">Sign In</span></li>
-                <li><span className="text-sm text-[#3a3f49]">API Documentation</span></li>
+                <li><Link href="/signup" className="text-sm text-[#8b919a] hover:text-[#C8A75E] transition-colors">Get Started</Link></li>
+                <li><Link href="/login" className="text-sm text-[#8b919a] hover:text-[#C8A75E] transition-colors">Sign In</Link></li>
+                <li><Link href="/docs" className="text-sm text-[#8b919a] hover:text-[#C8A75E] transition-colors">API Documentation</Link></li>
                 <li><Link href="/tms" className="text-sm text-[#8b919a] hover:text-[#C8A75E] transition-colors">TMS Partners</Link></li>
               </ul>
             </div>
@@ -537,8 +537,9 @@ export default function LandingPage() {
             <div>
               <p className="text-[0.65rem] font-bold text-[#5c6370] uppercase tracking-[0.15em] mb-4">Company</p>
               <ul className="space-y-2.5">
-                <li><span className="text-sm text-[#8b919a]">Flotac Ltd</span></li>
+                <li><span className="text-sm text-[#8b919a]">Workbird LLC</span></li>
                 <li><Link href="mailto:support@consenthaul.com" className="text-sm text-[#8b919a] hover:text-[#C8A75E] transition-colors">support@consenthaul.com</Link></li>
+                <li><Link href="mailto:partnerships@consenthaul.com" className="text-sm text-[#8b919a] hover:text-[#C8A75E] transition-colors">partnerships@consenthaul.com</Link></li>
               </ul>
             </div>
 
@@ -567,7 +568,7 @@ export default function LandingPage() {
             {/* Copyright bar */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
               <p className="text-[0.7rem] text-[#5c6370]">
-                &copy; {new Date().getFullYear()} ConsentHaul &middot; Operated by Flotac Ltd
+                &copy; {new Date().getFullYear()} ConsentHaul &middot; Operated by Workbird LLC
               </p>
               <div className="flex items-center gap-4">
                 <Link href="/terms" className="text-[0.7rem] text-[#5c6370] hover:text-[#8b919a] transition-colors">Terms</Link>

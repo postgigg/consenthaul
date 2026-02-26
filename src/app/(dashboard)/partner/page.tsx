@@ -5,6 +5,7 @@ import { CreditBalance } from '@/components/billing/CreditBalance';
 import { PurchaseHistory } from '@/components/billing/PurchaseHistory';
 import { PartnerApiKeys } from '@/components/partner/PartnerApiKeys';
 import { PartnerMigrationStatus } from '@/components/partner/PartnerMigrationStatus';
+import { PartnerWebhookEndpoints } from '@/components/partner/PartnerWebhookEndpoints';
 import type { Database } from '@/types/database';
 
 type OrganizationRow = Database['public']['Tables']['organizations']['Row'];
@@ -106,6 +107,13 @@ export default async function PartnerDashboardPage() {
     migration = migData as MigrationPick | null;
   }
 
+  // Fetch webhook endpoints
+  const { data: webhookEndpoints } = await supabase
+    .from('webhook_endpoints')
+    .select('id, url, description, events, is_active, created_at, updated_at')
+    .eq('organization_id', organization.id)
+    .order('created_at', { ascending: false });
+
   const memberDate = new Date(memberSince).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -164,6 +172,26 @@ export default async function PartnerDashboardPage() {
               is_active: k.is_active,
               last_used_at: k.last_used_at,
               created_at: k.created_at,
+            }))
+          }
+        />
+      </section>
+
+      {/* Webhook Endpoints */}
+      <section>
+        <h2 className="text-sm font-bold text-[#8b919a] uppercase tracking-wider mb-4">
+          Webhook Endpoints
+        </h2>
+        <PartnerWebhookEndpoints
+          endpoints={
+            (webhookEndpoints ?? []).map((ep) => ({
+              id: ep.id,
+              url: ep.url,
+              description: ep.description,
+              events: ep.events,
+              is_active: ep.is_active,
+              created_at: ep.created_at,
+              updated_at: ep.updated_at,
             }))
           }
         />

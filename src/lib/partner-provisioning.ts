@@ -84,14 +84,27 @@ export async function provisionPartner(
 
     const orgId = (profileData as { organization_id: string }).organization_id;
 
-    // 2. Update org: set name, is_partner, stripe_customer_id
+    // 2. Update org: set name, is_partner, stripe_customer_id, white-label settings
+    const orgUpdate: Record<string, unknown> = {
+      name: application.company_name,
+      is_partner: true,
+      stripe_customer_id: opts?.stripeCustomerId ?? null,
+    };
+
+    if ((application as Record<string, unknown>).white_label) {
+      // Fetch current settings to merge
+      const { data: currentOrg } = await supabase
+        .from('organizations')
+        .select('settings')
+        .eq('id', orgId)
+        .single();
+      const currentSettings = (currentOrg?.settings as Record<string, unknown>) ?? {};
+      orgUpdate.settings = { ...currentSettings, white_label_enabled: true };
+    }
+
     await supabase
       .from('organizations')
-      .update({
-        name: application.company_name,
-        is_partner: true,
-        stripe_customer_id: opts?.stripeCustomerId ?? null,
-      })
+      .update(orgUpdate)
       .eq('id', orgId);
 
     // 3. Add selected credit pack via RPC

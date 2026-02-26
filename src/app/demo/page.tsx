@@ -157,7 +157,7 @@ export default function DemoPage() {
       <footer className="border-t border-[#e8e8e3] py-8">
         <div className="mx-auto max-w-6xl px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-[#b5b5ae]">
-            &copy; {new Date().getFullYear()} ConsentHaul &middot; Operated by Flotac Ltd
+            &copy; {new Date().getFullYear()} ConsentHaul &middot; Operated by Workbird LLC
           </p>
           <div className="flex items-center gap-6">
             <Link href="/terms" className="text-xs text-[#b5b5ae] hover:text-[#6b6f76] transition-colors">Terms</Link>

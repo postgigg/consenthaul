@@ -8,6 +8,7 @@ import { sendConsentWhatsApp } from '@/lib/messaging/whatsapp';
 import { sendConsentEmail } from '@/lib/messaging/email';
 import { generalLimiter } from '@/lib/rate-limiters';
 import { getClientIp } from '@/lib/rate-limit';
+import { dispatchWebhookEvent } from '@/lib/webhooks';
 import type { Database } from '@/types/database';
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
@@ -305,6 +306,21 @@ export async function POST(request: NextRequest) {
         delivery_method: consent.delivery_method,
       },
     });
+
+    // Dispatch outgoing webhooks (fire-and-forget)
+    dispatchWebhookEvent({
+      eventType: 'consent.created',
+      consentId: consent.id,
+      organizationId: orgId,
+    }).catch(() => {});
+
+    if (input.delivery_method !== 'manual') {
+      dispatchWebhookEvent({
+        eventType: 'consent.sent',
+        consentId: consent.id,
+        organizationId: orgId,
+      }).catch(() => {});
+    }
 
     return NextResponse.json(
       {

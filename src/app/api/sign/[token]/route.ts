@@ -6,7 +6,8 @@ import { generateConsentPDF } from '@/lib/pdf/generate-consent-pdf';
 import { createHash } from 'crypto';
 import { signLimiter } from '@/lib/rate-limiters';
 import { getClientIp } from '@/lib/rate-limit';
-import { sendDriverReceiptEmail, sendCarrierNotificationEmail } from '@/lib/messaging/email';
+import { sendDriverReceiptEmail, sendCarrierNotificationEmail, type EmailBranding } from '@/lib/messaging/email';
+import { dispatchWebhookEvent } from '@/lib/webhooks';
 import type { Database } from '@/types/database';
 
 type ConsentRow = Database['public']['Tables']['consents']['Row'];
@@ -39,7 +40,7 @@ export async function GET(
         signing_token_expires_at,
         created_at,
         driver:drivers(first_name, last_name),
-        organization:organizations(name)
+        organization:organizations(name, logo_url, settings)
       `,
       )
       .eq('signing_token', token)
@@ -82,7 +83,18 @@ export async function GET(
 
     // 4. Build safe response (no sensitive data)
     const driver = consent.driver as { first_name: string; last_name: string } | null;
-    const organization = consent.organization as { name: string } | null;
+    const organization = consent.organization as { name: string; logo_url: string | null; settings: Record<string, unknown> | null } | null;
+
+    // Build branding payload for white-label partners
+    const settings = organization?.settings;
+    const isWhiteLabel = settings && settings.white_label_enabled === true;
+    const branding = isWhiteLabel
+      ? {
+          logo_url: organization.logo_url ?? null,
+          primary_color: (settings.brand_primary_color as string) ?? null,
+          company_name: (settings.brand_display_name as string) ?? organization.name,
+        }
+      : null;
 
     return NextResponse.json({
       data: {
@@ -99,6 +111,7 @@ export async function GET(
           ? `${driver.first_name} ${driver.last_name}`
           : 'Unknown Driver',
         organization_name: organization?.name ?? 'Unknown Organization',
+        branding,
       },
     });
   } catch (err) {
@@ -331,9 +344,26 @@ export async function POST(
       user_agent: signerUserAgent,
     });
 
-    // 12. Send post-signing emails (fire-and-forget — don't block the response)
+    // 12. Dispatch outgoing webhook (fire-and-forget)
+    dispatchWebhookEvent({
+      eventType: 'consent.signed',
+      consentId: consent.id,
+      organizationId: consent.organization_id,
+    }).catch(() => {});
+
+    // 13. Send post-signing emails (fire-and-forget — don't block the response)
     const driverName = `${driver.first_name} ${driver.last_name}`;
     const companyName = organization.name ?? 'Unknown Company';
+
+    // Build email branding for white-label partners
+    const orgSettings = (organization.settings as Record<string, unknown>) ?? {};
+    const emailBranding: EmailBranding | undefined = orgSettings.white_label_enabled === true
+      ? {
+          company_name: (orgSettings.brand_display_name as string) ?? organization.name,
+          logo_url: organization.logo_url ?? null,
+          primary_color: (orgSettings.brand_primary_color as string) ?? null,
+        }
+      : undefined;
 
     // 12a. Driver receipt email (with signed PDF attached)
     if (driver.email) {
@@ -346,6 +376,7 @@ export async function POST(
         consentId: consent.id,
         language: consent.language ?? 'en',
         signingToken: token,
+        branding: emailBranding,
         ...(pdfBuffer ? { pdfBuffer } : {}),
       }).catch((err) => {
         console.error('[POST /api/sign/[token]] driver receipt email failed:', err);
@@ -376,6 +407,7 @@ export async function POST(
             signedAt,
             consentId: consent.id,
             dashboardUrl,
+            branding: emailBranding,
             ...(pdfBuffer ? { pdfBuffer } : {}),
           }).catch((err) => {
             console.error('[POST /api/sign/[token]] carrier notification email failed:', err);

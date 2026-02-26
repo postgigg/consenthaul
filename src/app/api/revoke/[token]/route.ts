@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { signLimiter } from '@/lib/rate-limiters';
 import { getClientIp } from '@/lib/rate-limit';
+import { dispatchWebhookEvent } from '@/lib/webhooks';
 
 // ---------------------------------------------------------------------------
 // GET /api/revoke/[token] — Public: get consent info for revocation page
@@ -165,6 +166,13 @@ export async function POST(
       ip_address: signerIp,
       user_agent: signerUserAgent,
     });
+
+    // Dispatch outgoing webhook (fire-and-forget)
+    dispatchWebhookEvent({
+      eventType: 'consent.revoked',
+      consentId: consent.id,
+      organizationId: consent.organization_id,
+    }).catch(() => {});
 
     return NextResponse.json({
       data: {

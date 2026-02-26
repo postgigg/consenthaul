@@ -13,6 +13,12 @@ import { LogoFull } from '@/components/brand/Logo';
 // Types
 // ---------------------------------------------------------------------------
 
+interface BrandingData {
+  logo_url: string | null;
+  primary_color: string | null;
+  company_name: string;
+}
+
 interface ConsentData {
   consent_id: string;
   consent_type: ConsentType;
@@ -25,6 +31,7 @@ interface ConsentData {
   created_at: string;
   driver_name: string;
   organization_name: string;
+  branding: BrandingData | null;
 }
 
 type PageState =
@@ -308,13 +315,22 @@ export default function SignPage({ params }: { params: { token: string } }) {
 
   const consentData = state.data;
   const isSubmitting = state.kind === 'submitting';
+  const branding = consentData.branding;
+  const accentColor = branding?.primary_color ?? '#C8A75E';
 
   return (
     <div className="min-h-screen bg-[#f8f8f6]">
       {/* Top bar */}
       <header className="sticky top-0 z-10 border-b border-[#e8e8e3] bg-[#0c0f14]">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
-          <LogoFull mode="dark" className="h-6 w-auto" />
+          {branding?.logo_url ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img src={branding.logo_url} alt={branding.company_name} className="h-6 w-auto max-w-[160px] object-contain" />
+          ) : branding ? (
+            <span className="text-white font-bold text-sm tracking-tight">{branding.company_name}</span>
+          ) : (
+            <LogoFull mode="dark" className="h-6 w-auto" />
+          )}
           <LanguageToggle language={language} onChange={setLanguage} />
         </div>
       </header>
@@ -338,8 +354,8 @@ export default function SignPage({ params }: { params: { token: string } }) {
               <p className="text-sm font-semibold text-[#0c0f14]">{consentData.organization_name}</p>
             </div>
           </div>
-          {/* Yellow accent bar at bottom */}
-          <div className="mt-4 h-0.5 bg-[#C8A75E]" />
+          {/* Accent bar at bottom */}
+          <div className="mt-4 h-0.5" style={{ backgroundColor: accentColor }} />
         </div>
 
         {/* E-Sign Act Disclosure */}
@@ -452,11 +468,11 @@ export default function SignPage({ params }: { params: { token: string } }) {
 
         {/* Footer */}
         <div className="mt-8 pb-8 flex items-center justify-center gap-2">
-          <div className="w-4 h-0.5 bg-[#C8A75E]" />
+          <div className="w-4 h-0.5" style={{ backgroundColor: accentColor }} />
           <p className="text-xs text-[#b5b5ae] uppercase tracking-wider">
-            {t.poweredBy} ConsentHaul
+            {t.poweredBy} {branding ? branding.company_name : 'ConsentHaul'}
           </p>
-          <div className="w-4 h-0.5 bg-[#C8A75E]" />
+          <div className="w-4 h-0.5" style={{ backgroundColor: accentColor }} />
         </div>
       </main>
     </div>

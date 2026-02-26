@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Save, Loader2, Building2, Settings2, Upload } from 'lucide-react';
+import { Save, Loader2, Building2, Settings2, Upload, Palette } from 'lucide-react';
 import type { Database } from '@/types/database';
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
@@ -28,8 +28,15 @@ interface OrgSettings {
   default_language?: string;
   consent_duration_days?: number;
   auto_remind?: boolean;
+  auto_reconsent?: boolean;
   remind_days_before?: number;
   timezone?: string;
+  white_label_enabled?: boolean;
+  brand_display_name?: string;
+  brand_primary_color?: string;
+  query_subscription_active?: boolean;
+  query_subscription_expires_at?: string;
+  query_subscription_driver_count?: number;
 }
 
 const US_STATES = [
@@ -75,8 +82,14 @@ export default function SettingsPage() {
   const [defaultLanguage, setDefaultLanguage] = useState('en');
   const [consentDuration, setConsentDuration] = useState('365');
   const [autoRemind, setAutoRemind] = useState(false);
+  const [autoReconsent, setAutoReconsent] = useState(false);
   const [remindDaysBefore, setRemindDaysBefore] = useState('30');
   const [timezone, setTimezone] = useState('America/New_York');
+
+  // Branding (white-label only)
+  const [isWhiteLabel, setIsWhiteLabel] = useState(false);
+  const [brandDisplayName, setBrandDisplayName] = useState('');
+  const [brandPrimaryColor, setBrandPrimaryColor] = useState('#C8A75E');
 
   useEffect(() => {
     async function loadOrg() {
@@ -120,8 +133,14 @@ export default function SettingsPage() {
         setDefaultLanguage(settings.default_language ?? 'en');
         setConsentDuration(String(settings.consent_duration_days ?? 365));
         setAutoRemind(settings.auto_remind ?? false);
+        setAutoReconsent(settings.auto_reconsent ?? false);
         setRemindDaysBefore(String(settings.remind_days_before ?? 30));
         setTimezone(settings.timezone ?? 'America/New_York');
+
+        // Branding
+        setIsWhiteLabel(settings.white_label_enabled === true);
+        setBrandDisplayName(settings.brand_display_name ?? '');
+        setBrandPrimaryColor(settings.brand_primary_color ?? '#C8A75E');
       } catch {
         setError('Failed to load organization settings.');
       } finally {
@@ -143,8 +162,12 @@ export default function SettingsPage() {
         default_language: defaultLanguage,
         consent_duration_days: parseInt(consentDuration, 10) || 365,
         auto_remind: autoRemind,
+        auto_reconsent: autoReconsent,
         remind_days_before: parseInt(remindDaysBefore, 10) || 30,
         timezone,
+        ...(isWhiteLabel ? { white_label_enabled: true } : {}),
+        brand_display_name: brandDisplayName.trim() || undefined,
+        brand_primary_color: brandPrimaryColor.trim() || undefined,
       };
 
       const { error: updateError } = await supabase
@@ -380,6 +403,63 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
+        {/* Branding (white-label only) */}
+        {isWhiteLabel && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Palette className="h-5 w-5 text-[#b5b5ae]" />
+                <div>
+                  <CardTitle className="text-base">Branding</CardTitle>
+                  <CardDescription>
+                    Customize how your brand appears on signing pages and driver emails.
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-1.5">
+                <label htmlFor="brand-name" className="text-sm font-medium text-[#3a3f49]">
+                  Brand Display Name
+                </label>
+                <Input
+                  id="brand-name"
+                  value={brandDisplayName}
+                  onChange={(e) => setBrandDisplayName(e.target.value)}
+                  placeholder={name}
+                />
+                <p className="text-xs text-[#8b919a]">
+                  Appears in email headers and signing page footer. Defaults to your org name.
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <label htmlFor="brand-color" className="text-sm font-medium text-[#3a3f49]">
+                  Primary Brand Color
+                </label>
+                <div className="flex items-center gap-3">
+                  <div
+                    className="h-10 w-10 rounded-lg border border-[#e8e8e3]"
+                    style={{ backgroundColor: brandPrimaryColor }}
+                  />
+                  <Input
+                    id="brand-color"
+                    value={brandPrimaryColor}
+                    onChange={(e) => setBrandPrimaryColor(e.target.value)}
+                    placeholder="#C8A75E"
+                    className="max-w-[160px] font-mono"
+                  />
+                </div>
+                <p className="text-xs text-[#8b919a]">
+                  Used for accent bars, buttons, and links in emails and signing pages.
+                </p>
+              </div>
+              <p className="text-xs text-[#8b919a]">
+                Your company logo (uploaded above) is used on signing pages and in email headers.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Consent preferences */}
         <Card>
           <CardHeader>
@@ -451,13 +531,22 @@ export default function SettingsPage() {
                   />
                   Auto-Remind Drivers
                 </label>
-                {autoRemind && (
+                <label className="flex items-center gap-2 text-sm font-medium text-[#3a3f49]">
+                  <input
+                    type="checkbox"
+                    checked={autoReconsent}
+                    onChange={(e) => setAutoReconsent(e.target.checked)}
+                    className="h-4 w-4 rounded border-[#d4d4cf] text-[#0c0f14] focus:ring-[#0c0f14]"
+                  />
+                  Auto Re-Consent Expiring Drivers
+                </label>
+                {(autoRemind || autoReconsent) && (
                   <div className="space-y-1.5 ml-6">
                     <label
                       htmlFor="remind-days"
                       className="text-xs font-medium text-[#8b919a]"
                     >
-                      Remind days before expiration
+                      Days before expiration to trigger
                     </label>
                     <Input
                       id="remind-days"

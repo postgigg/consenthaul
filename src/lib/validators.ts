@@ -211,6 +211,8 @@ export const partnerMigrationSchema = z.object({
   migration_estimated_gb: z.number().int().min(0).optional().default(0),
   auto_create_carriers: z.boolean().optional().default(false),
   auto_create_fee_cents: z.number().int().min(0).optional().default(0),
+  white_label: z.boolean().optional().default(false),
+  white_label_fee_cents: z.number().int().min(0).optional().default(0),
 });
 
 export type PartnerMigrationInput = z.infer<typeof partnerMigrationSchema>;
@@ -266,3 +268,47 @@ export const migrationIngestDriverSchema = z.object({
 });
 
 export type MigrationIngestDriver = z.infer<typeof migrationIngestDriverSchema>;
+
+// ---------------------------------------------------------------------------
+// Webhook endpoint schemas
+// ---------------------------------------------------------------------------
+
+const VALID_WEBHOOK_EVENTS = [
+  'consent.created',
+  'consent.sent',
+  'consent.delivered',
+  'consent.opened',
+  'consent.signed',
+  'consent.failed',
+  'consent.expired',
+  'consent.revoked',
+] as const;
+
+export const createWebhookEndpointSchema = z.object({
+  url: z
+    .string()
+    .url('Must be a valid URL')
+    .refine((u) => u.startsWith('https://'), 'URL must use HTTPS'),
+  events: z
+    .array(z.enum(VALID_WEBHOOK_EVENTS))
+    .min(1, 'At least one event type is required'),
+  description: z.string().max(500).optional(),
+});
+
+export type CreateWebhookEndpointInput = z.infer<typeof createWebhookEndpointSchema>;
+
+export const updateWebhookEndpointSchema = z.object({
+  url: z
+    .string()
+    .url('Must be a valid URL')
+    .refine((u) => u.startsWith('https://'), 'URL must use HTTPS')
+    .optional(),
+  events: z
+    .array(z.enum(VALID_WEBHOOK_EVENTS))
+    .min(1, 'At least one event type is required')
+    .optional(),
+  description: z.string().max(500).optional(),
+  is_active: z.boolean().optional(),
+});
+
+export type UpdateWebhookEndpointInput = z.infer<typeof updateWebhookEndpointSchema>;

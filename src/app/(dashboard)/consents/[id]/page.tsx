@@ -7,11 +7,13 @@ import { ConsentStatusBadge } from '@/components/consent/ConsentStatus';
 import { ConsentPDFPreview } from '@/components/consent/ConsentPDFPreview';
 import { formatDate } from '@/lib/utils';
 import { ConsentDetailActions } from './actions';
+import { ContactLog } from '@/components/consent/ContactLog';
 import type { Database } from '@/types/database';
 
 type ConsentRow = Database['public']['Tables']['consents']['Row'];
 type DriverRow = Database['public']['Tables']['drivers']['Row'];
 type AuditLogRow = Database['public']['Tables']['audit_log']['Row'];
+type NotificationRow = Database['public']['Tables']['notifications']['Row'];
 
 export const metadata = {
   title: 'Consent Detail | ConsentHaul',
@@ -59,6 +61,15 @@ export default async function ConsentDetailPage({
     .order('created_at', { ascending: true });
 
   const trail = (auditLogs ?? []) as AuditLogRow[];
+
+  // Fetch contact log (notifications)
+  const { data: notificationsData } = await supabase
+    .from('notifications')
+    .select('*')
+    .eq('consent_id', params.id)
+    .order('created_at', { ascending: false });
+
+  const notifications = (notificationsData ?? []) as NotificationRow[];
 
   const consentTypeLabel: Record<string, string> = {
     limited_query: 'Limited Query',
@@ -328,6 +339,9 @@ export default async function ConsentDetailPage({
               </ol>
             </CardContent>
           </Card>
+
+          {/* Contact Log */}
+          <ContactLog notifications={notifications} />
 
           {/* Audit trail */}
           <Card>

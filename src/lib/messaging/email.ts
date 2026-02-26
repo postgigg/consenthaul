@@ -12,19 +12,35 @@ function getResend() {
 // Shared email shell — brand-consistent wrapper
 // ---------------------------------------------------------------------------
 
+export interface EmailBranding {
+  company_name: string;
+  logo_url: string | null;
+  primary_color: string | null; // hex like "#FF5500"
+}
+
 function emailShell({
   lang,
   title,
   preheader,
   body,
   footerText,
+  branding,
 }: {
   lang: string;
   title: string;
   preheader: string;
   body: string;
   footerText: string;
+  branding?: EmailBranding;
 }): string {
+  const accentColor = branding?.primary_color ?? '#C8A75E';
+  const headerContent = branding?.logo_url
+    ? `<img src="${branding.logo_url}" alt="${branding.company_name}" style="max-height:36px;width:auto;" />`
+    : `<h1 style="margin:0;color:${accentColor};font-size:18px;font-weight:700;letter-spacing:0.04em;">${branding ? branding.company_name.toUpperCase() : 'CONSENTHAUL'}</h1>`;
+  const subFooterText = branding
+    ? `Powered by ${branding.company_name}`
+    : 'ConsentHaul &middot; Operated by Workbird LLC';
+
   return `
 <!DOCTYPE html>
 <html lang="${lang}">
@@ -53,16 +69,14 @@ function emailShell({
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td>
-                    <h1 style="margin:0;color:#C8A75E;font-size:18px;font-weight:700;letter-spacing:0.04em;">
-                      CONSENTHAUL
-                    </h1>
+                    ${headerContent}
                   </td>
                   <td align="right" style="vertical-align:middle;">
                     <span style="color:#6b6f76;font-size:11px;letter-spacing:0.05em;">FMCSA CLEARINGHOUSE</span>
                   </td>
                 </tr>
               </table>
-              <div style="margin-top:16px;height:2px;background:linear-gradient(90deg,#C8A75E 0%,#C8A75E 30%,#1e2129 100%);"></div>
+              <div style="margin-top:16px;height:2px;background:linear-gradient(90deg,${accentColor} 0%,${accentColor} 30%,#1e2129 100%);"></div>
             </td>
           </tr>
 
@@ -89,7 +103,7 @@ function emailShell({
           <tr>
             <td style="padding:16px 32px;text-align:center;">
               <p style="margin:0;font-size:11px;color:#b5b5ae;">
-                &copy; ${new Date().getFullYear()} ConsentHaul &middot; Operated by Flotac Ltd
+                &copy; ${new Date().getFullYear()} ${subFooterText}
               </p>
             </td>
           </tr>
@@ -111,6 +125,7 @@ interface SendConsentEmailParams {
   driverName: string;
   companyName?: string;
   language?: string;
+  branding?: EmailBranding;
 }
 
 interface SendConsentEmailResult {
@@ -123,8 +138,11 @@ export async function sendConsentEmail({
   driverName,
   companyName = 'your employer',
   language = 'en',
+  branding,
 }: SendConsentEmailParams): Promise<SendConsentEmailResult> {
   const isSpanish = language === 'es';
+  const accent = branding?.primary_color ?? '#C8A75E';
+  const senderName = branding?.company_name ?? 'ConsentHaul';
 
   const subject = isSpanish
     ? `${companyName} solicita su consentimiento — FMCSA Clearinghouse`
@@ -141,7 +159,7 @@ export async function sendConsentEmail({
         whatIsBody: 'Una consulta limitada verifica si existen registros sobre usted en el Clearinghouse de la FMCSA. No revela detalles específicos de ninguna violación. Su empleador está obligado por ley federal a realizar esta consulta al menos una vez al año para todos los conductores con CDL.',
         noAction: 'Si no reconoce esta solicitud, puede ignorar este correo de manera segura.',
         fallback: 'Si el botón no funciona, copie y pegue este enlace:',
-        footer: `Este correo fue enviado por ConsentHaul en nombre de ${companyName}. Si tiene preguntas, comuníquese directamente con su empleador.`,
+        footer: `Este correo fue enviado por ${senderName} en nombre de ${companyName}. Si tiene preguntas, comuníquese directamente con su empleador.`,
       }
     : {
         preheader: `${companyName} needs your consent for an FMCSA Clearinghouse query.`,
@@ -153,7 +171,7 @@ export async function sendConsentEmail({
         whatIsBody: 'A limited query checks whether there are any records about you in the FMCSA Clearinghouse. It does not reveal specific details of any violation. Your employer is required by federal law to conduct this query at least once per year for all CDL drivers.',
         noAction: 'If you do not recognise this request, you can safely ignore this email.',
         fallback: 'If the button does not work, copy and paste this link:',
-        footer: `This email was sent by ConsentHaul on behalf of ${companyName}. If you have questions, please contact your employer directly.`,
+        footer: `This email was sent by ${senderName} on behalf of ${companyName}. If you have questions, please contact your employer directly.`,
       };
 
   const body = `
@@ -163,7 +181,7 @@ export async function sendConsentEmail({
     <!-- CTA Button -->
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 24px;">
       <tr>
-        <td align="center" style="background-color:#C8A75E;">
+        <td align="center" style="background-color:${accent};">
           <a href="${signingUrl}" target="_blank" style="display:inline-block;padding:14px 36px;font-size:14px;font-weight:700;color:#0c0f14;text-decoration:none;letter-spacing:0.05em;text-transform:uppercase;">
             ${t.cta}
           </a>
@@ -179,8 +197,8 @@ export async function sendConsentEmail({
     <p style="margin:0 0 24px;font-size:14px;line-height:1.6;color:#6b6f76;">${t.whatIsBody}</p>
 
     <p style="margin:0 0 8px;font-size:13px;color:#8b919a;">${t.fallback}</p>
-    <p style="margin:0 0 24px;font-size:13px;color:#C8A75E;word-break:break-all;">
-      <a href="${signingUrl}" style="color:#C8A75E;text-decoration:underline;">${signingUrl}</a>
+    <p style="margin:0 0 24px;font-size:13px;color:${accent};word-break:break-all;">
+      <a href="${signingUrl}" style="color:${accent};text-decoration:underline;">${signingUrl}</a>
     </p>
 
     <hr style="border:none;border-top:1px solid #e8e8e3;margin:24px 0;" />
@@ -193,6 +211,7 @@ export async function sendConsentEmail({
     preheader: t.preheader,
     body,
     footerText: t.footer,
+    branding,
   });
 
   const { data, error } = await getResend().emails.send({
@@ -225,6 +244,7 @@ interface SendDriverReceiptParams {
   language?: string;
   pdfBuffer?: Buffer;
   signingToken?: string;
+  branding?: EmailBranding;
 }
 
 export async function sendDriverReceiptEmail({
@@ -237,8 +257,11 @@ export async function sendDriverReceiptEmail({
   language = 'en',
   pdfBuffer,
   signingToken,
+  branding,
 }: SendDriverReceiptParams): Promise<void> {
   const isSpanish = language === 'es';
+  const accent = branding?.primary_color ?? '#C8A75E';
+  const senderName = branding?.company_name ?? 'ConsentHaul';
   const signedDate = new Date(signedAt).toLocaleDateString(isSpanish ? 'es-US' : 'en-US', {
     year: 'numeric',
     month: 'long',
@@ -271,7 +294,7 @@ export async function sendDriverReceiptEmail({
         questions: 'Si tiene alguna pregunta sobre este consentimiento, comuníquese directamente con su empleador.',
         withdrawNote: 'Si desea retirar su consentimiento para transacciones electrónicas, puede hacerlo usando el siguiente enlace:',
         withdrawLink: 'Retirar consentimiento electrónico',
-        footer: `Este correo fue enviado por ConsentHaul en nombre de ${companyName}.`,
+        footer: `Este correo fue enviado por ${senderName} en nombre de ${companyName}.`,
       }
     : {
         preheader: `Your FMCSA consent for ${companyName} was signed successfully.`,
@@ -288,7 +311,7 @@ export async function sendDriverReceiptEmail({
         questions: 'If you have any questions about this consent, please contact your employer directly.',
         withdrawNote: 'If you wish to withdraw your consent to electronic transactions, you may do so using the link below:',
         withdrawLink: 'Withdraw electronic consent',
-        footer: `This email was sent by ConsentHaul on behalf of ${companyName}.`,
+        footer: `This email was sent by ${senderName} on behalf of ${companyName}.`,
       };
 
   const body = `
@@ -336,7 +359,7 @@ export async function sendDriverReceiptEmail({
     <hr style="border:none;border-top:1px solid #e8e8e3;margin:24px 0;" />
     <p style="margin:0 0 8px;font-size:13px;line-height:1.5;color:#8b919a;">${t.withdrawNote}</p>
     <p style="margin:0;font-size:13px;">
-      <a href="${process.env.NEXT_PUBLIC_APP_URL ?? 'https://consenthaul.com'}/revoke/${signingToken}" style="color:#C8A75E;text-decoration:underline;">${t.withdrawLink}</a>
+      <a href="${process.env.NEXT_PUBLIC_APP_URL ?? 'https://consenthaul.com'}/revoke/${signingToken}" style="color:${accent};text-decoration:underline;">${t.withdrawLink}</a>
     </p>
     ` : ''}
   `;
@@ -347,6 +370,7 @@ export async function sendDriverReceiptEmail({
     preheader: t.preheader,
     body,
     footerText: t.footer,
+    branding,
   });
 
   await getResend().emails.send({
@@ -381,6 +405,7 @@ interface SendCarrierNotificationParams {
   consentId: string;
   dashboardUrl: string;
   pdfBuffer?: Buffer;
+  branding?: EmailBranding;
 }
 
 export async function sendCarrierNotificationEmail({
@@ -392,7 +417,9 @@ export async function sendCarrierNotificationEmail({
   consentId,
   dashboardUrl,
   pdfBuffer,
+  branding,
 }: SendCarrierNotificationParams): Promise<void> {
+  const senderName = branding?.company_name ?? 'ConsentHaul';
   const signedDate = new Date(signedAt).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -463,7 +490,8 @@ export async function sendCarrierNotificationEmail({
     title: 'Consent Signed',
     preheader: `${driverName} signed their FMCSA ${typeLabel.toLowerCase()} consent.`,
     body,
-    footerText: `This notification was sent to ${companyName} by ConsentHaul.`,
+    footerText: `This notification was sent to ${companyName} by ${senderName}.`,
+    branding,
   });
 
   const recipients = Array.isArray(to) ? to : [to];

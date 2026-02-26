@@ -108,8 +108,8 @@ export async function POST(request: NextRequest) {
     if (records.length > MAX_CSV_ROWS) {
       return NextResponse.json(
         {
-          error: 'Validation Error',
-          message: `CSV has ${records.length} rows. Maximum allowed is ${MAX_CSV_ROWS}.`,
+          error: 'Import Limit',
+          message: `Free CSV import supports up to ${MAX_CSV_ROWS} drivers. For larger imports, use the Migrate Fleet feature on the Drivers page.`,
         },
         { status: 422 },
       );

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { LogoFull, LogoIcon } from '@/components/brand/Logo';
 
@@ -10,11 +11,14 @@ const NAV_LINKS = [
   { label: 'Pricing', href: '#pricing' },
   { label: 'FAQ', href: '#faq' },
   { label: 'TMS Partners', href: '/tms' },
+  { label: 'Docs', href: '/docs' },
 ];
 
 export function LandingNav() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
+  const isLandingPage = pathname === '/';
 
   useEffect(() => {
     function onScroll() {
@@ -35,9 +39,18 @@ export function LandingNav() {
     return () => { document.body.style.overflow = ''; };
   }, [mobileOpen]);
 
+  function getNavHref(href: string) {
+    // Anchor links should navigate to landing page sections when not on landing page
+    if (href.startsWith('#') && !isLandingPage) {
+      return `/${href}`;
+    }
+    return href;
+  }
+
   function handleNavClick(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
     setMobileOpen(false);
     if (!href.startsWith('#')) return; // allow normal navigation for page links
+    if (!isLandingPage) return; // let the browser navigate to /#section
     e.preventDefault();
     const id = href.replace('#', '');
     const el = document.getElementById(id);
@@ -68,7 +81,7 @@ export function LandingNav() {
             {NAV_LINKS.map((link) => (
               <a
                 key={link.href}
-                href={link.href}
+                href={getNavHref(link.href)}
                 onClick={(e) => handleNavClick(e, link.href)}
                 className="text-[0.8rem] font-semibold text-[#6b6f76] hover:text-[#0c0f14] transition-colors tracking-wide"
               >
@@ -79,16 +92,18 @@ export function LandingNav() {
 
           {/* Right side */}
           <div className="flex items-center gap-3">
-            <span
-              className="hidden sm:inline-block text-sm font-semibold text-[#3a3f49]/50 cursor-not-allowed"
+            <Link
+              href="/login"
+              className="hidden sm:inline-block text-sm font-semibold text-[#3a3f49] hover:text-[#0c0f14] transition-colors"
             >
               Sign in
-            </span>
-            <span
-              className="bg-[#0c0f14]/50 text-white/70 text-[0.8rem] font-semibold px-5 py-2 cursor-not-allowed"
+            </Link>
+            <Link
+              href="/signup"
+              className="bg-[#0c0f14] text-white text-[0.8rem] font-semibold px-5 py-2 hover:bg-[#1a1e27] transition-colors"
             >
               Get started
-            </span>
+            </Link>
 
             {/* Hamburger */}
             <button
@@ -119,7 +134,7 @@ export function LandingNav() {
               {NAV_LINKS.map((link) => (
                 <a
                   key={link.href}
-                  href={link.href}
+                  href={getNavHref(link.href)}
                   onClick={(e) => handleNavClick(e, link.href)}
                   className="block py-3 text-sm font-semibold text-[#3a3f49] hover:text-[#0c0f14] border-b border-[#f0f0ec] last:border-0 transition-colors"
                 >
@@ -128,16 +143,20 @@ export function LandingNav() {
               ))}
 
               <div className="pt-3 flex flex-col gap-2">
-                <span
-                  className="block py-3 text-sm font-semibold text-[#6b6f76]/50 text-center border border-[#e8e8e3] cursor-not-allowed"
+                <Link
+                  href="/login"
+                  className="block py-3 text-sm font-semibold text-[#6b6f76] text-center border border-[#e8e8e3] hover:text-[#0c0f14] hover:border-[#0c0f14] transition-colors"
+                  onClick={() => setMobileOpen(false)}
                 >
                   Sign in
-                </span>
-                <span
-                  className="block py-3 text-sm font-bold text-white/70 text-center bg-[#0c0f14]/50 cursor-not-allowed"
+                </Link>
+                <Link
+                  href="/signup"
+                  className="block py-3 text-sm font-bold text-white text-center bg-[#0c0f14] hover:bg-[#1a1e27] transition-colors"
+                  onClick={() => setMobileOpen(false)}
                 >
                   Get started free
-                </span>
+                </Link>
               </div>
             </div>
           </div>

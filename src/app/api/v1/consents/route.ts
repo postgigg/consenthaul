@@ -6,9 +6,10 @@ import { generateSigningToken } from '@/lib/tokens';
 import { SIGNING_TOKEN_DEFAULT_TTL_HOURS } from '@/lib/constants';
 import { sendConsentSMS } from '@/lib/messaging/sms';
 import { sendConsentWhatsApp } from '@/lib/messaging/whatsapp';
-import { sendConsentEmail } from '@/lib/messaging/email';
+import { sendConsentEmail, type EmailBranding } from '@/lib/messaging/email';
 import { apiLimiter } from '@/lib/rate-limiters';
 import { getClientIp } from '@/lib/rate-limit';
+import { dispatchWebhookEvent } from '@/lib/webhooks';
 import type { Database } from '@/types/database';
 
 type DriverRow = Database['public']['Tables']['drivers']['Row'];
@@ -54,13 +55,23 @@ export async function POST(request: NextRequest) {
     const supabase = createAdminClient();
     const orgId = auth.orgId;
 
-    // Fetch organization name for messaging
+    // Fetch organization name + branding for messaging
     const { data: orgData } = await supabase
       .from('organizations')
-      .select('name')
+      .select('name, logo_url, settings')
       .eq('id', orgId)
       .single();
     const companyName = orgData?.name ?? undefined;
+
+    // Build branding for white-label partners
+    const orgSettings = (orgData?.settings as Record<string, unknown>) ?? {};
+    const emailBranding: EmailBranding | undefined = orgSettings.white_label_enabled === true
+      ? {
+          company_name: (orgSettings.brand_display_name as string) ?? orgData?.name ?? 'Unknown',
+          logo_url: (orgData?.logo_url as string) ?? null,
+          primary_color: (orgSettings.brand_primary_color as string) ?? null,
+        }
+      : undefined;
 
     // 2. Parse & validate body
     const body = await request.json();
@@ -209,6 +220,7 @@ export async function POST(request: NextRequest) {
             signingUrl,
             companyName,
             language: consent.language,
+            branding: emailBranding,
           });
           deliverySid = result.messageId;
         }
@@ -266,6 +278,21 @@ export async function POST(request: NextRequest) {
         api_key_id: auth.keyId,
       },
     });
+
+    // Dispatch outgoing webhooks (fire-and-forget)
+    dispatchWebhookEvent({
+      eventType: 'consent.created',
+      consentId: consent.id,
+      organizationId: orgId,
+    }).catch(() => {});
+
+    if (input.delivery_method !== 'manual') {
+      dispatchWebhookEvent({
+        eventType: 'consent.sent',
+        consentId: consent.id,
+        organizationId: orgId,
+      }).catch(() => {});
+    }
 
     return NextResponse.json(
       {

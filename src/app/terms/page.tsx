@@ -43,7 +43,7 @@ export default function TermsPage() {
             Terms of Service
           </h1>
           <p className="mt-3 text-sm text-[#8b919a]">
-            Last updated: February 23, 2026 &middot; Operated by Flotac Ltd
+            Last updated: February 23, 2026 &middot; Operated by Workbird LLC
           </p>
         </div>
 
@@ -51,7 +51,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-bold text-[#0c0f14] tracking-tight mb-3" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>1. Acceptance of Terms</h2>
             <p>
-              By accessing or using the ConsentHaul platform (&quot;Service&quot;), operated by Flotac Ltd (&quot;Company,&quot; &quot;we,&quot; &quot;our,&quot; or &quot;us&quot;), you agree to be bound by these Terms of Service (&quot;Terms&quot;). If you do not agree, do not use the Service. These Terms apply to all users, including carriers, employers, designated employer representatives (DERs), and any other individuals who access or use the platform.
+              By accessing or using the ConsentHaul platform (&quot;Service&quot;), operated by Workbird LLC (&quot;Company,&quot; &quot;we,&quot; &quot;our,&quot; or &quot;us&quot;), you agree to be bound by these Terms of Service (&quot;Terms&quot;). If you do not agree, do not use the Service. These Terms apply to all users, including carriers, employers, designated employer representatives (DERs), and any other individuals who access or use the platform.
             </p>
           </section>
 
@@ -123,7 +123,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-bold text-[#0c0f14] tracking-tight mb-3" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>8. Intellectual Property</h2>
             <p>
-              The Service, including its design, code, logos, trademarks, and content, is the property of Flotac Ltd and is protected by applicable intellectual property laws. You are granted a limited, non-exclusive, non-transferable license to use the Service in accordance with these Terms. &quot;FMCSA Clearinghouse&quot; is a registered trademark of the U.S. Department of Transportation.
+              The Service, including its design, code, logos, trademarks, and content, is the property of Workbird LLC and is protected by applicable intellectual property laws. You are granted a limited, non-exclusive, non-transferable license to use the Service in accordance with these Terms. &quot;FMCSA Clearinghouse&quot; is a registered trademark of the U.S. Department of Transportation.
             </p>
           </section>
 
@@ -140,14 +140,14 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-bold text-[#0c0f14] tracking-tight mb-3" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>10. Limitation of Liability</h2>
             <p>
-              TO THE MAXIMUM EXTENT PERMITTED BY LAW, FLOTAC LTD AND ITS OFFICERS, DIRECTORS, EMPLOYEES, AND AGENTS SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUE, WHETHER INCURRED DIRECTLY OR INDIRECTLY, ARISING FROM YOUR USE OF OR INABILITY TO USE THE SERVICE. OUR TOTAL LIABILITY SHALL NOT EXCEED THE AMOUNT YOU PAID TO US IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM.
+              TO THE MAXIMUM EXTENT PERMITTED BY LAW, WORKBIRD LLC AND ITS OFFICERS, DIRECTORS, EMPLOYEES, AND AGENTS SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUE, WHETHER INCURRED DIRECTLY OR INDIRECTLY, ARISING FROM YOUR USE OF OR INABILITY TO USE THE SERVICE. OUR TOTAL LIABILITY SHALL NOT EXCEED THE AMOUNT YOU PAID TO US IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM.
             </p>
           </section>
 
           <section>
             <h2 className="text-lg font-bold text-[#0c0f14] tracking-tight mb-3" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>11. Indemnification</h2>
             <p>
-              You agree to indemnify, defend, and hold harmless Flotac Ltd and its affiliates from and against any claims, damages, losses, liabilities, and expenses (including reasonable attorneys&apos; fees) arising out of or relating to your use of the Service, your violation of these Terms, or your violation of any applicable law or regulation.
+              You agree to indemnify, defend, and hold harmless Workbird LLC and its affiliates from and against any claims, damages, losses, liabilities, and expenses (including reasonable attorneys&apos; fees) arising out of or relating to your use of the Service, your violation of these Terms, or your violation of any applicable law or regulation.
             </p>
           </section>
 
@@ -171,7 +171,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-bold text-[#0c0f14] tracking-tight mb-3" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>14. Governing Law</h2>
             <p>
-              These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which Flotac Ltd is incorporated, without regard to conflict of law principles. Any disputes arising under these Terms shall be resolved through binding arbitration, unless prohibited by applicable law.
+              These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which Workbird LLC is incorporated, without regard to conflict of law principles. Any disputes arising under these Terms shall be resolved through binding arbitration, unless prohibited by applicable law.
             </p>
           </section>
 
@@ -181,7 +181,7 @@ export default function TermsPage() {
               For questions about these Terms, contact us at:
             </p>
             <div className="mt-3 border-l-2 border-[#C8A75E] pl-4 text-sm text-[#6b6f76]">
-              <p className="font-semibold text-[#0c0f14]">Flotac Ltd</p>
+              <p className="font-semibold text-[#0c0f14]">Workbird LLC</p>
               <p>Email: legal@consenthaul.com</p>
               <p>Web: consenthaul.com</p>
             </div>
@@ -192,7 +192,7 @@ export default function TermsPage() {
         <div className="mt-16 pt-8 border-t border-[#e8e8e3]">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <p className="text-[0.75rem] text-[#b5b5ae]">
-              &copy; {new Date().getFullYear()} ConsentHaul &middot; Operated by Flotac Ltd
+              &copy; {new Date().getFullYear()} ConsentHaul &middot; Operated by Workbird LLC
             </p>
             <div className="flex items-center gap-4">
               <Link href="/privacy" className="text-[0.75rem] text-[#8b919a] hover:text-[#0c0f14] transition-colors">Privacy Policy</Link>

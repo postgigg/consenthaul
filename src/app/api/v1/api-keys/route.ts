@@ -12,6 +12,8 @@ const VALID_SCOPES = [
   'consents:read',
   'consents:write',
   'billing:read',
+  'webhooks:read',
+  'webhooks:write',
 ];
 
 // ---------------------------------------------------------------------------

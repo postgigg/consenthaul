@@ -25,3 +25,6 @@ export const partnerApplyLimiter = createRateLimiter({ windowMs: 60_000, max: 5 
 
 /** TMS partner migration upload: 10 requests per minute per IP */
 export const partnerUploadLimiter = createRateLimiter({ windowMs: 60_000, max: 10 });
+
+/** Webhook management API: 30 requests per minute per API key/IP */
+export const webhookManagementLimiter = createRateLimiter({ windowMs: 60_000, max: 30 });

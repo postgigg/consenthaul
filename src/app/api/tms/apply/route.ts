@@ -8,6 +8,7 @@ import {
   TMS_PARTNER_PACKS,
   TMS_ONBOARDING_FEE_CENTS,
   AUTO_CREATE_CARRIER_FEE_CENTS,
+  WHITE_LABEL_FEE_CENTS,
 } from '@/lib/stripe/credits';
 import { provisionPartner } from '@/lib/partner-provisioning';
 
@@ -60,8 +61,9 @@ export async function POST(request: NextRequest) {
     // Calculate total
     const migrationFee = data.has_migration_data ? data.migration_fee_cents : 0;
     const autoCreateFee = data.auto_create_carriers ? AUTO_CREATE_CARRIER_FEE_CENTS : 0;
+    const whiteLabelFee = data.white_label ? WHITE_LABEL_FEE_CENTS : 0;
     const totalAmountCents =
-      TMS_ONBOARDING_FEE_CENTS + discountedPackPriceCents + migrationFee + autoCreateFee;
+      TMS_ONBOARDING_FEE_CENTS + discountedPackPriceCents + migrationFee + autoCreateFee + whiteLabelFee;
 
     // Insert application
     const supabase = createAdminClient();
@@ -86,6 +88,8 @@ export async function POST(request: NextRequest) {
         migration_fee_cents: migrationFee,
         auto_create_carriers: data.auto_create_carriers,
         auto_create_fee_cents: autoCreateFee,
+        white_label: data.white_label ?? false,
+        white_label_fee_cents: whiteLabelFee,
         selected_pack_id: pack?.id ?? '',
         selected_pack_credits: pack?.credits ?? 0,
         selected_pack_price_cents: discountedPackPriceCents,
@@ -162,6 +166,20 @@ export async function POST(request: NextRequest) {
             description: 'Automated carrier org provisioning from migration data',
           },
           unit_amount: AUTO_CREATE_CARRIER_FEE_CENTS,
+        },
+        quantity: 1,
+      });
+    }
+
+    if (whiteLabelFee > 0) {
+      lineItems.push({
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: 'White-Label Signing Experience',
+            description: 'Custom branding on driver consent signing pages',
+          },
+          unit_amount: WHITE_LABEL_FEE_CENTS,
         },
         quantity: 1,
       });

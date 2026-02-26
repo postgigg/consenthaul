@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { DriverTable } from '@/components/driver/DriverTable';
 import { DriverForm } from '@/components/driver/DriverForm';
+import { MigrationDialog } from '@/components/driver/MigrationDialog';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,11 +14,57 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { Plus, Upload } from 'lucide-react';
+import { Plus, Upload, Database } from 'lucide-react';
+
+interface MigrationStatus {
+  active_transfer: {
+    id: string;
+    token: string;
+    label: string;
+    uploaded_files: unknown[];
+    total_bytes: number;
+    carrier_count: number | null;
+    driver_count: number | null;
+    parsed_at: string | null;
+    expires_at: string;
+    created_at: string;
+  } | null;
+  is_partner: boolean;
+}
 
 export default function DriversPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [migrateOpen, setMigrateOpen] = useState(false);
+  const [migrationStatus, setMigrationStatus] = useState<MigrationStatus | null>(null);
+
+  const fetchMigrationStatus = useCallback(async () => {
+    try {
+      const res = await fetch('/api/migration/status');
+      if (res.ok) {
+        const json = await res.json();
+        setMigrationStatus(json.data ?? null);
+      }
+    } catch {
+      // silently fail — non-critical
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchMigrationStatus();
+  }, [fetchMigrationStatus]);
+
+  // Auto-open migration dialog on successful payment redirect
+  useEffect(() => {
+    if (searchParams.get('migration') === 'success') {
+      // Small delay to let the webhook process
+      const timer = setTimeout(() => {
+        fetchMigrationStatus().then(() => setMigrateOpen(true));
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams, fetchMigrationStatus]);
 
   return (
     <div className="space-y-6">
@@ -30,6 +77,10 @@ export default function DriversPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={() => setMigrateOpen(true)}>
+            <Database className="h-4 w-4" />
+            Migrate Fleet
+          </Button>
           <Button variant="outline" asChild>
             <Link href="/drivers/import">
               <Upload className="h-4 w-4" />
@@ -68,6 +119,17 @@ export default function DriversPage() {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Migration dialog */}
+      <MigrationDialog
+        open={migrateOpen}
+        onOpenChange={setMigrateOpen}
+        activeTransfer={migrationStatus?.active_transfer ?? null}
+        isPartner={migrationStatus?.is_partner ?? false}
+        onTransferCreated={() => {
+          fetchMigrationStatus();
+        }}
+      />
     </div>
   );
 }
