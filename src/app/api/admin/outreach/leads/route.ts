@@ -4,6 +4,8 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createLeadSchema } from '@/lib/outreach/validators';
 import { calculateBaseScore } from '@/lib/outreach/lead-scoring';
 import { escapeSearchParam } from '@/lib/utils';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { adminLimiter } from '@/lib/rate-limiters';
 
 const ALLOWED_SORT_COLUMNS: ReadonlySet<string> = new Set([
   'created_at', 'updated_at', 'company_name', 'dot_number', 'email',
@@ -13,6 +15,9 @@ const ALLOWED_SORT_COLUMNS: ReadonlySet<string> = new Set([
 const ALLOWED_SORT_DIRS: ReadonlySet<string> = new Set(['asc', 'desc']);
 
 export async function GET(request: NextRequest) {
+  const blocked = await checkRateLimit(request, adminLimiter);
+  if (blocked) return blocked;
+
   const admin = await getAdminUserApi();
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -70,6 +75,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const blocked = await checkRateLimit(request, adminLimiter);
+  if (blocked) return blocked;
+
   const admin = await getAdminUserApi();
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 

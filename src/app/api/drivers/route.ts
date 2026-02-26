@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createDriverSchema, paginationSchema } from '@/lib/validators';
 import { escapeSearchParam } from '@/lib/utils';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { generalLimiter } from '@/lib/rate-limiters';
 import type { Database } from '@/types/database';
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
@@ -17,6 +19,9 @@ const ALLOWED_SORT_COLUMNS: ReadonlySet<string> = new Set<string>([
 // ---------------------------------------------------------------------------
 export async function POST(request: NextRequest) {
   try {
+    const blocked = await checkRateLimit(request, generalLimiter);
+    if (blocked) return blocked;
+
     const supabase = createClient();
 
     // 1. Authenticate
@@ -147,6 +152,9 @@ export async function POST(request: NextRequest) {
 // ---------------------------------------------------------------------------
 export async function GET(request: NextRequest) {
   try {
+    const blocked = await checkRateLimit(request, generalLimiter);
+    if (blocked) return blocked;
+
     const supabase = createClient();
 
     // 1. Authenticate

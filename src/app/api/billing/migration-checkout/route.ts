@@ -5,6 +5,8 @@ import {
   MIGRATION_PRICE_PER_GB_CENTS,
   MIGRATION_STANDARD_PRICE_PER_GB_CENTS,
 } from '@/lib/stripe/credits';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { billingLimiter } from '@/lib/rate-limiters';
 import type { Database } from '@/types/database';
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
@@ -21,6 +23,9 @@ function getStripe() {
 // ---------------------------------------------------------------------------
 export async function POST(request: NextRequest) {
   try {
+    const blocked = await checkRateLimit(request, billingLimiter);
+    if (blocked) return blocked;
+
     const stripe = getStripe();
     const supabase = createClient();
 

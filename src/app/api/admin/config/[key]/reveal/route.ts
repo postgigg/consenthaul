@@ -2,22 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAdminUserApi } from '@/lib/admin-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { decrypt } from '@/lib/encryption';
-import { generalLimiter } from '@/lib/rate-limiters';
-import { getClientIp } from '@/lib/rate-limit';
+import { adminLimiter } from '@/lib/rate-limiters';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { key: string } }
 ) {
-  // Rate limit secret reveals
-  const ip = getClientIp(_request);
-  const rl = generalLimiter.check(ip);
-  if (!rl.allowed) {
-    return NextResponse.json(
-      { error: 'Too Many Requests', message: 'Rate limit exceeded. Try again later.' },
-      { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } },
-    );
-  }
+  const blocked = await checkRateLimit(request, adminLimiter);
+  if (blocked) return blocked;
 
   const admin = await getAdminUserApi();
   if (!admin) {

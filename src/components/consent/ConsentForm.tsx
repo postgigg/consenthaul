@@ -20,12 +20,14 @@ type DriverRow = Database['public']['Tables']['drivers']['Row'];
 interface ConsentFormProps {
   /** Callback invoked after a successful consent creation. */
   onSuccess?: (consentId: string, signingUrl: string) => void;
+  /** Optional driver ID to pre-select on mount. */
+  driverId?: string;
 }
 
 const CONSENT_TYPES: { value: ConsentType; label: string }[] = [
+  { value: 'blanket', label: 'Blanket Consent (Recommended)' },
   { value: 'limited_query', label: 'Limited Query (Annual)' },
   { value: 'pre_employment', label: 'Pre-Employment' },
-  { value: 'blanket', label: 'Blanket Consent' },
 ];
 
 const DELIVERY_METHODS: { value: DeliveryMethod; label: string }[] = [
@@ -34,7 +36,7 @@ const DELIVERY_METHODS: { value: DeliveryMethod; label: string }[] = [
   { value: 'email', label: 'Email' },
 ];
 
-export function ConsentForm({ onSuccess }: ConsentFormProps) {
+export function ConsentForm({ onSuccess, driverId }: ConsentFormProps) {
   const supabase = createClient();
 
   // Driver search & selection
@@ -45,7 +47,7 @@ export function ConsentForm({ onSuccess }: ConsentFormProps) {
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
   // Form fields
-  const [consentType, setConsentType] = useState<ConsentType>('limited_query');
+  const [consentType, setConsentType] = useState<ConsentType>('blanket');
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('sms');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [language, setLanguage] = useState<'en' | 'es'>('en');
@@ -76,6 +78,21 @@ export function ConsentForm({ onSuccess }: ConsentFormProps) {
     ? Math.floor((Date.now() - new Date(hireDate).getTime()) / 86400000)
     : null;
   const isRecentHire = hireDateDaysAgo !== null && hireDateDaysAgo >= 0 && hireDateDaysAgo <= 30;
+
+  // Pre-select driver if driverId prop is provided
+  useEffect(() => {
+    if (!driverId) return;
+    async function fetchDriver() {
+      const { data } = await supabase
+        .from('drivers')
+        .select('*')
+        .eq('id', driverId)
+        .single();
+      if (data) selectDriver(data);
+    }
+    fetchDriver();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [driverId]);
 
   // Fetch drivers for search
   const fetchDrivers = useCallback(
@@ -402,6 +419,13 @@ export function ConsentForm({ onSuccess }: ConsentFormProps) {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Blanket consent explainer */}
+            {consentType === 'blanket' && (
+              <div className="sm:col-span-2 border border-green-200 bg-green-50/50 px-4 py-3 text-sm text-green-800" role="status">
+                <strong>Per 49 CFR 382.701:</strong> Limited query consent &ldquo;is not required on an annual basis&rdquo; and &ldquo;may be effective for more than one year,&rdquo; including the duration of employment. Collect once at hire, query annually &mdash; no need to re-collect consent each year.
+              </div>
+            )}
 
             {/* FMCSA Warning: Recent hire with limited/blanket consent */}
             {isRecentHire && consentType !== 'pre_employment' && (

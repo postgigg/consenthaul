@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import Stripe from 'stripe';
 import { CREDIT_PACKS } from '@/lib/stripe/credits';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { billingLimiter } from '@/lib/rate-limiters';
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -15,6 +17,9 @@ function getStripe() {
 // ---------------------------------------------------------------------------
 export async function POST(request: NextRequest) {
   try {
+    const blocked = await checkRateLimit(request, billingLimiter);
+    if (blocked) return blocked;
+
     const supabase = createClient();
 
     // 1. Authenticate

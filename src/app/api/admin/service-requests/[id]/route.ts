@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminUserApi } from '@/lib/admin-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { adminLimiter } from '@/lib/rate-limiters';
 import type { Database } from '@/types/database';
 
 type ServiceRequestRow = Database['public']['Tables']['service_requests']['Row'];
@@ -18,6 +20,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const blocked = await checkRateLimit(request, adminLimiter);
+    if (blocked) return blocked;
+
     const admin = await getAdminUserApi();
     if (!admin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

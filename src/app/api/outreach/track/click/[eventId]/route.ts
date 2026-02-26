@@ -1,18 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
+const DEFAULT_URL = 'https://consenthaul.com';
+
+// Allowed redirect domains — restrict to consenthaul.com to prevent open redirect
+const ALLOWED_DOMAINS = new Set(['consenthaul.com', 'www.consenthaul.com']);
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { eventId: string } },
 ) {
   const { searchParams } = new URL(request.url);
-  const rawUrl = searchParams.get('url') ?? 'https://consenthaul.com';
+  const rawUrl = searchParams.get('url') ?? DEFAULT_URL;
 
-  // Validate redirect URL — only allow http/https to prevent open redirect
-  let redirectUrl = 'https://consenthaul.com';
+  // Parse and validate redirect URL — only allow known domains
+  let redirectUrl = DEFAULT_URL;
   try {
     const parsed = new URL(rawUrl);
-    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+    if (
+      (parsed.protocol === 'http:' || parsed.protocol === 'https:') &&
+      ALLOWED_DOMAINS.has(parsed.hostname.toLowerCase())
+    ) {
       redirectUrl = parsed.toString();
     }
   } catch {

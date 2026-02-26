@@ -1,17 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { generalLimiter } from '@/lib/rate-limiters';
 import type { Database } from '@/types/database';
 
 type ConsentRow = Database['public']['Tables']['consents']['Row'];
+type ProfileRow = Database['public']['Tables']['profiles']['Row'];
 
 // ---------------------------------------------------------------------------
-// GET /api/consents/[id] — Get a single consent by ID (org-scoped via RLS)
+// GET /api/consents/[id] — Get a single consent by ID (org-scoped)
 // ---------------------------------------------------------------------------
 export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } },
 ) {
   try {
+    const blocked = await checkRateLimit(_request, generalLimiter);
+    if (blocked) return blocked;
+
     const supabase = createClient();
     const { id } = params;
 
@@ -27,11 +33,27 @@ export async function GET(
       );
     }
 
-    // Fetch consent with driver join — RLS ensures org scoping
+    // Fetch profile for org filter
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('organization_id')
+      .eq('id', user.id)
+      .single();
+
+    const profile = profileData as Pick<ProfileRow, 'organization_id'> | null;
+    if (!profile) {
+      return NextResponse.json(
+        { error: 'Not Found', message: 'User profile not found.' },
+        { status: 404 },
+      );
+    }
+
+    // Fetch consent with driver join — RLS + explicit org filter
     const { data: consentData, error } = await supabase
       .from('consents')
       .select('*, driver:drivers(*)')
       .eq('id', id)
+      .eq('organization_id', profile.organization_id)
       .single();
 
     const consent = consentData as (ConsentRow & { driver: unknown }) | null;
@@ -61,6 +83,9 @@ export async function PATCH(
   { params }: { params: { id: string } },
 ) {
   try {
+    const blocked = await checkRateLimit(request, generalLimiter);
+    if (blocked) return blocked;
+
     const supabase = createClient();
     const { id } = params;
 
@@ -73,6 +98,21 @@ export async function PATCH(
       return NextResponse.json(
         { error: 'Unauthorized', message: 'You must be signed in.' },
         { status: 401 },
+      );
+    }
+
+    // Fetch profile for org filter
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('organization_id')
+      .eq('id', user.id)
+      .single();
+
+    const profile = profileData as Pick<ProfileRow, 'organization_id'> | null;
+    if (!profile) {
+      return NextResponse.json(
+        { error: 'Not Found', message: 'User profile not found.' },
+        { status: 404 },
       );
     }
 
@@ -89,11 +129,12 @@ export async function PATCH(
       );
     }
 
-    // Fetch current consent to validate state transition
+    // Fetch current consent to validate state transition — with org filter
     const { data: existingData, error: fetchError } = await supabase
       .from('consents')
       .select('id, status, organization_id')
       .eq('id', id)
+      .eq('organization_id', profile.organization_id)
       .single();
 
     const existing = existingData as Pick<ConsentRow, 'id' | 'status' | 'organization_id'> | null;
@@ -117,11 +158,12 @@ export async function PATCH(
       );
     }
 
-    // Perform the update
+    // Perform the update — with org filter
     const { data: updatedData, error: updateError } = await supabase
       .from('consents')
       .update({ status: 'revoked' })
       .eq('id', id)
+      .eq('organization_id', profile.organization_id)
       .select('*, driver:drivers(id, first_name, last_name)')
       .single();
 

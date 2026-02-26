@@ -2,11 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAdminUserApi } from '@/lib/admin-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { generateOutreachEmail } from '@/lib/outreach/ai-email-writer';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { adminLimiter } from '@/lib/rate-limiters';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  const blocked = await checkRateLimit(request, adminLimiter);
+  if (blocked) return blocked;
+
   const admin = await getAdminUserApi();
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 

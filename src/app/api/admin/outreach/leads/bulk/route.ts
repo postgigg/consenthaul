@@ -3,8 +3,13 @@ import { getAdminUserApi } from '@/lib/admin-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { bulkActionSchema } from '@/lib/outreach/validators';
 import { scoreLead } from '@/lib/outreach/lead-scoring';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { adminLimiter } from '@/lib/rate-limiters';
 
 export async function POST(request: NextRequest) {
+  const blocked = await checkRateLimit(request, adminLimiter);
+  if (blocked) return blocked;
+
   const admin = await getAdminUserApi();
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 

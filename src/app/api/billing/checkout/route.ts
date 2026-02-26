@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import Stripe from 'stripe';
 import { CREDIT_PACKS } from '@/lib/stripe/credits';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { billingLimiter } from '@/lib/rate-limiters';
 import type { Database } from '@/types/database';
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
@@ -18,6 +20,9 @@ function getStripe() {
 // ---------------------------------------------------------------------------
 export async function POST(request: NextRequest) {
   try {
+    const blocked = await checkRateLimit(request, billingLimiter);
+    if (blocked) return blocked;
+
     const stripe = getStripe();
     const supabase = createClient();
 

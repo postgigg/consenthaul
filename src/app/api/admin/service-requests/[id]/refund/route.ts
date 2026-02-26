@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAdminUserApi } from '@/lib/admin-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import Stripe from 'stripe';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { adminLimiter } from '@/lib/rate-limiters';
 import type { Database } from '@/types/database';
 
 type ServiceRequestRow = Database['public']['Tables']['service_requests']['Row'];
@@ -16,10 +18,13 @@ function getStripe() {
 // POST /api/admin/service-requests/[id]/refund — Refund deposit (admin)
 // ---------------------------------------------------------------------------
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const blocked = await checkRateLimit(request, adminLimiter);
+    if (blocked) return blocked;
+
     const admin = await getAdminUserApi();
     if (!admin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

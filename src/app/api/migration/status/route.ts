@@ -1,5 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { billingLimiter } from '@/lib/rate-limiters';
 import type { Database } from '@/types/database';
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
@@ -8,8 +10,11 @@ type OrganizationRow = Database['public']['Tables']['organizations']['Row'];
 // ---------------------------------------------------------------------------
 // GET /api/migration/status — Get migration status for current org
 // ---------------------------------------------------------------------------
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const blocked = await checkRateLimit(request, billingLimiter);
+    if (blocked) return blocked;
+
     const supabase = createClient();
 
     // 1. Authenticate

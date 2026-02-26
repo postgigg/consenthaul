@@ -68,6 +68,8 @@ export async function POST(request: NextRequest) {
           await handlePartnerApplicationPayment(session);
         } else if (session.metadata?.type === 'migration') {
           await handleMigrationPayment(session);
+        } else if (session.metadata?.type === 'query_subscription') {
+          await handleQuerySubscription(session);
         } else {
           await handleCheckoutCompleted(session);
         }
@@ -332,6 +334,98 @@ async function handlePartnerApplicationPayment(session: Stripe.Checkout.Session)
     stripeCustomerId,
     stripeSessionId: session.id,
   });
+}
+
+// ---------------------------------------------------------------------------
+// Handle annual query subscription payment
+// ---------------------------------------------------------------------------
+
+async function handleQuerySubscription(session: Stripe.Checkout.Session) {
+  const supabase = createAdminClient();
+
+  const orgId = session.metadata?.organization_id;
+  const userId = session.metadata?.user_id;
+  const driverCount = session.metadata?.driver_count;
+
+  if (!orgId) {
+    console.error('[Stripe webhook] query_subscription missing organization_id');
+    return;
+  }
+
+  const paymentIntentId =
+    typeof session.payment_intent === 'string'
+      ? session.payment_intent
+      : session.payment_intent?.id ?? session.id;
+
+  // Idempotency: check audit log for duplicate
+  const { data: existingAudit } = await supabase
+    .from('audit_log')
+    .select('id')
+    .eq('action', 'query_subscription.activated')
+    .eq('resource_id', orgId)
+    .filter('details->>stripe_payment_intent', 'eq', paymentIntentId)
+    .limit(1)
+    .single();
+
+  if (existingAudit) {
+    console.log(
+      `[Stripe webhook] Duplicate event — query subscription already activated for ${paymentIntentId}`,
+    );
+    return;
+  }
+
+  // Set subscription active for 1 year from now
+  const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+
+  // Get current settings and merge
+  const { data: org } = await supabase
+    .from('organizations')
+    .select('settings')
+    .eq('id', orgId)
+    .single();
+
+  const currentSettings = (org?.settings ?? {}) as Record<string, unknown>;
+
+  const { error: updateError } = await supabase
+    .from('organizations')
+    .update({
+      settings: {
+        ...currentSettings,
+        query_subscription_active: true,
+        query_subscription_expires_at: expiresAt,
+        query_subscription_driver_count: driverCount ? parseInt(driverCount, 10) : 0,
+        query_subscription_payment_intent: paymentIntentId,
+        query_subscription_activated_at: new Date().toISOString(),
+      },
+    })
+    .eq('id', orgId);
+
+  if (updateError) {
+    console.error('[Stripe webhook] Failed to activate query subscription:', updateError);
+    return;
+  }
+
+  // Audit log
+  await supabase.from('audit_log').insert({
+    organization_id: orgId,
+    actor_id: userId ?? null,
+    actor_type: userId ? 'user' : 'system',
+    action: 'query_subscription.activated',
+    resource_type: 'organization',
+    resource_id: orgId,
+    details: {
+      driver_count: driverCount,
+      expires_at: expiresAt,
+      stripe_session_id: session.id,
+      stripe_payment_intent: paymentIntentId,
+      amount_total: session.amount_total,
+      currency: session.currency,
+    },
+  });
+
+  console.log(
+    `[Stripe webhook] Query subscription activated for org ${orgId} (${driverCount} drivers, expires ${expiresAt})`,
+  );
 }
 
 // ---------------------------------------------------------------------------

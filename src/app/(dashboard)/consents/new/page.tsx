@@ -1,10 +1,13 @@
 'use client';
 
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { ConsentForm } from '@/components/consent/ConsentForm';
 import { ArrowLeft } from 'lucide-react';
 
 export default function NewConsentPage() {
+  const searchParams = useSearchParams();
+  const driverId = searchParams.get('driver') ?? undefined;
   return (
     <div className="space-y-6">
       {/* Page header */}
@@ -41,6 +44,7 @@ export default function NewConsentPage() {
       {/* Consent form */}
       <div>
         <ConsentForm
+          driverId={driverId}
           onSuccess={() => {
             // Stay on the page so user can see the signing URL;
             // optionally navigate after a delay

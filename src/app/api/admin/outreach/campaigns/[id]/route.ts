@@ -2,11 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAdminUserApi } from '@/lib/admin-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { updateCampaignSchema } from '@/lib/outreach/validators';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { adminLimiter } from '@/lib/rate-limiters';
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  const blocked = await checkRateLimit(request, adminLimiter);
+  if (blocked) return blocked;
+
   const admin = await getAdminUserApi();
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -57,6 +62,9 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  const blocked = await checkRateLimit(request, adminLimiter);
+  if (blocked) return blocked;
+
   const admin = await getAdminUserApi();
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -90,9 +98,12 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  const blocked = await checkRateLimit(request, adminLimiter);
+  if (blocked) return blocked;
+
   const admin = await getAdminUserApi();
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 

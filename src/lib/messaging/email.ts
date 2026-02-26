@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { escapeHtml } from '@/lib/security/html-escape';
 
 // ---------------------------------------------------------------------------
 // Resend email service
@@ -35,10 +36,10 @@ function emailShell({
 }): string {
   const accentColor = branding?.primary_color ?? '#C8A75E';
   const headerContent = branding?.logo_url
-    ? `<img src="${branding.logo_url}" alt="${branding.company_name}" style="max-height:36px;width:auto;" />`
-    : `<h1 style="margin:0;color:${accentColor};font-size:18px;font-weight:700;letter-spacing:0.04em;">${branding ? branding.company_name.toUpperCase() : 'CONSENTHAUL'}</h1>`;
+    ? `<img src="${branding.logo_url}" alt="${escapeHtml(branding.company_name)}" style="max-height:36px;width:auto;" />`
+    : `<h1 style="margin:0;color:${accentColor};font-size:18px;font-weight:700;letter-spacing:0.04em;">${branding ? escapeHtml(branding.company_name).toUpperCase() : 'CONSENTHAUL'}</h1>`;
   const subFooterText = branding
-    ? `Powered by ${branding.company_name}`
+    ? `Powered by ${escapeHtml(branding.company_name)}`
     : 'ConsentHaul &middot; Operated by Workbird LLC';
 
   return `
@@ -144,34 +145,39 @@ export async function sendConsentEmail({
   const accent = branding?.primary_color ?? '#C8A75E';
   const senderName = branding?.company_name ?? 'ConsentHaul';
 
+  // Escape user-controlled values for safe HTML interpolation
+  const safeDriverName = escapeHtml(driverName);
+  const safeCompanyName = escapeHtml(companyName);
+  const safeSenderName = escapeHtml(senderName);
+
   const subject = isSpanish
     ? `${companyName} solicita su consentimiento — FMCSA Clearinghouse`
     : `${companyName} requests your consent — FMCSA Clearinghouse`;
 
   const t = isSpanish
     ? {
-        preheader: `${companyName} necesita su consentimiento para una consulta del FMCSA Clearinghouse.`,
-        greeting: `Hola ${driverName},`,
-        intro: `<strong>${companyName}</strong> le solicita que proporcione su consentimiento electrónico para una consulta limitada en el <strong>FMCSA Drug &amp; Alcohol Clearinghouse</strong>, según lo requiere la regulación federal (49 CFR 382.701).`,
+        preheader: `${safeCompanyName} necesita su consentimiento para una consulta del FMCSA Clearinghouse.`,
+        greeting: `Hola ${safeDriverName},`,
+        intro: `<strong>${safeCompanyName}</strong> le solicita que proporcione su consentimiento electrónico para una consulta limitada en el <strong>FMCSA Drug &amp; Alcohol Clearinghouse</strong>, según lo requiere la regulación federal (49 CFR 382.701).`,
         cta: 'Firmar Ahora',
         expiryNote: 'Este enlace expira en <strong>7 días</strong>. Después de esa fecha, deberá solicitar un nuevo enlace a su empleador.',
         whatIs: '¿Qué es una consulta limitada?',
         whatIsBody: 'Una consulta limitada verifica si existen registros sobre usted en el Clearinghouse de la FMCSA. No revela detalles específicos de ninguna violación. Su empleador está obligado por ley federal a realizar esta consulta al menos una vez al año para todos los conductores con CDL.',
         noAction: 'Si no reconoce esta solicitud, puede ignorar este correo de manera segura.',
         fallback: 'Si el botón no funciona, copie y pegue este enlace:',
-        footer: `Este correo fue enviado por ${senderName} en nombre de ${companyName}. Si tiene preguntas, comuníquese directamente con su empleador.`,
+        footer: `Este correo fue enviado por ${safeSenderName} en nombre de ${safeCompanyName}. Si tiene preguntas, comuníquese directamente con su empleador.`,
       }
     : {
-        preheader: `${companyName} needs your consent for an FMCSA Clearinghouse query.`,
-        greeting: `Hi ${driverName},`,
-        intro: `<strong>${companyName}</strong> is requesting your electronic consent for a limited query of the <strong>FMCSA Drug &amp; Alcohol Clearinghouse</strong>, as required by federal regulation (49 CFR 382.701).`,
+        preheader: `${safeCompanyName} needs your consent for an FMCSA Clearinghouse query.`,
+        greeting: `Hi ${safeDriverName},`,
+        intro: `<strong>${safeCompanyName}</strong> is requesting your electronic consent for a limited query of the <strong>FMCSA Drug &amp; Alcohol Clearinghouse</strong>, as required by federal regulation (49 CFR 382.701).`,
         cta: 'Sign Now',
         expiryNote: 'This link expires in <strong>7 days</strong>. After that, you will need to request a new link from your employer.',
         whatIs: 'What is a limited query?',
         whatIsBody: 'A limited query checks whether there are any records about you in the FMCSA Clearinghouse. It does not reveal specific details of any violation. Your employer is required by federal law to conduct this query at least once per year for all CDL drivers.',
         noAction: 'If you do not recognise this request, you can safely ignore this email.',
         fallback: 'If the button does not work, copy and paste this link:',
-        footer: `This email was sent by ${senderName} on behalf of ${companyName}. If you have questions, please contact your employer directly.`,
+        footer: `This email was sent by ${safeSenderName} on behalf of ${safeCompanyName}. If you have questions, please contact your employer directly.`,
       };
 
   const body = `
@@ -262,6 +268,12 @@ export async function sendDriverReceiptEmail({
   const isSpanish = language === 'es';
   const accent = branding?.primary_color ?? '#C8A75E';
   const senderName = branding?.company_name ?? 'ConsentHaul';
+
+  // Escape user-controlled values for safe HTML interpolation
+  const safeDriverName = escapeHtml(driverName);
+  const safeCompanyName = escapeHtml(companyName);
+  const safeSenderName = escapeHtml(senderName);
+
   const signedDate = new Date(signedAt).toLocaleDateString(isSpanish ? 'es-US' : 'en-US', {
     year: 'numeric',
     month: 'long',
@@ -280,8 +292,8 @@ export async function sendDriverReceiptEmail({
 
   const t = isSpanish
     ? {
-        preheader: `Su consentimiento FMCSA para ${companyName} fue firmado exitosamente.`,
-        greeting: `Hola ${driverName},`,
+        preheader: `Su consentimiento FMCSA para ${safeCompanyName} fue firmado exitosamente.`,
+        greeting: `Hola ${safeDriverName},`,
         confirmation: 'Su consentimiento ha sido registrado exitosamente.',
         details: 'Detalles del consentimiento',
         labelDriver: 'Conductor',
@@ -294,11 +306,11 @@ export async function sendDriverReceiptEmail({
         questions: 'Si tiene alguna pregunta sobre este consentimiento, comuníquese directamente con su empleador.',
         withdrawNote: 'Si desea retirar su consentimiento para transacciones electrónicas, puede hacerlo usando el siguiente enlace:',
         withdrawLink: 'Retirar consentimiento electrónico',
-        footer: `Este correo fue enviado por ${senderName} en nombre de ${companyName}.`,
+        footer: `Este correo fue enviado por ${safeSenderName} en nombre de ${safeCompanyName}.`,
       }
     : {
-        preheader: `Your FMCSA consent for ${companyName} was signed successfully.`,
-        greeting: `Hi ${driverName},`,
+        preheader: `Your FMCSA consent for ${safeCompanyName} was signed successfully.`,
+        greeting: `Hi ${safeDriverName},`,
         confirmation: 'Your consent has been successfully recorded.',
         details: 'Consent details',
         labelDriver: 'Driver',
@@ -311,7 +323,7 @@ export async function sendDriverReceiptEmail({
         questions: 'If you have any questions about this consent, please contact your employer directly.',
         withdrawNote: 'If you wish to withdraw your consent to electronic transactions, you may do so using the link below:',
         withdrawLink: 'Withdraw electronic consent',
-        footer: `This email was sent by ${senderName} on behalf of ${companyName}.`,
+        footer: `This email was sent by ${safeSenderName} on behalf of ${safeCompanyName}.`,
       };
 
   const body = `
@@ -332,11 +344,11 @@ export async function sendDriverReceiptEmail({
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;border:1px solid #e8e8e3;">
       <tr>
         <td style="padding:10px 16px;font-size:13px;color:#8b919a;border-bottom:1px solid #e8e8e3;width:140px;">${t.labelDriver}</td>
-        <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;">${driverName}</td>
+        <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;">${safeDriverName}</td>
       </tr>
       <tr>
         <td style="padding:10px 16px;font-size:13px;color:#8b919a;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;">${t.labelCompany}</td>
-        <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;">${companyName}</td>
+        <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;">${safeCompanyName}</td>
       </tr>
       <tr>
         <td style="padding:10px 16px;font-size:13px;color:#8b919a;border-bottom:1px solid #e8e8e3;">${t.labelType}</td>
@@ -420,6 +432,12 @@ export async function sendCarrierNotificationEmail({
   branding,
 }: SendCarrierNotificationParams): Promise<void> {
   const senderName = branding?.company_name ?? 'ConsentHaul';
+
+  // Escape user-controlled values for safe HTML interpolation
+  const safeDriverName = escapeHtml(driverName);
+  const safeCompanyName = escapeHtml(companyName);
+  const safeSenderName = escapeHtml(senderName);
+
   const signedDate = new Date(signedAt).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -440,7 +458,7 @@ export async function sendCarrierNotificationEmail({
       <tr>
         <td style="background-color:#f0fdf4;border-left:3px solid #22c55e;padding:12px 16px;">
           <p style="margin:0;font-size:15px;font-weight:600;color:#166534;">
-            ${driverName} signed their ${typeLabel.toLowerCase()} consent
+            ${safeDriverName} signed their ${typeLabel.toLowerCase()} consent
           </p>
         </td>
       </tr>
@@ -452,7 +470,7 @@ export async function sendCarrierNotificationEmail({
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;border:1px solid #e8e8e3;">
       <tr>
         <td style="padding:10px 16px;font-size:13px;color:#8b919a;border-bottom:1px solid #e8e8e3;width:140px;">Driver</td>
-        <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;">${driverName}</td>
+        <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;">${safeDriverName}</td>
       </tr>
       <tr>
         <td style="padding:10px 16px;font-size:13px;color:#8b919a;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;">Consent type</td>
@@ -488,9 +506,9 @@ export async function sendCarrierNotificationEmail({
   const html = emailShell({
     lang: 'en',
     title: 'Consent Signed',
-    preheader: `${driverName} signed their FMCSA ${typeLabel.toLowerCase()} consent.`,
+    preheader: `${safeDriverName} signed their FMCSA ${typeLabel.toLowerCase()} consent.`,
     body,
-    footerText: `This notification was sent to ${companyName} by ${senderName}.`,
+    footerText: `This notification was sent to ${safeCompanyName} by ${safeSenderName}.`,
     branding,
   });
 
@@ -533,7 +551,7 @@ export async function sendWelcomeEmail({
   const subject = 'Welcome to ConsentHaul — Your 3 free credits are ready';
 
   const body = `
-    <p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:#0c0f14;">Hi ${userName},</p>
+    <p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:#0c0f14;">Hi ${escapeHtml(userName)},</p>
 
     <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#3a3f49;">
       Welcome to ConsentHaul! Your account is set up and ready to go.
@@ -703,7 +721,7 @@ export async function sendPartnerReceiptEmail({
   }
 
   const body = `
-    <p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:#0c0f14;">Hi ${contactName},</p>
+    <p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:#0c0f14;">Hi ${escapeHtml(contactName)},</p>
 
     <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#3a3f49;">
       Thank you for your payment. Here is your receipt for the ConsentHaul TMS Partner application.
@@ -740,7 +758,7 @@ export async function sendPartnerReceiptEmail({
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;border:1px solid #e8e8e3;">
       <tr>
         <td style="padding:10px 16px;font-size:13px;color:#8b919a;border-bottom:1px solid #e8e8e3;width:140px;">Company</td>
-        <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;">${companyName}</td>
+        <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;">${escapeHtml(companyName)}</td>
       </tr>
       <tr>
         <td style="padding:10px 16px;font-size:13px;color:#8b919a;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;">Date</td>
@@ -764,7 +782,7 @@ export async function sendPartnerReceiptEmail({
     title: 'Payment Receipt',
     preheader: `Payment of ${fmt(totalAmountCents)} received for ConsentHaul Partner.`,
     body,
-    footerText: `This receipt was sent to ${to} for ${companyName}.`,
+    footerText: `This receipt was sent to ${escapeHtml(to)} for ${escapeHtml(companyName)}.`,
   });
 
   await getResend().emails.send({
@@ -804,8 +822,11 @@ export async function sendPartnerWelcomeEmail({
 
   const subject = `Welcome to the ConsentHaul Partner Program, ${companyName}!`;
 
+  const safeContactName = escapeHtml(contactName);
+  const safeCompanyName = escapeHtml(companyName);
+
   const body = `
-    <p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:#0c0f14;">Hi ${contactName},</p>
+    <p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:#0c0f14;">Hi ${safeContactName},</p>
 
     <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#3a3f49;">
       Welcome to the ConsentHaul Partner Program! Your account has been provisioned and is ready to go. Here is everything you need to get started.
@@ -817,7 +838,7 @@ export async function sendPartnerWelcomeEmail({
         <td style="background-color:#fffbeb;border-left:3px solid #C8A75E;padding:16px;">
           <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#92400e;letter-spacing:0.08em;text-transform:uppercase;">Partner Account Active</p>
           <p style="margin:0;font-size:15px;font-weight:600;color:#0c0f14;">
-            ${companyName}${packName && packCredits ? ` &mdash; ${packName} Pack (${packCredits.toLocaleString()} consents)` : ''}
+            ${safeCompanyName}${packName && packCredits ? ` &mdash; ${escapeHtml(packName)} Pack (${packCredits.toLocaleString()} consents)` : ''}
           </p>
         </td>
       </tr>
@@ -905,9 +926,9 @@ export async function sendPartnerWelcomeEmail({
   const html = emailShell({
     lang: 'en',
     title: 'Welcome to ConsentHaul Partners',
-    preheader: `${companyName} is now a ConsentHaul partner${packCredits ? ` — ${packCredits.toLocaleString()} credits ready` : ''}.`,
+    preheader: `${safeCompanyName} is now a ConsentHaul partner${packCredits ? ` — ${packCredits.toLocaleString()} credits ready` : ''}.`,
     body,
-    footerText: `You received this email because ${companyName} joined the ConsentHaul Partner Program.`,
+    footerText: `You received this email because ${safeCompanyName} joined the ConsentHaul Partner Program.`,
   });
 
   await getResend().emails.send({

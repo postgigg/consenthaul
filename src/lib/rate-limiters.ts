@@ -28,3 +28,18 @@ export const partnerUploadLimiter = createRateLimiter({ windowMs: 60_000, max: 1
 
 /** Webhook management API: 30 requests per minute per API key/IP */
 export const webhookManagementLimiter = createRateLimiter({ windowMs: 60_000, max: 30 });
+
+/** Billing/Stripe checkout routes: 10 requests per minute per IP */
+export const billingLimiter = createRateLimiter({ windowMs: 60_000, max: 10 });
+
+/** Batch operations (batch-reconsent, compliance-report): 5 requests per minute per IP */
+export const batchLimiter = createRateLimiter({ windowMs: 60_000, max: 5 });
+
+/** Query CRUD / TSV / subscribe: 30 requests per minute per IP */
+export const queryLimiter = createRateLimiter({ windowMs: 60_000, max: 30 });
+
+/** Service request routes: 10 requests per minute per IP */
+export const serviceRequestLimiter = createRateLimiter({ windowMs: 60_000, max: 10 });
+
+/** Admin routes: 60 requests per minute per IP */
+export const adminLimiter = createRateLimiter({ windowMs: 60_000, max: 60 });

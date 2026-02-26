@@ -4,12 +4,13 @@ import { sendConsentSMS } from '@/lib/messaging/sms';
 import { sendConsentWhatsApp } from '@/lib/messaging/whatsapp';
 import { sendConsentEmail } from '@/lib/messaging/email';
 import { generalLimiter } from '@/lib/rate-limiters';
-import { getClientIp } from '@/lib/rate-limit';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { dispatchWebhookEvent } from '@/lib/webhooks';
 import type { Database } from '@/types/database';
 
 type ConsentRow = Database['public']['Tables']['consents']['Row'];
 type NotificationRow = Database['public']['Tables']['notifications']['Row'];
+type ProfileRow = Database['public']['Tables']['profiles']['Row'];
 
 // ---------------------------------------------------------------------------
 // POST /api/consents/[id]/resend — Resend the consent signing link
@@ -19,15 +20,9 @@ export async function POST(
   { params }: { params: { id: string } },
 ) {
   try {
-    // Rate limit
-    const ip = getClientIp(_request);
-    const rl = generalLimiter.check(ip);
-    if (!rl.allowed) {
-      return NextResponse.json(
-        { error: 'Too Many Requests', message: 'Rate limit exceeded. Try again later.' },
-        { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } },
-      );
-    }
+    // Rate limit + IP blacklist check
+    const blocked = await checkRateLimit(_request, generalLimiter);
+    if (blocked) return blocked;
 
     const supabase = createClient();
     const { id } = params;
@@ -44,11 +39,27 @@ export async function POST(
       );
     }
 
-    // 2. Get consent with driver — RLS scopes to org
+    // Fetch profile for org filter
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('organization_id')
+      .eq('id', user.id)
+      .single();
+
+    const profile = profileData as Pick<ProfileRow, 'organization_id'> | null;
+    if (!profile) {
+      return NextResponse.json(
+        { error: 'Not Found', message: 'User profile not found.' },
+        { status: 404 },
+      );
+    }
+
+    // 2. Get consent with driver — RLS + explicit org filter
     const { data: consentData, error } = await supabase
       .from('consents')
       .select('*, driver:drivers(id, first_name, last_name, phone, email)')
       .eq('id', id)
+      .eq('organization_id', profile.organization_id)
       .single();
 
     const consent = consentData as (ConsentRow & { driver: unknown }) | null;

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import Stripe from 'stripe';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { serviceRequestLimiter } from '@/lib/rate-limiters';
 import type { Database } from '@/types/database';
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
@@ -17,10 +19,13 @@ function getStripe() {
 // POST /api/service-requests/[id]/accept — Accept a quote & pay 5% deposit
 // ---------------------------------------------------------------------------
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const blocked = await checkRateLimit(request, serviceRequestLimiter);
+    if (blocked) return blocked;
+
     const { id } = await params;
     const stripe = getStripe();
     const supabase = createClient();

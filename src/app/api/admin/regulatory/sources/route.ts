@@ -1,9 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getAdminUserApi } from '@/lib/admin-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createRegulatorySourceSchema } from '@/lib/validators';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { adminLimiter } from '@/lib/rate-limiters';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const blocked = await checkRateLimit(request, adminLimiter);
+  if (blocked) return blocked;
+
   const admin = await getAdminUserApi();
   if (!admin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -22,7 +27,10 @@ export async function GET() {
   return NextResponse.json({ data });
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const blocked = await checkRateLimit(request, adminLimiter);
+  if (blocked) return blocked;
+
   const admin = await getAdminUserApi();
   if (!admin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

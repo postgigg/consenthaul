@@ -7,7 +7,7 @@ import { sendConsentSMS } from '@/lib/messaging/sms';
 import { sendConsentWhatsApp } from '@/lib/messaging/whatsapp';
 import { sendConsentEmail } from '@/lib/messaging/email';
 import { generalLimiter } from '@/lib/rate-limiters';
-import { getClientIp } from '@/lib/rate-limit';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { dispatchWebhookEvent } from '@/lib/webhooks';
 import type { Database } from '@/types/database';
 
@@ -25,15 +25,8 @@ const ALLOWED_SORT_COLUMNS: ReadonlySet<string> = new Set<string>([
 // ---------------------------------------------------------------------------
 export async function POST(request: NextRequest) {
   try {
-    // Rate limit
-    const ip = getClientIp(request);
-    const rl = generalLimiter.check(ip);
-    if (!rl.allowed) {
-      return NextResponse.json(
-        { error: 'Too Many Requests', message: 'Rate limit exceeded. Try again later.' },
-        { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } },
-      );
-    }
+    const blocked = await checkRateLimit(request, generalLimiter);
+    if (blocked) return blocked;
 
     const supabase = createClient();
 
@@ -346,6 +339,9 @@ export async function POST(request: NextRequest) {
 // ---------------------------------------------------------------------------
 export async function GET(request: NextRequest) {
   try {
+    const blocked = await checkRateLimit(request, generalLimiter);
+    if (blocked) return blocked;
+
     const supabase = createClient();
 
     // 1. Authenticate

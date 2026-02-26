@@ -1,9 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { updateDriverSchema } from '@/lib/validators';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { generalLimiter } from '@/lib/rate-limiters';
 import type { Database } from '@/types/database';
 
 type DriverRow = Database['public']['Tables']['drivers']['Row'];
+type ProfileRow = Database['public']['Tables']['profiles']['Row'];
+
+// ---------------------------------------------------------------------------
+// Helper: auth + profile with org_id
+// ---------------------------------------------------------------------------
+async function authenticateWithOrg(supabase: ReturnType<typeof createClient>) {
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) return null;
+
+  const { data: profileData } = await supabase
+    .from('profiles')
+    .select('organization_id')
+    .eq('id', user.id)
+    .single();
+
+  const profile = profileData as Pick<ProfileRow, 'organization_id'> | null;
+  if (!profile) return null;
+
+  return { user, orgId: profile.organization_id };
+}
 
 // ---------------------------------------------------------------------------
 // GET /api/drivers/[id] — Get a single driver with recent consents
@@ -13,26 +38,26 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   try {
+    const blocked = await checkRateLimit(_request, generalLimiter);
+    if (blocked) return blocked;
+
     const supabase = createClient();
     const { id } = params;
 
-    // 1. Authenticate
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
+    const auth = await authenticateWithOrg(supabase);
+    if (!auth) {
       return NextResponse.json(
         { error: 'Unauthorized', message: 'You must be signed in.' },
         { status: 401 },
       );
     }
 
-    // 2. Fetch driver — RLS scopes to org
+    // Fetch driver — RLS + explicit org filter
     const { data: driverData, error } = await supabase
       .from('drivers')
       .select('*')
       .eq('id', id)
+      .eq('organization_id', auth.orgId)
       .single();
 
     const driver = driverData as DriverRow | null;
@@ -44,11 +69,12 @@ export async function GET(
       );
     }
 
-    // 3. Fetch recent consents for this driver (last 20)
+    // Fetch recent consents for this driver (last 20) — org filter via driver ownership
     const { data: consents } = await supabase
       .from('consents')
       .select('id, status, consent_type, delivery_method, signed_at, created_at')
       .eq('driver_id', id)
+      .eq('organization_id', auth.orgId)
       .order('created_at', { ascending: false })
       .limit(20);
 
@@ -75,22 +101,21 @@ export async function PATCH(
   { params }: { params: { id: string } },
 ) {
   try {
+    const blocked = await checkRateLimit(request, generalLimiter);
+    if (blocked) return blocked;
+
     const supabase = createClient();
     const { id } = params;
 
-    // 1. Authenticate
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
+    const auth = await authenticateWithOrg(supabase);
+    if (!auth) {
       return NextResponse.json(
         { error: 'Unauthorized', message: 'You must be signed in.' },
         { status: 401 },
       );
     }
 
-    // 2. Parse & validate
+    // Parse & validate
     const body = await request.json();
     const parsed = updateDriverSchema.safeParse(body);
     if (!parsed.success) {
@@ -106,11 +131,12 @@ export async function PATCH(
 
     const input = parsed.data;
 
-    // 3. Check the driver exists (RLS scopes to org)
+    // Check the driver exists — with org filter
     const { data: existingData, error: fetchError } = await supabase
       .from('drivers')
       .select('id, organization_id')
       .eq('id', id)
+      .eq('organization_id', auth.orgId)
       .single();
 
     const existing = existingData as Pick<DriverRow, 'id' | 'organization_id'> | null;
@@ -122,11 +148,12 @@ export async function PATCH(
       );
     }
 
-    // 4. Update
+    // Update — with org filter
     const { data: updatedData, error: updateError } = await supabase
       .from('drivers')
       .update(input)
       .eq('id', id)
+      .eq('organization_id', auth.orgId)
       .select()
       .single();
 
@@ -140,10 +167,10 @@ export async function PATCH(
       );
     }
 
-    // 5. Audit log
+    // Audit log
     await supabase.from('audit_log').insert({
       organization_id: existing.organization_id,
-      actor_id: user.id,
+      actor_id: auth.user.id,
       actor_type: 'user',
       action: 'driver.updated',
       resource_type: 'driver',
@@ -169,69 +196,70 @@ export async function DELETE(
   { params }: { params: { id: string } },
 ) {
   try {
+    const blocked = await checkRateLimit(_request, generalLimiter);
+    if (blocked) return blocked;
+
     const supabase = createClient();
     const { id } = params;
 
-    // 1. Authenticate
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
+    const auth = await authenticateWithOrg(supabase);
+    if (!auth) {
       return NextResponse.json(
         { error: 'Unauthorized', message: 'You must be signed in.' },
         { status: 401 },
       );
     }
 
-    // 2. Check the driver exists
-    const { data: existingData2, error: fetchError } = await supabase
+    // Check the driver exists — with org filter
+    const { data: existingData, error: fetchError } = await supabase
       .from('drivers')
       .select('id, organization_id, is_active')
       .eq('id', id)
+      .eq('organization_id', auth.orgId)
       .single();
 
-    const existing2 = existingData2 as Pick<DriverRow, 'id' | 'organization_id' | 'is_active'> | null;
+    const existing = existingData as Pick<DriverRow, 'id' | 'organization_id' | 'is_active'> | null;
 
-    if (fetchError || !existing2) {
+    if (fetchError || !existing) {
       return NextResponse.json(
         { error: 'Not Found', message: 'Driver not found.' },
         { status: 404 },
       );
     }
 
-    if (!existing2.is_active) {
+    if (!existing.is_active) {
       return NextResponse.json(
         { error: 'Conflict', message: 'Driver is already deactivated.' },
         { status: 409 },
       );
     }
 
-    // 3. Soft delete: set is_active = false, termination_date = today
+    // Soft delete: set is_active = false, termination_date = today — with org filter
     const today = new Date().toISOString().slice(0, 10);
-    const { data: updatedData2, error: updateError } = await supabase
+    const { data: updatedData, error: updateError } = await supabase
       .from('drivers')
       .update({
         is_active: false,
         termination_date: today,
       })
       .eq('id', id)
+      .eq('organization_id', auth.orgId)
       .select()
       .single();
 
-    const updated2 = updatedData2 as DriverRow | null;
+    const updated = updatedData as DriverRow | null;
 
-    if (updateError || !updated2) {
+    if (updateError || !updated) {
       return NextResponse.json(
         { error: 'Internal Error', message: 'Failed to deactivate driver.' },
         { status: 500 },
       );
     }
 
-    // 4. Audit log
+    // Audit log
     await supabase.from('audit_log').insert({
-      organization_id: existing2.organization_id,
-      actor_id: user.id,
+      organization_id: existing.organization_id,
+      actor_id: auth.user.id,
       actor_type: 'user',
       action: 'driver.deactivated',
       resource_type: 'driver',
@@ -239,7 +267,7 @@ export async function DELETE(
       details: { termination_date: today },
     });
 
-    return NextResponse.json({ data: updated2 });
+    return NextResponse.json({ data: updated });
   } catch (err) {
     console.error('[DELETE /api/drivers/[id]]', err);
     return NextResponse.json(

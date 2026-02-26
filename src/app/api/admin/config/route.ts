@@ -3,6 +3,8 @@ import { getAdminUserApi } from '@/lib/admin-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { encrypt } from '@/lib/encryption';
 import { clearConfigCache } from '@/lib/config';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { adminLimiter } from '@/lib/rate-limiters';
 
 // Config keys grouped by category
 const CONFIG_KEYS: Record<string, { key: string; label: string; description: string }[]> = {
@@ -41,7 +43,10 @@ function maskValue(val: string): string {
   return val.slice(0, 4) + '****' + val.slice(-4);
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const blocked = await checkRateLimit(request, adminLimiter);
+  if (blocked) return blocked;
+
   const admin = await getAdminUserApi();
   if (!admin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -101,6 +106,9 @@ export async function GET() {
 }
 
 export async function PUT(request: NextRequest) {
+  const blocked = await checkRateLimit(request, adminLimiter);
+  if (blocked) return blocked;
+
   const admin = await getAdminUserApi();
   if (!admin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

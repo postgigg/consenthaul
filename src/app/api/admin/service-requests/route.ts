@@ -1,12 +1,17 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getAdminUserApi } from '@/lib/admin-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { adminLimiter } from '@/lib/rate-limiters';
 
 // ---------------------------------------------------------------------------
 // GET /api/admin/service-requests — List all service requests (admin only)
 // ---------------------------------------------------------------------------
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const blocked = await checkRateLimit(request, adminLimiter);
+    if (blocked) return blocked;
+
     const admin = await getAdminUserApi();
     if (!admin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

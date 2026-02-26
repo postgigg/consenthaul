@@ -8,6 +8,9 @@
  *   if (!result.allowed) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
  */
 
+import { NextResponse } from 'next/server';
+import { isIpBanned, recordViolation } from '@/lib/security/ip-blacklist';
+
 interface RateLimiterOptions {
   /** Time window in milliseconds */
   windowMs: number;
@@ -72,4 +75,49 @@ export function getClientIp(request: Request): string {
   const forwarded = request.headers.get('x-forwarded-for');
   if (forwarded) return forwarded.split(',')[0].trim();
   return request.headers.get('x-real-ip') ?? 'unknown';
+}
+
+/**
+ * Combined IP-ban + rate-limit check. Returns a Response if blocked, or null if allowed.
+ *
+ * Usage in a route handler:
+ *   const blocked = await checkRateLimit(request, generalLimiter);
+ *   if (blocked) return blocked;
+ */
+export async function checkRateLimit(
+  request: Request,
+  limiter: ReturnType<typeof createRateLimiter>,
+): Promise<NextResponse | null> {
+  const ip = getClientIp(request);
+
+  // 1. IP blacklist check
+  const banned = await isIpBanned(ip);
+  if (banned) {
+    return NextResponse.json(
+      { error: 'Forbidden', message: 'Access denied.' },
+      { status: 403 },
+    );
+  }
+
+  // 2. Rate limit check
+  const rl = limiter.check(ip);
+  if (!rl.allowed) {
+    // Fire-and-forget violation recording
+    recordViolation(ip, 'rate_limit').catch(() => {});
+
+    const retryAfter = Math.ceil((rl.resetAt - Date.now()) / 1000);
+    return NextResponse.json(
+      { error: 'Too Many Requests', message: 'Rate limit exceeded. Try again later.' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(retryAfter),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': String(Math.ceil(rl.resetAt / 1000)),
+        },
+      },
+    );
+  }
+
+  return null;
 }

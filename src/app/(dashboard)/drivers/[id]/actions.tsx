@@ -61,7 +61,7 @@ export function DriverDetailActions({ driver }: DriverDetailActionsProps) {
           Edit
         </Button>
         <Button asChild>
-          <Link href="/consents/new">
+          <Link href={`/consents/new?driver=${driver.id}`}>
             <FileSignature className="h-4 w-4" />
             Send Consent
           </Link>

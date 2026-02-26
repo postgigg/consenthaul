@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import confetti from 'canvas-confetti';
 import { formatDate } from '@/lib/utils';
 import { CheckCircle2, Download, ShieldX } from 'lucide-react';
 
@@ -47,9 +48,10 @@ export function SigningComplete({
   const [visible, setVisible] = useState(false);
   const t = content[language] ?? content.en;
 
-  // Animate in on mount
+  // Animate in on mount + confetti burst
   useEffect(() => {
     const timer = setTimeout(() => setVisible(true), 100);
+    confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
     return () => clearTimeout(timer);
   }, []);
 

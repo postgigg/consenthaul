@@ -4,8 +4,13 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { lookupByDOT } from '@/lib/outreach/fmcsa';
 import { enrichLeadWithAI } from '@/lib/outreach/ai-lead-enricher';
 import { calculateBaseScore } from '@/lib/outreach/lead-scoring';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { adminLimiter } from '@/lib/rate-limiters';
 
 export async function POST(request: NextRequest) {
+  const blocked = await checkRateLimit(request, adminLimiter);
+  if (blocked) return blocked;
+
   const admin = await getAdminUserApi();
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 

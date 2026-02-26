@@ -24,6 +24,7 @@ export type WebhookEventStatus = 'pending' | 'delivering' | 'delivered' | 'faile
 // Query tracking types
 export type QueryType = 'limited' | 'pre_employment';
 export type QueryResult = 'no_violations' | 'violations_found' | 'pending' | 'error';
+export type EscalationStatus = 'pending' | 'full_query_completed' | 'driver_removed' | 'expired';
 export type WebhookEventType =
   | 'consent.created'
   | 'consent.sent'
@@ -874,6 +875,10 @@ export interface Database {
           result: QueryResult;
           result_notes: string | null;
           recorded_by: string | null;
+          escalation_deadline: string | null;
+          escalation_status: EscalationStatus | null;
+          escalation_resolved_at: string | null;
+          escalation_resolved_by: string | null;
           created_at: string;
         };
         Insert: {
@@ -886,6 +891,10 @@ export interface Database {
           result?: QueryResult;
           result_notes?: string | null;
           recorded_by?: string | null;
+          escalation_deadline?: string | null;
+          escalation_status?: EscalationStatus | null;
+          escalation_resolved_at?: string | null;
+          escalation_resolved_by?: string | null;
           created_at?: string;
         };
         Update: Partial<Database['public']['Tables']['query_records']['Insert']>;

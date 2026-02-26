@@ -15,8 +15,11 @@ import {
   Coins,
   ArrowRight,
   CalendarClock,
+  ShieldCheck,
+  Lightbulb,
 } from 'lucide-react';
 import type { Database } from '@/types/database';
+import { BlanketConsentCard } from '@/components/compliance/BlanketConsentCard';
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
 type ConsentRow = Database['public']['Tables']['consents']['Row'];
@@ -125,6 +128,77 @@ export default async function DashboardPage() {
       .order('consent_end_date', { ascending: true }),
   ]);
 
+  // Fetch compliance summary data
+  const [complianceDriversResult, complianceConsentsResult, complianceQueriesResult] = await Promise.all([
+    supabase
+      .from('drivers')
+      .select('id')
+      .eq('organization_id', orgId)
+      .eq('is_active', true),
+    supabase
+      .from('consents')
+      .select('driver_id, consent_type, consent_end_date, status')
+      .eq('organization_id', orgId)
+      .eq('status', 'signed'),
+    supabase
+      .from('query_records')
+      .select('driver_id, query_date')
+      .eq('organization_id', orgId),
+  ]);
+
+  const compDrivers = complianceDriversResult.data ?? [];
+  const compConsents = complianceConsentsResult.data ?? [];
+  const compQueries = complianceQueriesResult.data ?? [];
+
+  // Build compliance metrics
+  const oneYearAgo = new Date();
+  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+  const oneYearAgoStr = oneYearAgo.toISOString().slice(0, 10);
+  const sixtyDaysFromNow = new Date();
+  sixtyDaysFromNow.setDate(sixtyDaysFromNow.getDate() + 60);
+  const sixtyDaysStr = sixtyDaysFromNow.toISOString().slice(0, 10);
+
+  // Consent map: driver_id -> latest signed consent
+  const consentMap = new Map<string, { consent_end_date: string | null; consent_type: string }>();
+  for (const c of compConsents) {
+    const existing = consentMap.get(c.driver_id);
+    if (!existing || (c.consent_end_date && (!existing.consent_end_date || c.consent_end_date > existing.consent_end_date))) {
+      consentMap.set(c.driver_id, { consent_end_date: c.consent_end_date, consent_type: c.consent_type });
+    }
+  }
+
+  // Query map: driver_id -> latest query date
+  const queryMap = new Map<string, string>();
+  for (const q of compQueries) {
+    const existing = queryMap.get(q.driver_id);
+    if (!existing || q.query_date > existing) {
+      queryMap.set(q.driver_id, q.query_date);
+    }
+  }
+
+  let compCompliant = 0;
+  let compOverdue = 0;
+  let compExpiring = 0;
+
+  for (const driver of compDrivers) {
+    const consent = consentMap.get(driver.id);
+    const lastQuery = queryMap.get(driver.id);
+
+    const hasValidConsent = consent && (!consent.consent_end_date || consent.consent_end_date >= today);
+    const hasRecentQuery = lastQuery && lastQuery > oneYearAgoStr;
+
+    if (hasValidConsent && hasRecentQuery) {
+      compCompliant++;
+    } else if (!hasValidConsent || (lastQuery && lastQuery <= oneYearAgoStr) || !lastQuery) {
+      compOverdue++;
+    }
+
+    // Expiring: consent expires within 60 days
+    if (consent?.consent_end_date && consent.consent_end_date >= today && consent.consent_end_date <= sixtyDaysStr) {
+      compExpiring++;
+    }
+  }
+
   const totalDrivers = driversResult.count ?? 0;
   const activeDrivers = activeDriversResult.count ?? 0;
   const totalConsents = totalConsentsResult.count ?? 0;
@@ -205,6 +279,48 @@ export default async function DashboardPage() {
           </Link>
         ))}
       </div>
+
+      {/* Compliance Summary Card */}
+      {compDrivers.length > 0 && (
+        <Link href="/compliance">
+          <Card className="transition-all hover:border-[#d4d4cf] hover:shadow-sm group">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-[#8b919a]" />
+                  <p className="text-xs font-bold text-[#3a3f49] uppercase tracking-wider">Compliance Status</p>
+                </div>
+                <ArrowRight className="h-3 w-3 text-[#d4d4cf] group-hover:text-[#8b919a] transition-colors" />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <p className="text-2xl font-bold text-green-600 tabular-nums">{compCompliant}</p>
+                  <p className="text-xs text-[#8b919a]">Compliant</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-red-600 tabular-nums">{compOverdue}</p>
+                  <p className="text-xs text-[#8b919a]">Overdue</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-amber-600 tabular-nums">{compExpiring}</p>
+                  <p className="text-xs text-[#8b919a]">Expiring Soon</p>
+                </div>
+              </div>
+              {compOverdue > 0 && (
+                <div className="mt-3 flex items-center gap-2 border-t border-[#e8e8e3] pt-3">
+                  <AlertTriangle className="h-3.5 w-3.5 text-red-600 shrink-0" />
+                  <p className="text-xs text-red-700">
+                    {compOverdue} driver{compOverdue !== 1 ? 's' : ''} need attention. View compliance details.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </Link>
+      )}
+
+      {/* Blanket Consent Education Card */}
+      <BlanketConsentCard />
 
       {/* Low credit warning */}
       {creditBalance < 5 && (

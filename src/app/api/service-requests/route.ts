@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRequestSchema } from '@/lib/validators';
 import { sendServiceRequestNotificationEmail } from '@/lib/messaging/email';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { serviceRequestLimiter } from '@/lib/rate-limiters';
 import type { Database } from '@/types/database';
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
@@ -11,8 +13,11 @@ type ServiceRequestRow = Database['public']['Tables']['service_requests']['Row']
 // ---------------------------------------------------------------------------
 // GET /api/service-requests — List org's service requests
 // ---------------------------------------------------------------------------
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const blocked = await checkRateLimit(request, serviceRequestLimiter);
+    if (blocked) return blocked;
+
     const supabase = createClient();
 
     const {
@@ -57,6 +62,9 @@ export async function GET() {
 // ---------------------------------------------------------------------------
 export async function POST(request: NextRequest) {
   try {
+    const blocked = await checkRateLimit(request, serviceRequestLimiter);
+    if (blocked) return blocked;
+
     const supabase = createClient();
 
     const {
