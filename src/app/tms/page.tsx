@@ -12,7 +12,7 @@ import { TerminalTyping } from '@/components/landing/TerminalTyping';
 export const metadata: Metadata = {
   title: 'TMS Partner Integration — Embed FMCSA Consent into Your Platform | ConsentHaul',
   description:
-    'Integrate FMCSA Clearinghouse consent collection into your TMS with 4 API calls. Your carriers send a link, drivers sign in 60 seconds, signed PDF filed automatically. Credit packs starting at $0.29/consent.',
+    'Integrate FMCSA Clearinghouse consent collection into your TMS with 4 API calls. Your carriers send a link, drivers sign in 60 seconds, signed PDF filed automatically. Credit packs starting at $0.15/consent.',
 };
 
 // ---------------------------------------------------------------------------
@@ -66,7 +66,7 @@ const BUILD_VS_BUY = [
   { label: 'Bilingual EN/ES support', build: 'Build it', buy: 'Included' },
   { label: 'SMS/WhatsApp/Email delivery', build: 'Twilio integration', buy: 'Included' },
   { label: 'Ongoing maintenance', build: 'Your engineers', buy: 'Our problem' },
-  { label: 'Per-consent cost', build: '$3\u2013$8 (fully loaded)', buy: '$1.00 starting, $0.29 at scale' },
+  { label: 'Per-consent cost', build: '$3\u2013$8 (fully loaded)', buy: '$1.00 starting, $0.15 at scale' },
 ];
 
 const PRICING_TIERS = [
@@ -74,6 +74,7 @@ const PRICING_TIERS = [
   { name: 'Growth', credits: '100,000', price: '$56,250', fullPrice: '$75,000', per: '$0.75', optional: true },
   { name: 'Scale', credits: '250,000', price: '$93,750', fullPrice: '$125,000', per: '$0.50', popular: true, optional: true },
   { name: 'Enterprise', credits: '500,000', price: '$108,750', fullPrice: '$145,000', per: '$0.29', optional: true },
+  { name: 'Mega', credits: '1,000,000', price: '$112,500', fullPrice: '$150,000', per: '$0.15', optional: true },
 ];
 
 const REVENUE_MODELS = [
@@ -472,7 +473,7 @@ export default function TMSPartnerPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0 border border-[#d4d4cf]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-0 border border-[#d4d4cf]">
             {PRICING_TIERS.map((tier, i) => (
               <div
                 key={tier.name}

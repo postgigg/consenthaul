@@ -107,6 +107,14 @@ export const TMS_PARTNER_PACKS: TmsPartnerPack[] = [
     per_consent: '$0.29',
     description: 'Maximum volume — lowest per-consent cost',
   },
+  {
+    id: 'tms_mega',
+    name: 'Mega',
+    credits: 1_000_000,
+    price_cents: 15_000_000,
+    per_consent: '$0.15',
+    description: 'Highest volume — absolute lowest per-consent cost',
+  },
 ];
 
 /** One-time partner onboarding fee: Free */
