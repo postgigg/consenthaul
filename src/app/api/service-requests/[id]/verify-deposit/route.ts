@@ -31,6 +31,17 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Get user's profile for org scoping
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('organization_id')
+      .eq('id', user.id)
+      .single();
+
+    if (!profileData) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
+
     const body = await request.json();
     const { session_id } = body as { session_id?: string };
 
@@ -59,11 +70,20 @@ export async function POST(
       );
     }
 
-    // Fetch current request
+    // Verify the session's org matches the user's org
+    if (session.metadata?.organization_id !== profileData.organization_id) {
+      return NextResponse.json(
+        { error: 'Session does not belong to your organization' },
+        { status: 403 },
+      );
+    }
+
+    // Fetch current request — scoped to user's org to prevent IDOR
     const { data: requestData } = await supabase
       .from('service_requests')
       .select('*')
       .eq('id', id)
+      .eq('organization_id', profileData.organization_id)
       .single();
 
     const serviceRequest = requestData as ServiceRequestRow | null;

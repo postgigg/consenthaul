@@ -14,6 +14,11 @@ export async function PATCH(
   const body = await request.json();
   const supabase = createAdminClient();
 
+  // Prevent admin from removing their own admin status
+  if (params.id === admin.id && 'is_platform_admin' in body && body.is_platform_admin === false) {
+    return NextResponse.json({ error: 'Cannot remove your own admin status' }, { status: 403 });
+  }
+
   // Only allow specific fields to be updated
   const allowedFields = ['is_active', 'role', 'is_platform_admin'];
   const updates: Record<string, unknown> = {};
@@ -42,7 +47,8 @@ export async function PATCH(
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('[PATCH /api/admin/users/[id]]', error.message);
+    return NextResponse.json({ error: 'Database error' }, { status: 500 });
   }
 
   // Audit log

@@ -60,11 +60,27 @@ export async function PATCH(
   }
 
   const body = await request.json();
+
+  // Whitelist updatable fields to prevent mass assignment
+  const ALLOWED_FIELDS = new Set([
+    'name', 'address_line1', 'address_line2', 'city', 'state', 'zip',
+    'phone', 'dot_number', 'mc_number',
+  ]);
+  const sanitized: Record<string, unknown> = {};
+  for (const key of Object.keys(body)) {
+    if (ALLOWED_FIELDS.has(key)) {
+      sanitized[key] = body[key];
+    }
+  }
+  if (Object.keys(sanitized).length === 0) {
+    return NextResponse.json({ error: 'No valid fields to update' }, { status: 422 });
+  }
+
   const supabase = createAdminClient();
 
   const { data, error } = await supabase
     .from('organizations')
-    .update(body)
+    .update(sanitized)
     .eq('id', params.id)
     .select()
     .single();
@@ -81,7 +97,7 @@ export async function PATCH(
     action: 'update',
     resource_type: 'organization',
     resource_id: params.id,
-    details: body as Record<string, string | number | boolean | null>,
+    details: sanitized as Record<string, string | number | boolean | null>,
   });
 
   return NextResponse.json(data);

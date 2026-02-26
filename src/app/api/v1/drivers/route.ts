@@ -4,9 +4,15 @@ import { authenticateApiKey } from '@/lib/api-auth';
 import { createDriverSchema, paginationSchema } from '@/lib/validators';
 import { apiLimiter } from '@/lib/rate-limiters';
 import { getClientIp } from '@/lib/rate-limit';
+import { escapeSearchParam } from '@/lib/utils';
 import type { Database } from '@/types/database';
 
 type DriverRow = Database['public']['Tables']['drivers']['Row'];
+
+const ALLOWED_SORT_COLUMNS: ReadonlySet<string> = new Set<string>([
+  'created_at', 'updated_at', 'first_name', 'last_name', 'email',
+  'phone', 'cdl_number', 'cdl_state', 'hire_date', 'is_active',
+]);
 
 // ---------------------------------------------------------------------------
 // POST /api/v1/drivers — Public API: Create a new driver
@@ -205,12 +211,19 @@ export async function GET(request: NextRequest) {
     }
 
     if (search) {
+      const s = escapeSearchParam(search);
       query = query.or(
-        `first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%,cdl_number.ilike.%${search}%`,
+        `first_name.ilike.%${s}%,last_name.ilike.%${s}%,email.ilike.%${s}%,phone.ilike.%${s}%,cdl_number.ilike.%${s}%`,
       );
     }
 
-    const sortColumn = (sort ?? 'created_at') as keyof DriverRow;
+    const sortColumn = sort ?? 'created_at';
+    if (!ALLOWED_SORT_COLUMNS.has(sortColumn)) {
+      return NextResponse.json(
+        { error: 'Validation Error', message: `Invalid sort column: ${sortColumn}` },
+        { status: 422 },
+      );
+    }
     query = query.order(sortColumn, { ascending: order === 'asc' });
     query = query.range(from, to);
 

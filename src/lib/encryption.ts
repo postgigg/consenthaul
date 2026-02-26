@@ -3,7 +3,7 @@ import { randomBytes, createCipheriv, createDecipheriv, scryptSync } from 'crypt
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 12;
 const TAG_LENGTH = 16;
-const SALT = 'consenthaul-platform-config'; // Static salt for deterministic key derivation
+const SALT = process.env.PLATFORM_ENCRYPTION_SALT ?? 'consenthaul-platform-config';
 
 function getKey(): Buffer {
   const passphrase = process.env.PLATFORM_ENCRYPTION_KEY;

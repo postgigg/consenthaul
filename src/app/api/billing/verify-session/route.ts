@@ -25,14 +25,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 2. Get session_id from body
+    // 2. Get user's profile to verify org ownership
+    const adminClient = createAdminClient();
+    const { data: profileData } = await adminClient
+      .from('profiles')
+      .select('organization_id')
+      .eq('id', user.id)
+      .single();
+
+    if (!profileData) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
+
+    // 3. Get session_id from body
     const body = await request.json();
     const { session_id } = body as { session_id?: string };
     if (!session_id) {
       return NextResponse.json({ error: 'session_id is required' }, { status: 422 });
     }
 
-    // 3. Retrieve the session from Stripe
+    // 4. Retrieve the session from Stripe
     const stripe = getStripe();
     const session = await stripe.checkout.sessions.retrieve(session_id);
 
@@ -46,6 +58,11 @@ export async function POST(request: NextRequest) {
 
     if (!orgId || !packId) {
       return NextResponse.json({ error: 'Invalid session metadata' }, { status: 400 });
+    }
+
+    // Verify the session's org matches the authenticated user's org
+    if (orgId !== profileData.organization_id) {
+      return NextResponse.json({ error: 'Session does not belong to your organization' }, { status: 403 });
     }
 
     // 4. Find the pack

@@ -49,21 +49,28 @@ export async function POST(request: NextRequest) {
     const rawBody = await request.text();
     const formData = new URLSearchParams(rawBody);
 
-    // Verify Twilio signature if auth token is configured
+    // Fail closed if auth token is not configured
     const authToken = process.env.TWILIO_AUTH_TOKEN;
-    if (authToken) {
-      const signature = request.headers.get('x-twilio-signature') ?? '';
-      const url = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/twilio`;
-      const params: Record<string, string> = {};
-      formData.forEach((value, key) => { params[key] = value; });
+    if (!authToken) {
+      console.error('[Twilio webhook] TWILIO_AUTH_TOKEN not configured');
+      return new NextResponse('<Response></Response>', {
+        status: 500,
+        headers: { 'Content-Type': 'text/xml' },
+      });
+    }
 
-      if (!validateRequest(authToken, signature, url, params)) {
-        console.error('[Twilio webhook] Invalid signature');
-        return new NextResponse('<Response></Response>', {
-          status: 403,
-          headers: { 'Content-Type': 'text/xml' },
-        });
-      }
+    // Verify Twilio signature
+    const signature = request.headers.get('x-twilio-signature') ?? '';
+    const url = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/twilio`;
+    const params: Record<string, string> = {};
+    formData.forEach((value, key) => { params[key] = value; });
+
+    if (!validateRequest(authToken, signature, url, params)) {
+      console.error('[Twilio webhook] Invalid signature');
+      return new NextResponse('<Response></Response>', {
+        status: 403,
+        headers: { 'Content-Type': 'text/xml' },
+      });
     }
 
     const supabase = createAdminClient();

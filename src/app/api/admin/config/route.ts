@@ -119,6 +119,31 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid config key' }, { status: 422 });
   }
 
+  // Validate value format per key prefix
+  const VALUE_VALIDATORS: Record<string, (v: string) => string | null> = {
+    STRIPE_SECRET_KEY: (v) => v.startsWith('sk_') ? null : 'Stripe secret keys must start with sk_',
+    STRIPE_WEBHOOK_SECRET: (v) => v.startsWith('whsec_') ? null : 'Stripe webhook secrets must start with whsec_',
+    STRIPE_PRICE_: (v) => v.startsWith('price_') ? null : 'Stripe price IDs must start with price_',
+    TWILIO_ACCOUNT_SID: (v) => v.startsWith('AC') ? null : 'Twilio Account SID must start with AC',
+    TWILIO_PHONE_NUMBER: (v) => /^\+\d{7,15}$/.test(v) ? null : 'Phone number must be E.164 format (e.g. +1234567890)',
+    TWILIO_WHATSAPP_NUMBER: (v) => /^\+\d{7,15}$/.test(v) ? null : 'Phone number must be E.164 format (e.g. +1234567890)',
+    NEXT_PUBLIC_SUPABASE_URL: (v) => /^https:\/\/.+\.supabase\.co$/.test(v) ? null : 'Must be a valid Supabase URL',
+    NEXT_PUBLIC_APP_URL: (v) => /^https?:\/\/.+/.test(v) ? null : 'Must be a valid URL',
+    RESEND_API_KEY: (v) => v.startsWith('re_') ? null : 'Resend API keys must start with re_',
+  };
+
+  // Check exact match first, then prefix match
+  const validator = VALUE_VALIDATORS[key] ?? Object.entries(VALUE_VALIDATORS).find(
+    ([prefix]) => key.startsWith(prefix)
+  )?.[1];
+
+  if (validator) {
+    const validationError = validator(value);
+    if (validationError) {
+      return NextResponse.json({ error: validationError }, { status: 422 });
+    }
+  }
+
   const encrypted = encrypt(value);
   const supabase = createAdminClient();
 

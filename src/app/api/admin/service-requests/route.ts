@@ -14,10 +14,10 @@ export async function GET() {
 
     const supabase = createAdminClient();
 
-    // Fetch service requests
+    // Fetch service requests with joined profile + org data (single query)
     const { data: requests, error: reqError } = await supabase
       .from('service_requests')
-      .select('*')
+      .select('*, profiles:requested_by(full_name, email), organizations(name)')
       .order('created_at', { ascending: false });
 
     if (reqError) {
@@ -25,30 +25,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Failed to fetch requests' }, { status: 500 });
     }
 
-    // Enrich with profile and org data
-    const enriched = await Promise.all(
-      (requests ?? []).map(async (req) => {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('full_name, email')
-          .eq('id', req.requested_by)
-          .single();
-
-        const { data: org } = await supabase
-          .from('organizations')
-          .select('name')
-          .eq('id', req.organization_id)
-          .single();
-
-        return {
-          ...req,
-          profiles: profile ?? { full_name: 'Unknown', email: '' },
-          organizations: org ?? { name: 'Unknown' },
-        };
-      })
-    );
-
-    return NextResponse.json({ data: enriched });
+    return NextResponse.json({ data: requests ?? [] });
   } catch (err) {
     console.error('[GET /api/admin/service-requests]', err);
     return NextResponse.json({ error: 'Internal Error' }, { status: 500 });

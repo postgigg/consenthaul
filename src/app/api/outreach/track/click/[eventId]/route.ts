@@ -6,7 +6,18 @@ export async function GET(
   { params }: { params: { eventId: string } },
 ) {
   const { searchParams } = new URL(request.url);
-  const url = searchParams.get('url') ?? 'https://consenthaul.com';
+  const rawUrl = searchParams.get('url') ?? 'https://consenthaul.com';
+
+  // Validate redirect URL — only allow http/https to prevent open redirect
+  let redirectUrl = 'https://consenthaul.com';
+  try {
+    const parsed = new URL(rawUrl);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      redirectUrl = parsed.toString();
+    }
+  } catch {
+    // Invalid URL — fall back to default
+  }
 
   try {
     const supabase = createAdminClient();
@@ -25,7 +36,7 @@ export async function GET(
         enrollment_id: sentEvent.enrollment_id,
         step_id: sentEvent.step_id,
         event_type: 'clicked',
-        details: { url },
+        details: { url: redirectUrl },
       });
 
       // Update campaign stats
@@ -48,5 +59,5 @@ export async function GET(
     console.error('[Click tracking]', err);
   }
 
-  return NextResponse.redirect(url, 302);
+  return NextResponse.redirect(redirectUrl, 302);
 }

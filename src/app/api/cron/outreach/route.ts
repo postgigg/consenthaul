@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { processOutreachQueue } from '@/lib/outreach/send-engine';
 
 export async function GET(request: NextRequest) {
-  // Verify cron secret
-  const authHeader = request.headers.get('authorization');
+  // Verify cron secret — fail closed if not configured
   const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
+    console.error('[Cron outreach] CRON_SECRET not configured');
+    return NextResponse.json({ error: 'CRON_SECRET not configured' }, { status: 500 });
+  }
 
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  const authHeader = request.headers.get('authorization');
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

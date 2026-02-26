@@ -23,9 +23,21 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Get user's org to scope the query
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('organization_id')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
+
     const { data, error } = await supabase
       .from('service_requests')
       .select('*')
+      .eq('organization_id', profile.organization_id)
       .order('created_at', { ascending: false });
 
     if (error) {

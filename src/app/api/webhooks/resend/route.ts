@@ -1,10 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { Webhook } from 'svix';
 import type { OutreachEventType } from '@/types/database';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    // Fail closed if webhook secret is not configured
+    const webhookSecret = process.env.RESEND_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      console.error('[Resend webhook] RESEND_WEBHOOK_SECRET not configured');
+      return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 500 });
+    }
+
+    // Verify webhook signature using svix
+    const rawBody = await request.text();
+    const svixId = request.headers.get('svix-id') ?? '';
+    const svixTimestamp = request.headers.get('svix-timestamp') ?? '';
+    const svixSignature = request.headers.get('svix-signature') ?? '';
+
+    let body: { type?: string; data?: Record<string, unknown> };
+    try {
+      const wh = new Webhook(webhookSecret);
+      body = wh.verify(rawBody, {
+        'svix-id': svixId,
+        'svix-timestamp': svixTimestamp,
+        'svix-signature': svixSignature,
+      }) as typeof body;
+    } catch (err) {
+      console.error('[Resend webhook] Signature verification failed:', err);
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 403 });
+    }
+
     const { type, data } = body;
 
     if (!type || !data) {
@@ -27,7 +53,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find the original sent event by resend_message_id
-    const messageId = data.email_id;
+    const messageId = data.email_id as string | undefined;
     if (!messageId) {
       return NextResponse.json({ ok: true });
     }

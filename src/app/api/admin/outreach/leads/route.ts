@@ -3,6 +3,14 @@ import { getAdminUserApi } from '@/lib/admin-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createLeadSchema } from '@/lib/outreach/validators';
 import { calculateBaseScore } from '@/lib/outreach/lead-scoring';
+import { escapeSearchParam } from '@/lib/utils';
+
+const ALLOWED_SORT_COLUMNS: ReadonlySet<string> = new Set([
+  'created_at', 'updated_at', 'company_name', 'dot_number', 'email',
+  'lead_score', 'fleet_size', 'pipeline_stage', 'state',
+]);
+
+const ALLOWED_SORT_DIRS: ReadonlySet<string> = new Set(['asc', 'desc']);
 
 export async function GET(request: NextRequest) {
   const admin = await getAdminUserApi();
@@ -10,10 +18,10 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const page = parseInt(searchParams.get('page') ?? '0', 10);
-  const pageSize = parseInt(searchParams.get('pageSize') ?? '20', 10);
+  const pageSize = Math.min(Math.max(parseInt(searchParams.get('pageSize') ?? '20', 10), 1), 100);
   const search = searchParams.get('search') ?? '';
   const sortBy = searchParams.get('sortBy') ?? 'created_at';
-  const sortDir = (searchParams.get('sortDir') ?? 'desc') as 'asc' | 'desc';
+  const sortDirRaw = searchParams.get('sortDir') ?? 'desc';
   const stage = searchParams.get('stage');
   const state = searchParams.get('state');
   const fleetMin = searchParams.get('fleetMin');
@@ -21,13 +29,22 @@ export async function GET(request: NextRequest) {
   const hasEmail = searchParams.get('hasEmail');
   const tag = searchParams.get('tag');
 
+  if (!ALLOWED_SORT_COLUMNS.has(sortBy)) {
+    return NextResponse.json({ error: `Invalid sort column: ${sortBy}` }, { status: 422 });
+  }
+  if (!ALLOWED_SORT_DIRS.has(sortDirRaw)) {
+    return NextResponse.json({ error: `Invalid sort direction: ${sortDirRaw}` }, { status: 422 });
+  }
+  const sortDir = sortDirRaw as 'asc' | 'desc';
+
   const supabase = createAdminClient();
 
   let query = supabase.from('outreach_leads').select('*', { count: 'exact' });
 
   if (search) {
+    const s = escapeSearchParam(search);
     query = query.or(
-      `company_name.ilike.%${search}%,dot_number.ilike.%${search}%,email.ilike.%${search}%,contact_name.ilike.%${search}%`,
+      `company_name.ilike.%${s}%,dot_number.ilike.%${s}%,email.ilike.%${s}%,contact_name.ilike.%${s}%`,
     );
   }
 

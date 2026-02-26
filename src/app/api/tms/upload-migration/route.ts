@@ -18,16 +18,32 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}));
     const applicationId: string | undefined = body.application_id;
 
-    const token = randomBytes(16).toString('hex'); // 32-char hex
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days
+    // Require application_id
+    if (!applicationId) {
+      return NextResponse.json({ error: 'application_id is required' }, { status: 422 });
+    }
 
     const supabase = createAdminClient();
+
+    // Verify the application exists
+    const { data: app, error: appError } = await supabase
+      .from('partner_applications')
+      .select('id')
+      .eq('id', applicationId)
+      .single();
+
+    if (appError || !app) {
+      return NextResponse.json({ error: 'Application not found' }, { status: 404 });
+    }
+
+    const token = randomBytes(16).toString('hex'); // 32-char hex
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days
 
     const { data, error } = await supabase
       .from('migration_transfers')
       .insert({
         token,
-        application_id: applicationId ?? null,
+        application_id: applicationId,
         expires_at: expiresAt,
       })
       .select('id, token, expires_at')

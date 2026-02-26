@@ -14,6 +14,11 @@ type ProfileRow = Database['public']['Tables']['profiles']['Row'];
 type DriverRow = Database['public']['Tables']['drivers']['Row'];
 type ConsentRow = Database['public']['Tables']['consents']['Row'];
 
+const ALLOWED_SORT_COLUMNS: ReadonlySet<string> = new Set<string>([
+  'created_at', 'updated_at', 'status', 'consent_type', 'delivery_method',
+  'consent_start_date', 'consent_end_date', 'signed_at',
+]);
+
 // ---------------------------------------------------------------------------
 // POST /api/consents — Create a new consent request
 // ---------------------------------------------------------------------------
@@ -405,8 +410,14 @@ export async function GET(request: NextRequest) {
       query = query.lte('created_at', createdBefore);
     }
 
-    // Sorting
-    const sortColumn = (sort ?? 'created_at') as keyof ConsentRow;
+    // Sorting — validate against whitelist
+    const sortColumn = sort ?? 'created_at';
+    if (!ALLOWED_SORT_COLUMNS.has(sortColumn)) {
+      return NextResponse.json(
+        { error: 'Validation Error', message: `Invalid sort column: ${sortColumn}` },
+        { status: 422 },
+      );
+    }
     query = query.order(sortColumn, { ascending: order === 'asc' });
     query = query.range(from, to);
 

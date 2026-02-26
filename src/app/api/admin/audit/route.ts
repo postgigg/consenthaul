@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminUserApi } from '@/lib/admin-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { escapeSearchParam } from '@/lib/utils';
 
 export async function GET(request: NextRequest) {
   const admin = await getAdminUserApi();
@@ -10,7 +11,7 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const page = parseInt(searchParams.get('page') ?? '0', 10);
-  const pageSize = parseInt(searchParams.get('pageSize') ?? '20', 10);
+  const pageSize = Math.min(Math.max(parseInt(searchParams.get('pageSize') ?? '20', 10), 1), 100);
   const search = searchParams.get('search') ?? '';
   const action = searchParams.get('action') ?? '';
   const resourceType = searchParams.get('resourceType') ?? '';
@@ -28,7 +29,8 @@ export async function GET(request: NextRequest) {
     query = query.eq('resource_type', resourceType);
   }
   if (search) {
-    query = query.or(`action.ilike.%${search}%,resource_type.ilike.%${search}%,resource_id.ilike.%${search}%`);
+    const s = escapeSearchParam(search);
+    query = query.or(`action.ilike.%${s}%,resource_type.ilike.%${s}%,resource_id.ilike.%${s}%`);
   }
 
   query = query
@@ -38,7 +40,8 @@ export async function GET(request: NextRequest) {
   const { data, count, error } = await query;
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('[GET /api/admin/audit]', error.message);
+    return NextResponse.json({ error: 'Database error' }, { status: 500 });
   }
 
   // Get actor names

@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminUserApi } from '@/lib/admin-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { escapeSearchParam } from '@/lib/utils';
 import type { ConsentStatus, ConsentType } from '@/types/database';
+
+const ALLOWED_SORT_COLUMNS: ReadonlySet<string> = new Set([
+  'created_at', 'updated_at', 'status', 'consent_type', 'delivery_method', 'signed_at',
+]);
+
+const ALLOWED_SORT_DIRS: ReadonlySet<string> = new Set(['asc', 'desc']);
 
 export async function GET(request: NextRequest) {
   const admin = await getAdminUserApi();
@@ -11,13 +18,21 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const page = parseInt(searchParams.get('page') ?? '0', 10);
-  const pageSize = parseInt(searchParams.get('pageSize') ?? '20', 10);
+  const pageSize = Math.min(Math.max(parseInt(searchParams.get('pageSize') ?? '20', 10), 1), 100);
   const search = searchParams.get('search') ?? '';
   const status = searchParams.get('status') ?? '';
   const consentType = searchParams.get('consentType') ?? '';
   const orgId = searchParams.get('orgId') ?? '';
   const sortBy = searchParams.get('sortBy') ?? 'created_at';
-  const sortDir = (searchParams.get('sortDir') ?? 'desc') as 'asc' | 'desc';
+  const sortDirRaw = searchParams.get('sortDir') ?? 'desc';
+
+  if (!ALLOWED_SORT_COLUMNS.has(sortBy)) {
+    return NextResponse.json({ error: `Invalid sort column: ${sortBy}` }, { status: 422 });
+  }
+  if (!ALLOWED_SORT_DIRS.has(sortDirRaw)) {
+    return NextResponse.json({ error: `Invalid sort direction: ${sortDirRaw}` }, { status: 422 });
+  }
+  const sortDir = sortDirRaw as 'asc' | 'desc';
 
   const supabase = createAdminClient();
 
@@ -35,7 +50,8 @@ export async function GET(request: NextRequest) {
     query = query.eq('organization_id', orgId);
   }
   if (search) {
-    query = query.or(`delivery_address.ilike.%${search}%,id.ilike.%${search}%`);
+    const s = escapeSearchParam(search);
+    query = query.or(`delivery_address.ilike.%${s}%,id.ilike.%${s}%`);
   }
 
   query = query
@@ -45,7 +61,8 @@ export async function GET(request: NextRequest) {
   const { data, count, error } = await query;
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('[GET /api/admin/consents]', error.message);
+    return NextResponse.json({ error: 'Database error' }, { status: 500 });
   }
 
   // Get org names

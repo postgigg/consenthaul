@@ -29,6 +29,14 @@ export function formatDate(
 }
 
 /**
+ * Escape special characters for Supabase ilike/or filters.
+ * Prevents search param injection via `%`, `_`, and `\`.
+ */
+export function escapeSearchParam(input: string): string {
+  return input.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+}
+
+/**
  * Format a number as USD currency.
  */
 export function formatCurrency(cents: number): string {

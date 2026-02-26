@@ -33,11 +33,24 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Fetch the service request
+    // Get profile first for org scoping
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('organization_id, email')
+      .eq('id', user.id)
+      .single();
+
+    const profile = profileData as Pick<ProfileRow, 'organization_id' | 'email'> | null;
+    if (!profile) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
+
+    // Fetch the service request — scoped to user's org to prevent IDOR
     const { data: requestData, error: fetchError } = await supabase
       .from('service_requests')
       .select('*')
       .eq('id', id)
+      .eq('organization_id', profile.organization_id)
       .single();
 
     if (fetchError || !requestData) {
@@ -62,18 +75,6 @@ export async function POST(
 
     // Calculate 5% deposit
     const depositAmount = Math.ceil(Number(serviceRequest.quoted_amount) * 0.05 * 100); // in cents
-
-    // Get profile + org for Stripe customer
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('organization_id, email')
-      .eq('id', user.id)
-      .single();
-
-    const profile = profileData as Pick<ProfileRow, 'organization_id' | 'email'> | null;
-    if (!profile) {
-      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
-    }
 
     const { data: orgData } = await supabase
       .from('organizations')
