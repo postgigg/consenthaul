@@ -82,15 +82,15 @@ export function ConsentForm({ onSuccess, driverId }: ConsentFormProps) {
   // Pre-select driver if driverId prop is provided
   useEffect(() => {
     if (!driverId) return;
-    async function fetchDriver() {
+    async function fetchDriver(id: string) {
       const { data } = await supabase
         .from('drivers')
         .select('*')
-        .eq('id', driverId)
+        .eq('id', id)
         .single();
       if (data) selectDriver(data);
     }
-    fetchDriver();
+    fetchDriver(driverId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [driverId]);
 
