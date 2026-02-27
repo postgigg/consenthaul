@@ -336,7 +336,7 @@ export function BatchConsentModal({
               </tr>
             </thead>
             <tbody className="divide-y divide-[#f0f0ec]">
-              {drivers.map((driver, idx) => {
+              {drivers.map((driver) => {
                 const delivery = resolveDelivery(driver, deliveryOverride);
                 const state = driverStates[driver.driver_id];
                 const isCurrent =
