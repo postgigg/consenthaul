@@ -101,6 +101,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 4b. Validate FMCSA-required driver fields
+    const missingFields: string[] = [];
+    if (!driver.date_of_birth) missingFields.push('date_of_birth');
+    if (!driver.cdl_number) missingFields.push('cdl_number');
+    if (!driver.cdl_state) missingFields.push('cdl_state');
+
+    if (missingFields.length > 0) {
+      return NextResponse.json(
+        {
+          error: 'Validation Error',
+          message:
+            `Driver is missing FMCSA-required fields: ${missingFields.join(', ')}. ` +
+            'Please update the driver record before creating a consent request.',
+          missing_fields: missingFields,
+        },
+        { status: 422 },
+      );
+    }
+
     // Resolve delivery address — fall back to driver's contact info
     let deliveryAddress = input.delivery_address;
     if (!deliveryAddress) {

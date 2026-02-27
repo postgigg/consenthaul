@@ -274,37 +274,52 @@ export function PhoneSigningDemo() {
       {/* Phone frame */}
       <div className="relative w-[280px] sm:w-[310px] lg:w-[340px]">
         <div
-          className="rounded-[36px] sm:rounded-[42px] lg:rounded-[48px] p-[3px] sm:p-[3.5px]"
+          className="rounded-[38px] sm:rounded-[44px] lg:rounded-[50px] p-[5px] sm:p-[5.5px] lg:p-[6px]"
           style={{
-            background: 'linear-gradient(145deg, #5a5a5e 0%, #4a4a4e 15%, #3a3a3c 30%, #2a2a2c 50%, #3a3a3c 70%, #4a4a4e 85%, #5a5a5e 100%)',
-            boxShadow: '0 50px 100px -25px rgba(0,0,0,0.5), 0 25px 50px -15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -1px 0 rgba(0,0,0,0.3)',
+            background: 'linear-gradient(145deg, #7a7a7e 0%, #636366 8%, #4a4a4e 20%, #3a3a3c 35%, #2c2c2e 50%, #3a3a3c 65%, #4a4a4e 80%, #636366 92%, #7a7a7e 100%)',
+            boxShadow: '0 60px 120px -20px rgba(0,0,0,0.55), 0 30px 60px -15px rgba(0,0,0,0.35), 0 0 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.35), inset 1px 0 0 rgba(255,255,255,0.08), inset -1px 0 0 rgba(255,255,255,0.08)',
           }}
         >
           <div
-            className="rounded-[34px] sm:rounded-[40px] lg:rounded-[46px] p-[1px]"
+            className="rounded-[34px] sm:rounded-[40px] lg:rounded-[46px] p-[1.5px]"
             style={{
-              background: 'linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(0,0,0,0.15) 50%, rgba(255,255,255,0.05) 100%)',
+              background: 'linear-gradient(145deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 25%, rgba(0,0,0,0.2) 50%, rgba(255,255,255,0.03) 75%, rgba(255,255,255,0.1) 100%)',
             }}
           >
-            <div className="absolute -left-[2px] top-[80px] w-[3px] h-[14px] rounded-l-sm" style={{ background: 'linear-gradient(180deg, #555 0%, #3a3a3c 50%, #555 100%)' }} />
-            <div className="absolute -left-[2px] top-[112px] w-[3px] h-[30px] rounded-l-sm" style={{ background: 'linear-gradient(180deg, #555 0%, #3a3a3c 50%, #555 100%)' }} />
-            <div className="absolute -left-[2px] top-[150px] w-[3px] h-[30px] rounded-l-sm" style={{ background: 'linear-gradient(180deg, #555 0%, #3a3a3c 50%, #555 100%)' }} />
-            <div className="absolute -right-[2px] top-[122px] w-[3px] h-[42px] rounded-r-sm" style={{ background: 'linear-gradient(180deg, #555 0%, #3a3a3c 50%, #555 100%)' }} />
-            <div className="absolute -right-[2px] bottom-[30%] w-[3px] h-[16px] rounded-r-sm" style={{ background: 'linear-gradient(180deg, #555 0%, #3a3a3c 50%, #555 100%)' }} />
+            {/* Silent switch */}
+            <div className="absolute -left-[3px] top-[80px] w-[4px] h-[14px] rounded-l-[2px]" style={{ background: 'linear-gradient(180deg, #6a6a6e 0%, #555558 20%, #3a3a3c 50%, #555558 80%, #6a6a6e 100%)', boxShadow: '-1px 0 2px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)' }} />
+            {/* Volume up */}
+            <div className="absolute -left-[3px] top-[112px] w-[4px] h-[30px] rounded-l-[2px]" style={{ background: 'linear-gradient(180deg, #6a6a6e 0%, #555558 20%, #3a3a3c 50%, #555558 80%, #6a6a6e 100%)', boxShadow: '-1px 0 2px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)' }} />
+            {/* Volume down */}
+            <div className="absolute -left-[3px] top-[150px] w-[4px] h-[30px] rounded-l-[2px]" style={{ background: 'linear-gradient(180deg, #6a6a6e 0%, #555558 20%, #3a3a3c 50%, #555558 80%, #6a6a6e 100%)', boxShadow: '-1px 0 2px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)' }} />
+            {/* Power button */}
+            <div className="absolute -right-[3px] top-[122px] w-[4px] h-[42px] rounded-r-[2px]" style={{ background: 'linear-gradient(180deg, #6a6a6e 0%, #555558 20%, #3a3a3c 50%, #555558 80%, #6a6a6e 100%)', boxShadow: '1px 0 2px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)' }} />
+            {/* 5G antenna line */}
+            <div className="absolute -right-[3px] bottom-[30%] w-[4px] h-[16px] rounded-r-[2px]" style={{ background: 'linear-gradient(180deg, #6a6a6e 0%, #555558 20%, #3a3a3c 50%, #555558 80%, #6a6a6e 100%)', boxShadow: '1px 0 2px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)' }} />
 
-            <div className="bg-[#000] rounded-[33px] sm:rounded-[39px] lg:rounded-[45px] overflow-hidden">
+            <div className="bg-[#000] rounded-[33px] sm:rounded-[39px] lg:rounded-[45px] overflow-hidden" style={{ boxShadow: 'inset 0 0 2px rgba(0,0,0,0.5), inset 0 1px 3px rgba(0,0,0,0.3)' }}>
               <div className="bg-black flex justify-center pt-[8px] sm:pt-[10px] lg:pt-[12px] pb-[3px] sm:pb-[4px]">
-                <div className="w-[64px] sm:w-[76px] lg:w-[82px] h-[14px] sm:h-[17px] lg:h-[19px] bg-[#000] rounded-full flex items-center justify-center gap-[6px] sm:gap-[8px]" style={{ boxShadow: 'inset 0 0 0 0.5px rgba(50,50,54,0.6)' }}>
-                  <div className="w-[4px] h-[4px] sm:w-[5px] sm:h-[5px] rounded-full bg-[#0c0c0e]" style={{ boxShadow: 'inset 0 0 0 0.5px rgba(60,60,65,0.5)' }} />
-                  <div className="w-[3px] h-[3px] sm:w-[4px] sm:h-[4px] rounded-full bg-[#0e0e10]" />
+                <div className="w-[80px] sm:w-[92px] lg:w-[100px] h-[16px] sm:h-[19px] lg:h-[21px] bg-[#000] rounded-full flex items-center justify-center gap-[8px] sm:gap-[10px]" style={{ boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.8), inset 0 0 0 0.5px rgba(50,50,54,0.6)' }}>
+                  {/* Camera lens with concentric ring */}
+                  <div className="w-[5px] h-[5px] sm:w-[6px] sm:h-[6px] rounded-full bg-[#08080a]" style={{ boxShadow: 'inset 0 0 0 0.5px rgba(60,60,65,0.5), inset 0 0 1px rgba(30,30,40,0.8), 0 0 0 0.5px rgba(40,40,45,0.4)' }} />
+                  {/* Ambient light / proximity sensor */}
+                  <div className="w-[3px] h-[3px] sm:w-[4px] sm:h-[4px] rounded-full bg-[#0a0a0c]" style={{ boxShadow: 'inset 0 0 1px rgba(20,20,30,0.6)' }} />
                 </div>
               </div>
 
               <div className="relative bg-white" style={{ height: 'calc(100% - 40px)' }}>
+                {/* Screen edge vignette */}
                 <div
                   className="absolute inset-0 pointer-events-none z-10"
                   style={{
                     background: 'radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.03) 100%)',
+                  }}
+                />
+                {/* Glass reflection overlay */}
+                <div
+                  className="absolute inset-0 pointer-events-none z-10"
+                  style={{
+                    background: 'linear-gradient(125deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.03) 25%, transparent 50%)',
                   }}
                 />
                 <svg viewBox="0 0 393 852" fill="none" className="w-full block">

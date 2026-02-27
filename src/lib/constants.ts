@@ -281,3 +281,24 @@ export const CONSENT_TEXT_ES: ConsentTextBlock = {
     'voluntariamente permitir las consultas limitadas de mis registros en el ' +
     'FMCSA Drug & Alcohol Clearinghouse como se describe en este documento.',
 };
+
+// ---------------------------------------------------------------------------
+// Pre-employment notice (appended when consent_type === 'pre_employment')
+// ---------------------------------------------------------------------------
+
+export const PRE_EMPLOYMENT_NOTE_EN =
+  'IMPORTANT — PRE-EMPLOYMENT NOTICE: This consent authorizes a limited query only. ' +
+  'Per 49 CFR 382.701(a), employers are also required to conduct a full query of the ' +
+  'FMCSA Clearinghouse as part of the pre-employment process. A full query requires ' +
+  'your separate, specific electronic consent provided directly through the FMCSA ' +
+  'Clearinghouse portal (https://clearinghouse.fmcsa.dot.gov). This limited-query ' +
+  'consent does not substitute for that requirement.';
+
+export const PRE_EMPLOYMENT_NOTE_ES =
+  'IMPORTANTE — AVISO DE PRE-EMPLEO: Este consentimiento autoriza unicamente una ' +
+  'consulta limitada. Segun 49 CFR 382.701(a), los empleadores tambien estan obligados ' +
+  'a realizar una consulta completa del Clearinghouse de la FMCSA como parte del proceso ' +
+  'de pre-empleo. Una consulta completa requiere su consentimiento electronico separado ' +
+  'y especifico proporcionado directamente a traves del portal del Clearinghouse de la ' +
+  'FMCSA (https://clearinghouse.fmcsa.dot.gov). Este consentimiento de consulta limitada ' +
+  'no sustituye ese requisito.';

@@ -1,4 +1,4 @@
-import { CONSENT_TEXT_EN, CONSENT_TEXT_ES } from '@/lib/constants';
+import { CONSENT_TEXT_EN, CONSENT_TEXT_ES, PRE_EMPLOYMENT_NOTE_EN, PRE_EMPLOYMENT_NOTE_ES } from '@/lib/constants';
 import type { ConsentType } from '@/types/database';
 
 interface ConsentDocumentProps {
@@ -35,13 +35,18 @@ export function ConsentDocument({
   const text = language === 'es' ? CONSENT_TEXT_ES : CONSENT_TEXT_EN;
   const typeLabel = consentTypeLabels[consentType]?.[language] ?? consentType;
 
-  const bodyText = text.body(
+  let bodyText = text.body(
     driverName,
     companyName,
     startDate,
     endDate ?? '',
     frequency,
   );
+
+  if (consentType === 'pre_employment') {
+    const note = language === 'es' ? PRE_EMPLOYMENT_NOTE_ES : PRE_EMPLOYMENT_NOTE_EN;
+    bodyText += '\n\n' + note;
+  }
 
   // Split the body text into paragraphs on double newlines
   const paragraphs = bodyText.split('\n\n');

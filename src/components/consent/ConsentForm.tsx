@@ -214,6 +214,16 @@ export function ConsentForm({ onSuccess, driverId }: ConsentFormProps) {
       return;
     }
 
+    if (!cdlNumber.trim()) {
+      setError('CDL number is required for FMCSA Clearinghouse queries.');
+      return;
+    }
+
+    if (!cdlState.trim()) {
+      setError('CDL state is required for FMCSA Clearinghouse queries.');
+      return;
+    }
+
     if (endDate && !durationOfEmployment && startDate && endDate < startDate) {
       setError('End date must be on or after the start date.');
       return;
@@ -573,7 +583,7 @@ export function ConsentForm({ onSuccess, driverId }: ConsentFormProps) {
             {/* CDL Number */}
             <div className="space-y-2">
               <label htmlFor="cdl-number" className="text-sm font-medium text-[#3a3f49]">
-                CDL #
+                CDL # <span className="text-red-500">*</span>
               </label>
               <Input
                 id="cdl-number"
@@ -586,7 +596,7 @@ export function ConsentForm({ onSuccess, driverId }: ConsentFormProps) {
             {/* CDL State */}
             <div className="space-y-2">
               <label htmlFor="cdl-state" className="text-sm font-medium text-[#3a3f49]">
-                State
+                CDL State <span className="text-red-500">*</span>
               </label>
               <Input
                 id="cdl-state"

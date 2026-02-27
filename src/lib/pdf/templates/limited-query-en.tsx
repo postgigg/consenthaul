@@ -11,7 +11,7 @@ import {
   Path,
   Circle,
 } from '@react-pdf/renderer';
-import { CONSENT_TEXT_EN } from '@/lib/constants';
+import { CONSENT_TEXT_EN, PRE_EMPLOYMENT_NOTE_EN } from '@/lib/constants';
 
 // ---------------------------------------------------------------------------
 // Brand colors
@@ -236,6 +236,16 @@ function ConsentHaulLogo({ size = 28 }: { size?: number }) {
 }
 
 // ---------------------------------------------------------------------------
+// Consent-type-aware subtitle map
+// ---------------------------------------------------------------------------
+
+const SUBTITLE_EN: Record<string, string> = {
+  blanket: 'General Consent for Limited Queries',
+  limited_query: 'Limited Query Consent (Annual)',
+  pre_employment: 'Pre-Employment Limited Query Consent',
+};
+
+// ---------------------------------------------------------------------------
 // Props
 // ---------------------------------------------------------------------------
 
@@ -280,13 +290,17 @@ export function LimitedQueryEn({
   const frequency = consent.query_frequency ?? 'annual';
   const endDateDisplay = consent.consent_end_date ?? 'Duration of Employment';
 
-  const consentBody = CONSENT_TEXT_EN.body(
+  let consentBody = CONSENT_TEXT_EN.body(
     driver.name,
     organization.name,
     consent.consent_start_date,
     consent.consent_end_date ?? '',
     frequency,
   );
+
+  if (consent.consent_type === 'pre_employment') {
+    consentBody += '\n\n' + PRE_EMPLOYMENT_NOTE_EN;
+  }
 
   const signedDate = consent.signed_at
     ? new Date(consent.signed_at).toLocaleDateString('en-US', {
@@ -318,7 +332,7 @@ export function LimitedQueryEn({
               FMCSA Drug &amp; Alcohol Clearinghouse
             </Text>
             <Text style={styles.headerSubtitle}>
-              General Consent for Limited Queries
+              {SUBTITLE_EN[consent.consent_type] ?? SUBTITLE_EN.blanket}
             </Text>
           </View>
           {qrCodeDataUrl ? (
