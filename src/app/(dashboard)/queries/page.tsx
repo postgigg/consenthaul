@@ -140,7 +140,8 @@ export default function QueriesPage() {
       setSubscribed(isValid);
 
       // Track TSV download for reminder banner
-      setLastTsvDownload((org as Record<string, unknown>)?.last_tsv_download_at as string | null);
+      const orgData = org as { last_tsv_download_at?: string | null } | null;
+      setLastTsvDownload(orgData?.last_tsv_download_at ?? null);
 
       // Get active driver count
       const { count: driverCount } = await supabase

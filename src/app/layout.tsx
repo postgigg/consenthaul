@@ -356,7 +356,7 @@ const jsonLd = {
           name: 'Do trucking companies need consent for every FMCSA Clearinghouse query?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Yes. Motor carriers must obtain a driver\'s written or electronic consent before each limited query to the FMCSA Drug & Alcohol Clearinghouse. Consent cannot be blanket or indefinite — it must be collected for each specific query. ConsentHaul simplifies this by letting carriers send and collect individual FMCSA consent forms digitally in seconds.',
+            text: 'It depends on the query type. For annual limited queries (49 CFR 382.701(b)), a driver\'s general consent may be effective for more than one year, including the full duration of employment. Employers can collect this consent once at hire and run annual limited queries without re-collecting each year. For pre-employment full queries (382.701(a)) and violation follow-up full queries (382.701(b)(3)), the driver must provide separate electronic consent through the FMCSA Clearinghouse portal each time (382.703(b)). ConsentHaul collects the general written consent for limited queries — the most common type used for annual compliance.',
           },
         },
       ],
@@ -370,7 +370,7 @@ const jsonLd = {
         {
           '@type': 'HowToStep',
           name: 'Create an FMCSA consent request',
-          text: 'Enter the CDL driver\'s name, phone number or email, and select the Clearinghouse consent type (limited query or full query). ConsentHaul generates a compliant FMCSA consent form and sends a secure DOT consent link to the driver via SMS, WhatsApp, or email.',
+          text: 'Enter the CDL driver\'s name, phone number or email, and select the consent duration (single-year or duration of employment). ConsentHaul generates a compliant FMCSA limited query consent form per 49 CFR 382.703(a) and sends a secure consent link to the driver via SMS, WhatsApp, or email.',
         },
         {
           '@type': 'HowToStep',

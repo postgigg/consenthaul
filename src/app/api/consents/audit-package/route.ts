@@ -97,26 +97,34 @@ export async function GET(request: NextRequest) {
 
     const zip = new JSZip();
     const today = new Date().toISOString().slice(0, 10);
+    let failedPdfCount = 0;
 
-    // Cover sheet
-    const coverLines = [
-      `FMCSA Clearinghouse Compliance Audit Package`,
-      `Generated: ${new Date().toISOString()}`,
-      ``,
-      `Organization: ${org?.name ?? 'N/A'}`,
-      `DOT Number: ${org?.dot_number ?? 'N/A'}`,
-      `Date Range: All records`,
-      `Total Active Drivers: ${drivers.length}`,
-      `Total Signed Consents: ${(consents ?? []).length}`,
-      `Total Query Records: ${(queryRecords ?? []).length}`,
-      ``,
-      `This package contains:`,
-      `- Per-driver folders with signed consent PDFs`,
-      `- compliance-summary.csv with consent and query status per driver`,
-      ``,
-      `Prepared for DOT/FMCSA audit in accordance with 49 CFR Part 382.`,
-    ];
-    zip.file('cover-sheet.txt', coverLines.join('\n'));
+    // Cover sheet (added after PDF processing so we can include failedPdfCount)
+    const buildCoverSheet = () => {
+      const lines = [
+        `FMCSA Clearinghouse Compliance Audit Package`,
+        `Generated: ${new Date().toISOString()}`,
+        ``,
+        `Organization: ${org?.name ?? 'N/A'}`,
+        `DOT Number: ${org?.dot_number ?? 'N/A'}`,
+        `Date Range: All records`,
+        `Total Active Drivers: ${drivers.length}`,
+        `Total Signed Consents: ${(consents ?? []).length}`,
+        `Total Query Records: ${(queryRecords ?? []).length}`,
+      ];
+      if (failedPdfCount > 0) {
+        lines.push(`PDF Download Failures: ${failedPdfCount}`);
+      }
+      lines.push(
+        ``,
+        `This package contains:`,
+        `- Per-driver folders with signed consent PDFs`,
+        `- compliance-summary.csv with consent and query status per driver`,
+        ``,
+        `Prepared for DOT/FMCSA audit in accordance with 49 CFR Part 382.`,
+      );
+      return lines.join('\n');
+    };
 
     // CSV summary
     const csvHeaders = [
@@ -162,8 +170,9 @@ export async function GET(request: NextRequest) {
             driverFolder.file(pdfName, buffer);
             hasPdf = true;
           }
-        } catch {
-          // skip this PDF if download fails
+        } catch (dlErr) {
+          console.error(`[audit-package] Failed to download PDF for consent ${consent.id}:`, dlErr);
+          failedPdfCount++;
         }
       }
 
@@ -185,6 +194,7 @@ export async function GET(request: NextRequest) {
       csvRows.push(csvRow.join(','));
     }
 
+    zip.file('cover-sheet.txt', buildCoverSheet());
     zip.file('compliance-summary.csv', csvRows.join('\n'));
 
     // Generate ZIP
@@ -204,10 +214,11 @@ export async function GET(request: NextRequest) {
         driver_count: drivers.length,
         consent_count: (consents ?? []).length,
         query_count: (queryRecords ?? []).length,
+        failed_pdf_downloads: failedPdfCount,
       },
     });
 
-    return new NextResponse(zipData as unknown as BodyInit, {
+    return new NextResponse(Buffer.from(zipData), {
       status: 200,
       headers: {
         'Content-Type': 'application/zip',

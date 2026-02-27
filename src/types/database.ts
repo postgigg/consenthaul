@@ -63,12 +63,14 @@ export interface Database {
           settings: Json;
           stripe_customer_id: string | null;
           is_partner: boolean;
+          last_tsv_download_at: string | null;
           created_at: string;
           updated_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['organizations']['Row'], 'id' | 'created_at' | 'updated_at' | 'is_partner'> & {
+        Insert: Omit<Database['public']['Tables']['organizations']['Row'], 'id' | 'created_at' | 'updated_at' | 'is_partner' | 'last_tsv_download_at'> & {
           id?: string;
           is_partner?: boolean;
+          last_tsv_download_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };

@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Look up drivers by CDL number + org
-    const uniqueCdls = [...new Set(validRows.map((r) => r.cdl_number))];
+    const uniqueCdls = Array.from(new Set(validRows.map((r) => r.cdl_number)));
     const { data: driversData } = await supabase
       .from('drivers')
       .select('id, cdl_number')

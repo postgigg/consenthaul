@@ -25,6 +25,7 @@ interface ComplianceRow {
   consent_gap: boolean;
   query_overdue: boolean;
   overall_compliant: boolean;
+  has_any_consent: boolean;
 }
 
 export async function GET(request: NextRequest) {
@@ -175,6 +176,7 @@ export async function GET(request: NextRequest) {
         consent_gap: consentGap,
         query_overdue: queryOverdue,
         overall_compliant: !consentGap && !queryOverdue,
+        has_any_consent: consentMap.has(driver.id),
       };
     });
 

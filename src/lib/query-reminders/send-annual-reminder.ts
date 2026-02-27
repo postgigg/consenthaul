@@ -81,7 +81,7 @@ export async function sendAnnualQueryReminders(): Promise<QueryReminderResult> {
     result.totalDriversDue += dueCount;
 
     // Check if TSV was downloaded but results not yet recorded
-    const lastTsvDownload = (org as Record<string, unknown>).last_tsv_download_at as string | undefined;
+    const lastTsvDownload = (org as { last_tsv_download_at?: string | null }).last_tsv_download_at ?? undefined;
     const tsvNudge = (() => {
       if (!lastTsvDownload) return '';
       const downloadDate = new Date(lastTsvDownload);

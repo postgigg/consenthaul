@@ -423,7 +423,7 @@ export function ConsentForm({ onSuccess, driverId }: ConsentFormProps) {
             {/* Blanket consent explainer */}
             {consentType === 'blanket' && (
               <div className="sm:col-span-2 border border-green-200 bg-green-50/50 px-4 py-3 text-sm text-green-800" role="status">
-                <strong>Per 49 CFR 382.701:</strong> Limited query consent &ldquo;is not required on an annual basis&rdquo; and &ldquo;may be effective for more than one year,&rdquo; including the duration of employment. Collect once at hire, query annually &mdash; no need to re-collect consent each year.
+                <strong>49 CFR 382.701(b):</strong> &ldquo;The individual driver may give consent to conduct limited queries that is effective for more than one year.&rdquo; This general consent covers annual limited queries for the duration of employment. Full queries (pre-employment or violation follow-up) require the driver&rsquo;s separate electronic consent through the FMCSA Clearinghouse portal per 382.703(b).
               </div>
             )}
 

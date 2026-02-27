@@ -38,14 +38,20 @@ export function BlanketConsentCard() {
           <div className="flex-1 pr-6">
             <p className="text-sm font-bold text-[#0c0f14] mb-1">Did You Know?</p>
             <p className="text-xs text-[#3a3f49] leading-relaxed">
-              Per 49 CFR 382.701, you can collect one <strong>blanket consent</strong> at hire that covers the entire duration of employment.
-              No need to re-collect consent annually — one signature covers all future limited queries.
+              Per 49 CFR 382.701(b), a driver&apos;s general consent for <strong>limited queries</strong> may
+              be effective for more than one year — including the duration of employment. Collect once
+              at hire, run annual limited queries without re-collecting consent each year.
+            </p>
+            <p className="text-xs text-[#8b919a] leading-relaxed mt-1.5">
+              This does not cover full queries. Pre-employment full queries (382.701(a)) and
+              violation follow-up full queries (382.701(b)(3)) require the driver&apos;s separate
+              electronic consent submitted through the FMCSA Clearinghouse portal (382.703(b)).
             </p>
             <Link
               href="/consents/new"
               className="inline-flex items-center gap-1.5 mt-3 text-xs font-bold text-[#0c0f14] uppercase tracking-wider hover:text-[#C8A75E] transition-colors"
             >
-              Send Blanket Consent Now
+              Send Limited Query Consent
               <ArrowRight className="h-3 w-3" />
             </Link>
           </div>

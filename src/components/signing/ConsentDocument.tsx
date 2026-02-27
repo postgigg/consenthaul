@@ -12,9 +12,9 @@ interface ConsentDocumentProps {
 }
 
 const consentTypeLabels: Record<ConsentType, { en: string; es: string }> = {
-  limited_query: { en: 'Limited Query', es: 'Consulta Limitada' },
-  pre_employment: { en: 'Pre-Employment', es: 'Pre-Empleo' },
-  blanket: { en: 'Blanket Consent', es: 'Consentimiento General' },
+  limited_query: { en: 'Limited Query (Annual)', es: 'Consulta Limitada (Anual)' },
+  pre_employment: { en: 'Pre-Employment Limited Query', es: 'Consulta Limitada Pre-Empleo' },
+  blanket: { en: 'General Consent for Limited Queries (Duration of Employment)', es: 'Consentimiento General para Consultas Limitadas (Duracion del Empleo)' },
 };
 
 /**
