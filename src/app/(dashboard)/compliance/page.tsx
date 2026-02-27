@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BatchReconsentButton } from '@/components/consent/BatchReconsentButton';
 import { HitEscalationBanner, type EscalationRecord } from '@/components/compliance/HitEscalationBanner';
+import { BatchConsentModal, type BatchDriver } from '@/components/compliance/BatchConsentModal';
 import Link from 'next/link';
 import {
   Shield,
@@ -28,6 +28,8 @@ interface ComplianceRow {
   last_name: string;
   cdl_number: string | null;
   cdl_state: string | null;
+  phone: string | null;
+  email: string | null;
   latest_consent_status: string | null;
   consent_type: string | null;
   consent_end_date: string | null;
@@ -38,6 +40,7 @@ interface ComplianceRow {
   consent_gap: boolean;
   query_overdue: boolean;
   overall_compliant: boolean;
+  has_any_consent: boolean;
 }
 
 interface Summary {
@@ -62,6 +65,8 @@ export default function CompliancePage() {
   const [downloading, setDownloading] = useState(false);
   const [downloadingAudit, setDownloadingAudit] = useState(false);
   const [escalations, setEscalations] = useState<EscalationRecord[]>([]);
+  const [batchModalOpen, setBatchModalOpen] = useState(false);
+  const [batchDrivers, setBatchDrivers] = useState<BatchDriver[]>([]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -248,7 +253,6 @@ export default function CompliancePage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <BatchReconsentButton />
           <Button onClick={handleDownloadAudit} disabled={downloadingAudit} variant="outline">
             {downloadingAudit ? (
               <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
@@ -285,6 +289,40 @@ export default function CompliancePage() {
         ))}
       </div>
 
+      {/* Consent gap action banner */}
+      {summary.consent_gaps > 0 && (
+        <div className="flex items-center gap-3 border border-red-200 bg-red-50/60 px-4 py-3">
+          <ShieldAlert className="h-4 w-4 text-red-600 shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm text-[#3a3f49]">
+              <strong className="text-red-700">{summary.consent_gaps} driver{summary.consent_gaps !== 1 ? 's' : ''}</strong> {summary.consent_gaps !== 1 ? 'have' : 'has'} consent gaps — no valid signed consent on file.
+            </p>
+          </div>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => {
+              const gapDrivers = rows.filter((r) => r.consent_gap);
+              setBatchDrivers(
+                gapDrivers.map((r) => ({
+                  driver_id: r.driver_id,
+                  first_name: r.first_name,
+                  last_name: r.last_name,
+                  cdl_number: r.cdl_number,
+                  phone: r.phone,
+                  email: r.email,
+                })),
+              );
+              setBatchModalOpen(true);
+            }}
+            className="shrink-0 uppercase tracking-wider text-xs font-bold"
+          >
+            Send Consents
+            <ArrowRight className="h-3 w-3" />
+          </Button>
+        </div>
+      )}
+
       {/* Blanket consent education banner */}
       {(() => {
         const limitedCount = rows.filter((r) => r.consent_type === 'limited_query').length;
@@ -295,14 +333,14 @@ export default function CompliancePage() {
               <Lightbulb className="h-4 w-4 text-[#C8A75E] shrink-0" />
               <div className="flex-1">
                 <p className="text-sm text-[#3a3f49]">
-                  <strong>{limitedCount} of {totalWithConsent}</strong> drivers have annual consent. Switch to blanket consent to eliminate yearly re-collection.
+                  <strong>{limitedCount} of {totalWithConsent}</strong> drivers have single-year limited query consent. Per 49 CFR 382.701(b), general consent for limited queries may cover the full duration of employment — no annual re-collection needed.
                 </p>
               </div>
               <Link
                 href="/consents/new"
                 className="shrink-0 inline-flex items-center gap-1.5 text-xs font-bold text-[#0c0f14] uppercase tracking-wider hover:text-[#C8A75E] transition-colors"
               >
-                Send Blanket Consent
+                Send Multi-Year Consent
                 <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
@@ -353,6 +391,9 @@ export default function CompliancePage() {
                     <th className="pb-3 text-left text-[0.7rem] font-bold text-[#8b919a] uppercase tracking-wider">
                       Overall
                     </th>
+                    <th className="pb-3 text-left text-[0.7rem] font-bold text-[#8b919a] uppercase tracking-wider">
+                      Action
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#f0f0ec]">
@@ -380,12 +421,25 @@ export default function CompliancePage() {
                         )}
                         {row.consent_type === 'limited_query' && row.days_until_expiration !== null && row.days_until_expiration >= 0 && row.days_until_expiration <= 60 && (
                           <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 text-[0.6rem] font-medium bg-amber-100 text-amber-800">
-                            Expiring — switch to blanket
+                            Expiring — renew or switch to multi-year
                           </span>
                         )}
                       </td>
-                      <td className="py-3 text-[#6b6f76]">
-                        {row.latest_consent_status ?? 'None'}
+                      <td className="py-3">
+                        {row.latest_consent_status ? (
+                          <span className={`text-xs font-medium ${
+                            row.latest_consent_status === 'signed' ? 'text-green-700' :
+                            row.latest_consent_status === 'sent' || row.latest_consent_status === 'delivered' || row.latest_consent_status === 'opened' ? 'text-blue-700' :
+                            row.latest_consent_status === 'revoked' || row.latest_consent_status === 'expired' ? 'text-red-700' :
+                            'text-[#6b6f76]'
+                          }`}>
+                            {row.latest_consent_status}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 text-[0.65rem] font-medium bg-red-50 text-red-600 border border-red-200">
+                            No consent sent
+                          </span>
+                        )}
                       </td>
                       <td className="py-3 text-[#8b919a]">
                         {row.consent_end_date ?? '—'}
@@ -421,6 +475,48 @@ export default function CompliancePage() {
                         )}
                       </td>
                       <td className="py-3">{getStatusBadge(row)}</td>
+                      <td className="py-3">
+                        {row.consent_gap && !row.has_any_consent ? (
+                          <Button
+                            size="sm"
+                            className="h-auto px-2 py-1 text-[0.65rem] font-bold uppercase tracking-wider"
+                            onClick={() => {
+                              setBatchDrivers([{
+                                driver_id: row.driver_id,
+                                first_name: row.first_name,
+                                last_name: row.last_name,
+                                cdl_number: row.cdl_number,
+                                phone: row.phone,
+                                email: row.email,
+                              }]);
+                              setBatchModalOpen(true);
+                            }}
+                          >
+                            Send Consent
+                          </Button>
+                        ) : row.consent_gap && row.has_any_consent ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-auto px-2 py-1 text-[0.65rem] font-bold uppercase tracking-wider"
+                            onClick={() => {
+                              setBatchDrivers([{
+                                driver_id: row.driver_id,
+                                first_name: row.first_name,
+                                last_name: row.last_name,
+                                cdl_number: row.cdl_number,
+                                phone: row.phone,
+                                email: row.email,
+                              }]);
+                              setBatchModalOpen(true);
+                            }}
+                          >
+                            Resend
+                          </Button>
+                        ) : row.overall_compliant ? (
+                          <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                        ) : null}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -429,6 +525,13 @@ export default function CompliancePage() {
           )}
         </CardContent>
       </Card>
+
+      <BatchConsentModal
+        open={batchModalOpen}
+        onClose={() => setBatchModalOpen(false)}
+        drivers={batchDrivers}
+        onComplete={fetchData}
+      />
     </div>
   );
 }

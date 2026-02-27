@@ -16,7 +16,6 @@ import {
   ArrowRight,
   CalendarClock,
   ShieldCheck,
-  Lightbulb,
 } from 'lucide-react';
 import type { Database } from '@/types/database';
 import { BlanketConsentCard } from '@/components/compliance/BlanketConsentCard';
