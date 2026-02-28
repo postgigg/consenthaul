@@ -1036,3 +1036,195 @@ export async function sendServiceRequestNotificationEmail({
     html,
   });
 }
+
+// ---------------------------------------------------------------------------
+// 8. Revocation notification — driver confirmation & org member notification
+// ---------------------------------------------------------------------------
+
+interface SendRevocationNotificationEmailParams {
+  /** Driver email — if provided, sends a confirmation to the driver */
+  driverEmail?: string | null;
+  driverName: string;
+  companyName: string;
+  consentId: string;
+  revokedAt: string;
+  revocationMethod: 'self_service' | 'admin_dashboard' | 'api';
+  /** Org member emails — sends a heads-up to each */
+  orgMemberEmails?: string[];
+  branding?: EmailBranding;
+}
+
+export async function sendRevocationNotificationEmail({
+  driverEmail,
+  driverName,
+  companyName,
+  consentId,
+  revokedAt,
+  revocationMethod,
+  orgMemberEmails,
+  branding,
+}: SendRevocationNotificationEmailParams): Promise<void> {
+  const senderName = branding?.company_name ?? 'ConsentHaul';
+
+  // Escape user-controlled values
+  const safeDriverName = escapeHtml(driverName);
+  const safeCompanyName = escapeHtml(companyName);
+  const safeSenderName = escapeHtml(senderName);
+
+  const revokedDate = new Date(revokedAt).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+
+  const methodLabel =
+    revocationMethod === 'self_service'
+      ? 'Driver self-service'
+      : revocationMethod === 'admin_dashboard'
+        ? 'Admin dashboard'
+        : 'API';
+
+  // --- Driver confirmation email ---
+  if (driverEmail) {
+    const driverSubject = `Consent revoked — FMCSA Clearinghouse`;
+
+    const driverBody = `
+      <p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:#0c0f14;">Hi ${safeDriverName},</p>
+
+      <!-- Revocation badge -->
+      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;width:100%;">
+        <tr>
+          <td style="background-color:#fef2f2;border-left:3px solid #ef4444;padding:12px 16px;">
+            <p style="margin:0;font-size:15px;font-weight:600;color:#991b1b;">
+              Your FMCSA Clearinghouse consent has been revoked.
+            </p>
+          </td>
+        </tr>
+      </table>
+
+      <p style="margin:0 0 12px;font-size:12px;font-weight:700;color:#8b919a;letter-spacing:0.08em;text-transform:uppercase;">Details</p>
+
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;border:1px solid #e8e8e3;">
+        <tr>
+          <td style="padding:10px 16px;font-size:13px;color:#8b919a;border-bottom:1px solid #e8e8e3;width:140px;">Driver</td>
+          <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;">${safeDriverName}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 16px;font-size:13px;color:#8b919a;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;">Company</td>
+          <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;">${safeCompanyName}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 16px;font-size:13px;color:#8b919a;border-bottom:1px solid #e8e8e3;">Revoked at</td>
+          <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;">${revokedDate}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 16px;font-size:13px;color:#8b919a;background-color:#fafaf8;">Consent ID</td>
+          <td style="padding:10px 16px;font-size:12px;font-family:monospace;color:#6b6f76;background-color:#fafaf8;">${consentId.slice(0, 8)}...</td>
+        </tr>
+      </table>
+
+      <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#6b6f76;">
+        This means ${safeCompanyName} can no longer run FMCSA Clearinghouse queries on your behalf using this consent.
+        If you believe this was done in error, please contact your employer directly.
+      </p>
+
+      <hr style="border:none;border-top:1px solid #e8e8e3;margin:24px 0;" />
+      <p style="margin:0;font-size:13px;line-height:1.5;color:#b5b5ae;">
+        If you did not request this revocation and have concerns, contact your employer.
+      </p>
+    `;
+
+    const driverHtml = emailShell({
+      lang: 'en',
+      title: 'Consent Revoked',
+      preheader: `Your FMCSA consent for ${safeCompanyName} has been revoked.`,
+      body: driverBody,
+      footerText: `This email was sent by ${safeSenderName} on behalf of ${safeCompanyName}.`,
+      branding,
+    });
+
+    await getResend().emails.send({
+      from: 'ConsentHaul <noreply@consenthaul.com>',
+      to: driverEmail,
+      subject: driverSubject,
+      html: driverHtml,
+    });
+  }
+
+  // --- Org member notification email ---
+  if (orgMemberEmails && orgMemberEmails.length > 0) {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://consenthaul.com';
+    const dashboardUrl = `${appUrl}/consents`;
+
+    const orgSubject = `Consent revoked — ${driverName}`;
+
+    const orgBody = `
+      <p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:#0c0f14;">A driver's consent has been revoked.</p>
+
+      <!-- Revocation badge -->
+      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;width:100%;">
+        <tr>
+          <td style="background-color:#fef2f2;border-left:3px solid #ef4444;padding:12px 16px;">
+            <p style="margin:0;font-size:15px;font-weight:600;color:#991b1b;">
+              ${safeDriverName}'s FMCSA consent has been revoked
+            </p>
+          </td>
+        </tr>
+      </table>
+
+      <p style="margin:0 0 12px;font-size:12px;font-weight:700;color:#8b919a;letter-spacing:0.08em;text-transform:uppercase;">Details</p>
+
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;border:1px solid #e8e8e3;">
+        <tr>
+          <td style="padding:10px 16px;font-size:13px;color:#8b919a;border-bottom:1px solid #e8e8e3;width:140px;">Driver</td>
+          <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;">${safeDriverName}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 16px;font-size:13px;color:#8b919a;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;">Revoked at</td>
+          <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;background-color:#fafaf8;">${revokedDate}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 16px;font-size:13px;color:#8b919a;border-bottom:1px solid #e8e8e3;">Method</td>
+          <td style="padding:10px 16px;font-size:13px;font-weight:600;color:#0c0f14;border-bottom:1px solid #e8e8e3;">${methodLabel}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 16px;font-size:13px;color:#8b919a;background-color:#fafaf8;">Consent ID</td>
+          <td style="padding:10px 16px;font-size:12px;font-family:monospace;color:#6b6f76;background-color:#fafaf8;">${consentId.slice(0, 8)}...</td>
+        </tr>
+      </table>
+
+      <p style="margin:0 0 24px;font-size:14px;line-height:1.6;color:#6b6f76;">
+        This consent can no longer be used for FMCSA Clearinghouse queries. You may need to request a new consent from this driver.
+      </p>
+
+      <!-- CTA Button -->
+      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 24px;">
+        <tr>
+          <td align="center" style="background-color:#0c0f14;">
+            <a href="${dashboardUrl}" target="_blank" style="display:inline-block;padding:14px 36px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;letter-spacing:0.05em;text-transform:uppercase;">
+              VIEW IN DASHBOARD
+            </a>
+          </td>
+        </tr>
+      </table>
+    `;
+
+    const orgHtml = emailShell({
+      lang: 'en',
+      title: 'Consent Revoked',
+      preheader: `${safeDriverName}'s FMCSA consent has been revoked.`,
+      body: orgBody,
+      footerText: `This notification was sent to ${safeCompanyName} by ${safeSenderName}.`,
+      branding,
+    });
+
+    await getResend().emails.send({
+      from: 'ConsentHaul <noreply@consenthaul.com>',
+      to: orgMemberEmails,
+      subject: orgSubject,
+      html: orgHtml,
+    });
+  }
+}

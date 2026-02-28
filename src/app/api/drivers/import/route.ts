@@ -8,6 +8,16 @@ import { generalLimiter } from '@/lib/rate-limiters';
 import { getClientIp } from '@/lib/rate-limit';
 import type { Database } from '@/types/database';
 
+interface CSVPreviewRow {
+  row: number;
+  first_name: string;
+  last_name: string;
+  cdl_number: string | null;
+  is_duplicate: boolean;
+  duplicate_source: 'database' | 'file' | null;
+  validation_error: string | null;
+}
+
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
 
 // ---------------------------------------------------------------------------
@@ -115,6 +125,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if this is a preview-only request (duplicate detection without insert)
+    const isPreview = request.nextUrl.searchParams.get('preview') === 'true';
+
     // 5. Fetch existing CDL numbers for duplicate detection
     const { data: existingDriversData } = await supabase
       .from('drivers')
@@ -133,6 +146,7 @@ export async function POST(request: NextRequest) {
 
     // 6. Validate each row and collect valid inserts
     const errors: CSVImportError[] = [];
+    const previewRows: CSVPreviewRow[] = [];
     const validRows: Array<{
       organization_id: string;
       first_name: string;
@@ -160,6 +174,18 @@ export async function POST(request: NextRequest) {
           .map(([field, errs]) => `${field}: ${(errs ?? []).join(', ')}`)
           .join('; ');
         errors.push({ row: rowNumber, message: messages });
+
+        if (isPreview) {
+          previewRows.push({
+            row: rowNumber,
+            first_name: row['first_name'] ?? '',
+            last_name: row['last_name'] ?? '',
+            cdl_number: row['cdl_number'] ?? null,
+            is_duplicate: false,
+            duplicate_source: null,
+            validation_error: messages,
+          });
+        }
         continue;
       }
 
@@ -172,6 +198,18 @@ export async function POST(request: NextRequest) {
           row: rowNumber,
           message: `Duplicate CDL number "${data.cdl_number}" — driver already exists.`,
         });
+
+        if (isPreview) {
+          previewRows.push({
+            row: rowNumber,
+            first_name: data.first_name,
+            last_name: data.last_name,
+            cdl_number: data.cdl_number,
+            is_duplicate: true,
+            duplicate_source: 'database',
+            validation_error: null,
+          });
+        }
         continue;
       }
 
@@ -182,11 +220,35 @@ export async function POST(request: NextRequest) {
           row: rowNumber,
           message: `Duplicate CDL number "${data.cdl_number}" — appears earlier in the same file.`,
         });
+
+        if (isPreview) {
+          previewRows.push({
+            row: rowNumber,
+            first_name: data.first_name,
+            last_name: data.last_name,
+            cdl_number: data.cdl_number,
+            is_duplicate: true,
+            duplicate_source: 'file',
+            validation_error: null,
+          });
+        }
         continue;
       }
 
       if (data.cdl_number) {
         seenCdls.add(data.cdl_number.toLowerCase());
+      }
+
+      if (isPreview) {
+        previewRows.push({
+          row: rowNumber,
+          first_name: data.first_name,
+          last_name: data.last_name,
+          cdl_number: data.cdl_number ?? null,
+          is_duplicate: false,
+          duplicate_source: null,
+          validation_error: null,
+        });
       }
 
       validRows.push({
@@ -202,6 +264,21 @@ export async function POST(request: NextRequest) {
         preferred_language: data.preferred_language ?? 'en',
         is_active: true,
         metadata: {},
+      });
+    }
+
+    // If preview mode, return the preview without inserting
+    if (isPreview) {
+      return NextResponse.json({
+        data: {
+          preview: true,
+          total: records.length,
+          valid: validRows.length,
+          duplicates: previewRows.filter((r) => r.is_duplicate).length,
+          invalid: previewRows.filter((r) => r.validation_error !== null).length,
+          rows: previewRows,
+          errors,
+        },
       });
     }
 

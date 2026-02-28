@@ -221,7 +221,8 @@ export async function POST(
     const driver = consent.driver as DriverRow;
     const organization = consent.organization as OrganizationRow;
 
-    const driverSnapshot: Record<string, string | null> = {
+    // A4/E1: Enhanced point-in-time snapshots — capture all mutable fields
+    const driverSnapshot: Record<string, unknown> = {
       id: driver.id,
       first_name: driver.first_name,
       last_name: driver.last_name,
@@ -230,19 +231,46 @@ export async function POST(
       cdl_number: driver.cdl_number,
       cdl_state: driver.cdl_state,
       date_of_birth: driver.date_of_birth,
+      hire_date: driver.hire_date,
+      preferred_language: driver.preferred_language,
+      metadata: driver.metadata,
     };
 
-    const organizationSnapshot: Record<string, string | null> = {
+    const organizationSnapshot: Record<string, unknown> = {
       id: organization.id,
       name: organization.name,
       dot_number: organization.dot_number,
       mc_number: organization.mc_number,
       address_line1: organization.address_line1,
+      address_line2: organization.address_line2,
       city: organization.city,
       state: organization.state,
       zip: organization.zip,
       phone: organization.phone,
+      settings: organization.settings,
+      timezone: (organization as Record<string, unknown>).timezone ?? 'America/New_York',
     };
+
+    // A4: Template snapshot — capture the consent text version signed by the driver
+    let templateSnapshot: Record<string, unknown> | null = null;
+    if (consent.template_id) {
+      const { data: template } = await supabase
+        .from('consent_templates')
+        .select('id, name, version, body_text, consent_type, language')
+        .eq('id', consent.template_id)
+        .single();
+      if (template) {
+        templateSnapshot = {
+          id: template.id,
+          name: template.name,
+          version: template.version,
+          body_text: template.body_text,
+          consent_type: template.consent_type,
+          language: template.language,
+          captured_at: signedAt,
+        };
+      }
+    }
 
     // 7. Update consent with signature data
     const { error: updateError } = await supabase
@@ -256,6 +284,7 @@ export async function POST(
         signer_user_agent: signerUserAgent,
         driver_snapshot: driverSnapshot,
         organization_snapshot: organizationSnapshot,
+        ...(templateSnapshot ? { template_snapshot: templateSnapshot } : {}),
       })
       .eq('id', consent.id);
 

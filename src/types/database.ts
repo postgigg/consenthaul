@@ -35,6 +35,13 @@ export type WebhookEventType =
   | 'consent.expired'
   | 'consent.revoked';
 
+// Session, invoice, and notification types
+export type InvoiceStatus = 'draft' | 'open' | 'paid' | 'void' | 'uncollectible';
+export type OnboardingStatus = 'pending' | 'onboarding' | 'active' | 'suspended' | 'terminated';
+export type RiskLevel = 'low' | 'normal' | 'high' | 'critical';
+export type EmploymentType = 'full_time' | 'part_time' | 'contractor' | 'owner_operator';
+export type NotificationType = 'info' | 'success' | 'warning' | 'error';
+
 // Outreach types
 export type PipelineStage = 'lead' | 'contacted' | 'replied' | 'demo' | 'trial' | 'customer' | 'lost';
 export type CampaignStatus = 'draft' | 'active' | 'paused' | 'completed';
@@ -64,13 +71,26 @@ export interface Database {
           stripe_customer_id: string | null;
           is_partner: boolean;
           last_tsv_download_at: string | null;
+          low_credit_threshold: number;
+          low_credit_notified_at: string | null;
+          timezone: string;
+          is_suspended: boolean;
+          suspended_at: string | null;
+          suspended_reason: string | null;
+          pending_owner_transfer_to: string | null;
+          owner_transfer_requested_at: string | null;
           created_at: string;
           updated_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['organizations']['Row'], 'id' | 'created_at' | 'updated_at' | 'is_partner' | 'last_tsv_download_at'> & {
+        Insert: Omit<Database['public']['Tables']['organizations']['Row'], 'id' | 'created_at' | 'updated_at' | 'is_partner' | 'last_tsv_download_at' | 'low_credit_threshold' | 'is_suspended'> & {
           id?: string;
           is_partner?: boolean;
           last_tsv_download_at?: string | null;
+          low_credit_threshold?: number;
+          low_credit_notified_at?: string | null;
+          is_suspended?: boolean;
+          suspended_at?: string | null;
+          suspended_reason?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -89,12 +109,20 @@ export interface Database {
           is_platform_admin: boolean;
           last_login_at: string | null;
           welcome_email_sent_at: string | null;
+          mfa_enabled: boolean;
+          mfa_secret: string | null;
+          mfa_backup_codes: string[] | null;
+          mfa_verified_at: string | null;
+          email_verified: boolean;
+          email_verified_at: string | null;
           created_at: string;
           updated_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['profiles']['Row'], 'created_at' | 'updated_at'> & {
+        Insert: Omit<Database['public']['Tables']['profiles']['Row'], 'created_at' | 'updated_at' | 'mfa_enabled' | 'email_verified'> & {
           created_at?: string;
           updated_at?: string;
+          mfa_enabled?: boolean;
+          email_verified?: boolean;
         };
         Update: Partial<Database['public']['Tables']['profiles']['Insert']>;
         Relationships: [];
@@ -115,6 +143,12 @@ export interface Database {
           preferred_language: string;
           metadata: Json;
           is_active: boolean;
+          onboarding_status: string;
+          tags: string[];
+          risk_level: string;
+          fleet: string | null;
+          employment_type: string;
+          timezone: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -133,6 +167,12 @@ export interface Database {
           preferred_language?: string;
           metadata?: Json;
           is_active?: boolean;
+          onboarding_status?: string;
+          tags?: string[];
+          risk_level?: string;
+          fleet?: string | null;
+          employment_type?: string;
+          timezone?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -168,6 +208,8 @@ export interface Database {
           pdf_generated_at: string | null;
           driver_snapshot: Json | null;
           organization_snapshot: Json | null;
+          template_id: string | null;
+          template_snapshot: Json | null;
           retention_expires_at: string | null;
           is_archived: boolean;
           metadata: Json;
@@ -202,6 +244,8 @@ export interface Database {
           pdf_generated_at?: string | null;
           driver_snapshot?: Json | null;
           organization_snapshot?: Json | null;
+          template_id?: string | null;
+          template_snapshot?: Json | null;
           retention_expires_at?: string | null;
           is_archived: boolean;
           metadata?: Json;
@@ -304,12 +348,16 @@ export interface Database {
           body_text: string;
           is_default: boolean;
           is_active: boolean;
+          version: number;
+          parent_template_id: string | null;
           created_by: string;
           created_at: string;
           updated_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['consent_templates']['Row'], 'id' | 'created_at' | 'updated_at'> & {
+        Insert: Omit<Database['public']['Tables']['consent_templates']['Row'], 'id' | 'created_at' | 'updated_at' | 'version'> & {
           id?: string;
+          version?: number;
+          parent_template_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -902,6 +950,186 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['query_records']['Insert']>;
         Relationships: [];
       };
+      user_sessions: {
+        Row: {
+          id: string;
+          user_id: string;
+          organization_id: string;
+          ip_address: string | null;
+          user_agent: string | null;
+          last_active_at: string;
+          expires_at: string;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          organization_id: string;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          last_active_at?: string;
+          expires_at?: string;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['user_sessions']['Insert']>;
+        Relationships: [];
+      };
+      invoices: {
+        Row: {
+          id: string;
+          organization_id: string;
+          invoice_number: string;
+          stripe_invoice_id: string | null;
+          stripe_payment_intent_id: string | null;
+          amount_cents: number;
+          tax_cents: number;
+          total_cents: number;
+          currency: string;
+          status: InvoiceStatus;
+          description: string | null;
+          line_items: Json;
+          billing_email: string | null;
+          billing_name: string | null;
+          billing_address: Json | null;
+          due_date: string | null;
+          paid_at: string | null;
+          pdf_url: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          invoice_number: string;
+          stripe_invoice_id?: string | null;
+          stripe_payment_intent_id?: string | null;
+          amount_cents: number;
+          tax_cents?: number;
+          total_cents: number;
+          currency?: string;
+          status?: InvoiceStatus;
+          description?: string | null;
+          line_items?: Json;
+          billing_email?: string | null;
+          billing_name?: string | null;
+          billing_address?: Json | null;
+          due_date?: string | null;
+          paid_at?: string | null;
+          pdf_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['invoices']['Insert']>;
+        Relationships: [];
+      };
+      team_invites: {
+        Row: {
+          id: string;
+          organization_id: string;
+          email: string;
+          role: UserRole;
+          invited_by: string;
+          token: string;
+          expires_at: string;
+          accepted_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          email: string;
+          role?: UserRole;
+          invited_by: string;
+          token: string;
+          expires_at?: string;
+          accepted_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['team_invites']['Insert']>;
+        Relationships: [];
+      };
+      notification_preferences: {
+        Row: {
+          id: string;
+          user_id: string;
+          email_consent_signed: boolean;
+          email_consent_expired: boolean;
+          email_low_credits: boolean;
+          email_team_changes: boolean;
+          email_compliance_alerts: boolean;
+          email_weekly_digest: boolean;
+          in_app_enabled: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          email_consent_signed?: boolean;
+          email_consent_expired?: boolean;
+          email_low_credits?: boolean;
+          email_team_changes?: boolean;
+          email_compliance_alerts?: boolean;
+          email_weekly_digest?: boolean;
+          in_app_enabled?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['notification_preferences']['Insert']>;
+        Relationships: [];
+      };
+      in_app_notifications: {
+        Row: {
+          id: string;
+          user_id: string;
+          organization_id: string;
+          title: string;
+          body: string | null;
+          type: string;
+          action_url: string | null;
+          is_read: boolean;
+          read_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          organization_id: string;
+          title: string;
+          body?: string | null;
+          type?: string;
+          action_url?: string | null;
+          is_read?: boolean;
+          read_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['in_app_notifications']['Insert']>;
+        Relationships: [];
+      };
+      ip_allowlist: {
+        Row: {
+          id: string;
+          organization_id: string;
+          cidr: string;
+          label: string | null;
+          is_active: boolean;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          cidr: string;
+          label?: string | null;
+          is_active?: boolean;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['ip_allowlist']['Insert']>;
+        Relationships: [];
+      };
     };
     Functions: {
       get_user_org_id: {
@@ -914,6 +1142,10 @@ export interface Database {
       };
       add_credits: {
         Args: { p_org_id: string; p_amount: number; p_stripe_payment_id: string; p_description?: string };
+        Returns: number;
+      };
+      refund_credits: {
+        Args: { p_org_id: string; p_amount: number; p_reason: string; p_reference_id?: string; p_user_id?: string };
         Returns: number;
       };
     };

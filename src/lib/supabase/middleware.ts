@@ -62,6 +62,36 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Redirect users with unverified emails away from protected routes
+  if (user && isProtected && !user.email_confirmed_at) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/verify-email';
+    return NextResponse.redirect(url);
+  }
+
+  // F3: Check if the user's organization is suspended
+  if (user && isProtected && !request.nextUrl.pathname.startsWith('/admin')) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('organization_id')
+      .eq('id', user.id)
+      .single();
+
+    if (profile) {
+      const { data: org } = await supabase
+        .from('organizations')
+        .select('is_suspended')
+        .eq('id', profile.organization_id)
+        .single();
+
+      if (org?.is_suspended) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/suspended';
+        return NextResponse.redirect(url);
+      }
+    }
+  }
+
   // IMPORTANT: Always return the supabaseResponse object as-is.
   // If you create a new NextResponse instead, the refreshed session
   // cookies will be lost and the user will be logged out on the next

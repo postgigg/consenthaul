@@ -677,8 +677,8 @@ export default function TMSPartnerPage() {
           <div className="grid md:grid-cols-2 gap-8 mb-12">
             <div className="space-y-4">
               {[
-                'Every motor carrier must query the Clearinghouse before hiring AND annually for every CDL driver',
-                'Full queries (pre-employment, violation follow-up) require separate electronic consent through the Clearinghouse portal each time',
+                'Every motor carrier must query the Clearinghouse before hiring AND annually for every CDL driver — valid consent must be on file',
+                'Limited query consent can cover the full duration of employment (49 CFR 382.701(b)); full queries require separate consent through the Clearinghouse portal each time',
                 'FMCSA increased enforcement budget in 2025',
                 '$5,833/violation, compounding per driver',
               ].map((fact) => (

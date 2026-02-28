@@ -167,10 +167,24 @@ export default function TeamPage() {
     }
 
     try {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('organization_id')
+        .eq('id', member.id)
+        .single();
+      const orgId = (profileData as { organization_id: string } | null)?.organization_id;
+
       await supabase
         .from('profiles')
         .update({ is_active: false })
         .eq('id', member.id);
+
+      if (orgId) {
+        // Revoke API keys for deactivated member
+        await supabase.from('api_keys').update({ is_active: false }).eq('organization_id', orgId).eq('created_by', member.id);
+        // End active sessions
+        await supabase.from('user_sessions').update({ is_active: false }).eq('user_id', member.id);
+      }
 
       fetchMembers();
     } catch {

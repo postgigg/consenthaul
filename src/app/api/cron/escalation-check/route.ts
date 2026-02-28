@@ -4,6 +4,9 @@ import { Resend } from 'resend';
 import { escapeHtml } from '@/lib/security/html-escape';
 import type { Json } from '@/types/database';
 
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
+
 export async function GET(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
   if (!cronSecret) {
@@ -25,10 +28,12 @@ export async function GET(request: NextRequest) {
       .from('query_records')
       .select('id, organization_id, driver_id, escalation_deadline, driver:drivers(first_name, last_name, cdl_number)')
       .eq('escalation_status', 'pending')
-      .lt('escalation_deadline', now);
+      .lt('escalation_deadline', now)
+      .limit(100);
 
     let markedExpired = 0;
     let emailsSent = 0;
+    let notificationsCreated = 0;
 
     if (expired && expired.length > 0) {
       const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
@@ -53,13 +58,28 @@ export async function GET(request: NextRequest) {
           .eq('id', record.organization_id)
           .single();
 
-        // Send urgent follow-up email to org admins
+        // Get org admins for email + in-app notifications
         const { data: admins } = await supabase
           .from('profiles')
-          .select('email, full_name')
+          .select('id, email, full_name')
           .eq('organization_id', record.organization_id)
           .in('role', ['owner', 'admin'])
           .eq('is_active', true);
+
+        // Create in-app notifications for all org admins
+        if (admins && admins.length > 0) {
+          for (const admin of admins) {
+            await supabase.from('in_app_notifications').insert({
+              user_id: admin.id,
+              organization_id: record.organization_id,
+              title: 'Escalation Deadline Missed',
+              body: `A query escalation deadline has passed for driver ${driverName}. Immediate action required per FMCSA regulations.`,
+              type: 'error',
+              action_url: '/queries?escalation=overdue',
+            });
+            notificationsCreated++;
+          }
+        }
 
         if (admins && admins.length > 0 && resend) {
           for (const admin of admins) {
@@ -127,6 +147,7 @@ export async function GET(request: NextRequest) {
       ok: true,
       expired_count: markedExpired,
       emails_sent: emailsSent,
+      notifications_created: notificationsCreated,
       timestamp: new Date().toISOString(),
     });
   } catch (err) {

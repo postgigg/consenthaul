@@ -274,7 +274,7 @@ const REGULATORY_EVENTS = [
   {
     date: 'Ongoing',
     event: 'Prohibited driver list grows past 190K',
-    impact: 'More prohibited drivers means more queries needed. Every query needs consent. The compliance surface area keeps expanding.',
+    impact: 'More prohibited drivers means more queries needed. Every limited query requires valid consent on file — whether a one-time blanket or per-query. The compliance surface area keeps expanding.',
   },
 ];
 

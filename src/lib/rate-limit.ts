@@ -121,3 +121,21 @@ export async function checkRateLimit(
 
   return null;
 }
+
+/**
+ * Attach standard rate-limit headers to any NextResponse.
+ *
+ * Useful for including rate-limit metadata on successful responses so that
+ * API consumers can proactively manage their request budget.
+ */
+export function withRateLimitHeaders(
+  response: NextResponse,
+  limit: number,
+  remaining: number,
+  resetAt: number,
+): NextResponse {
+  response.headers.set('X-RateLimit-Limit', String(limit));
+  response.headers.set('X-RateLimit-Remaining', String(Math.max(0, remaining)));
+  response.headers.set('X-RateLimit-Reset', String(Math.ceil(resetAt / 1000)));
+  return response;
+}

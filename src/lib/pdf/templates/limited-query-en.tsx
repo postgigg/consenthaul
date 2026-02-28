@@ -241,7 +241,7 @@ function ConsentHaulLogo({ size = 28 }: { size?: number }) {
 
 const SUBTITLE_EN: Record<string, string> = {
   blanket: 'General Consent for Limited Queries',
-  limited_query: 'Limited Query Consent (Annual)',
+  limited_query: 'Limited Query Consent',
   pre_employment: 'Pre-Employment Limited Query Consent',
 };
 

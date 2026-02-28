@@ -4,6 +4,8 @@ import { createHash } from 'crypto';
 import QRCode from 'qrcode';
 import { LimitedQueryEn } from './templates/limited-query-en';
 import { LimitedQueryEs } from './templates/limited-query-es';
+import { BlanketQueryEn } from './templates/blanket-query-en';
+import { BlanketQueryEs } from './templates/blanket-query-es';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -120,12 +122,26 @@ export async function generateConsentPDF({
     generatedAt,
   };
 
-  // Select the correct language template
+  // Select the correct template based on consent_type and language
   const language = consent.language ?? 'en';
-  const doc =
-    language === 'es'
-      ? React.createElement(LimitedQueryEs, templateProps)
-      : React.createElement(LimitedQueryEn, templateProps);
+  let doc: React.ReactElement;
+
+  switch (consent.consent_type) {
+    case 'blanket':
+      doc =
+        language === 'es'
+          ? React.createElement(BlanketQueryEs, templateProps)
+          : React.createElement(BlanketQueryEn, templateProps);
+      break;
+    case 'limited_query':
+    case 'pre_employment':
+    default:
+      doc =
+        language === 'es'
+          ? React.createElement(LimitedQueryEs, templateProps)
+          : React.createElement(LimitedQueryEn, templateProps);
+      break;
+  }
 
   const buffer = await renderToBuffer(doc as React.ReactElement);
 

@@ -316,7 +316,7 @@ const jsonLd = {
           name: 'What is an FMCSA Clearinghouse limited query consent?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'An FMCSA Clearinghouse limited query consent is a written or electronic authorization from a CDL driver that allows a motor carrier to check whether the driver has any drug or alcohol violations recorded in the FMCSA Drug & Alcohol Clearinghouse. Carriers must obtain this consent before running a limited query, which is required for pre-employment screening and at least annually for current employees under 49 CFR Part 382.',
+            text: 'An FMCSA Clearinghouse limited query consent is a written or electronic authorization from a CDL driver that allows a motor carrier to check whether the driver has any drug or alcohol violations recorded in the FMCSA Drug & Alcohol Clearinghouse. Carriers must have valid consent on file before running a limited query. Under 49 CFR 382.701(b), a driver may give consent that is effective for more than one year — including the full duration of employment — so a single blanket consent at hire can cover all future annual limited queries.',
           },
         },
         {

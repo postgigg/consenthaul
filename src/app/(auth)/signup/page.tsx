@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { validatePassword } from '@/lib/validators';
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState('');
@@ -14,6 +15,16 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+
+  /** Password requirement rules for the real-time indicator */
+  const passwordRequirements = [
+    { label: 'At least 10 characters', test: (pw: string) => pw.length >= 10 },
+    { label: 'One uppercase letter', test: (pw: string) => /[A-Z]/.test(pw) },
+    { label: 'One lowercase letter', test: (pw: string) => /[a-z]/.test(pw) },
+    { label: 'One number', test: (pw: string) => /[0-9]/.test(pw) },
+    { label: 'One special character', test: (pw: string) => /[^A-Za-z0-9]/.test(pw) },
+  ];
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -27,8 +38,9 @@ export default function SignupPage() {
       return;
     }
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters.');
+    const pwValidation = validatePassword(password);
+    if (!pwValidation.valid) {
+      setError(pwValidation.errors[0]);
       setLoading(false);
       return;
     }
@@ -213,12 +225,79 @@ export default function SignupPage() {
             id="password"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (e.target.value.length > 0) {
+                const { errors } = validatePassword(e.target.value);
+                setPasswordErrors(errors);
+              } else {
+                setPasswordErrors([]);
+              }
+            }}
             required
-            minLength={8}
-            placeholder="Min. 8 characters"
+            minLength={10}
+            placeholder="Min. 10 characters"
             className="w-full border border-[#d4d4cf] bg-white px-4 py-3 text-[0.9rem] text-[#0c0f14] placeholder:text-[#b5b5ae] focus:border-[#0c0f14] focus:outline-none focus:ring-1 focus:ring-[#0c0f14] transition-colors"
           />
+
+          {/* Password requirements indicator */}
+          {password.length > 0 && (
+            <div className="mt-3 space-y-1.5">
+              {passwordRequirements.map((req) => {
+                const met = req.test(password);
+                return (
+                  <div key={req.label} className="flex items-center gap-2">
+                    <div
+                      className={`w-3.5 h-3.5 flex items-center justify-center shrink-0 transition-colors ${
+                        met ? 'text-emerald-600' : 'text-[#b5b5ae]'
+                      }`}
+                    >
+                      {met ? (
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                          <path
+                            d="M2.5 7.5L5.5 10.5L11.5 3.5"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      ) : (
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                          <circle cx="7" cy="7" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+                        </svg>
+                      )}
+                    </div>
+                    <span
+                      className={`text-[0.75rem] transition-colors ${
+                        met ? 'text-emerald-700 font-medium' : 'text-[#8b919a]'
+                      }`}
+                    >
+                      {req.label}
+                    </span>
+                  </div>
+                );
+              })}
+              {/* Show "too common" warning separately if applicable */}
+              {passwordErrors.includes('This password is too common') && (
+                <div className="flex items-center gap-2">
+                  <div className="w-3.5 h-3.5 flex items-center justify-center shrink-0 text-red-500">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <path
+                        d="M4 4L10 10M10 4L4 10"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </div>
+                  <span className="text-[0.75rem] text-red-600 font-medium">
+                    This password is too common
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Terms of Service agreement */}

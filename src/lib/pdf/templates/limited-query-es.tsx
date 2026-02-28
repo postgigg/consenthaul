@@ -241,7 +241,7 @@ function ConsentHaulLogo({ size = 28 }: { size?: number }) {
 
 const SUBTITLE_ES: Record<string, string> = {
   blanket: 'Consentimiento General para Consultas Limitadas',
-  limited_query: 'Consentimiento para Consulta Limitada (Anual)',
+  limited_query: 'Consentimiento para Consulta Limitada',
   pre_employment: 'Consentimiento para Consulta Limitada Pre-Empleo',
 };
 

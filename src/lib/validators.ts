@@ -1,6 +1,32 @@
 import { z } from 'zod';
 
 // ---------------------------------------------------------------------------
+// Password policy
+// ---------------------------------------------------------------------------
+
+const COMMON_PASSWORDS = new Set([
+  'password', 'password1', 'password123', '12345678', '123456789', '1234567890',
+  'qwerty123', 'abc12345', 'letmein123', 'welcome1', 'monkey123', 'dragon123',
+  'master123', 'trustno1', 'iloveyou1', 'sunshine1', 'princess1', 'football1',
+]);
+
+export const passwordSchema = z
+  .string()
+  .min(10, 'Password must be at least 10 characters')
+  .max(128, 'Password must be at most 128 characters')
+  .refine((pw) => /[A-Z]/.test(pw), 'Password must contain at least one uppercase letter')
+  .refine((pw) => /[a-z]/.test(pw), 'Password must contain at least one lowercase letter')
+  .refine((pw) => /[0-9]/.test(pw), 'Password must contain at least one number')
+  .refine((pw) => /[^A-Za-z0-9]/.test(pw), 'Password must contain at least one special character')
+  .refine((pw) => !COMMON_PASSWORDS.has(pw.toLowerCase()), 'This password is too common');
+
+export function validatePassword(password: string): { valid: boolean; errors: string[] } {
+  const result = passwordSchema.safeParse(password);
+  if (result.success) return { valid: true, errors: [] };
+  return { valid: false, errors: result.error.errors.map((e) => e.message) };
+}
+
+// ---------------------------------------------------------------------------
 // Consent schemas
 // ---------------------------------------------------------------------------
 

@@ -18,7 +18,7 @@ export async function enrichLeadWithAI(
     [
       {
         role: 'system',
-        content: `You are a sales analyst for ConsentHaul, a SaaS that handles FMCSA Clearinghouse electronic consent management. ConsentHaul charges ~$2.50 per consent. Each CDL driver needs at least 1 limited query consent per year.
+        content: `You are a sales analyst for ConsentHaul, a SaaS that handles FMCSA Clearinghouse electronic consent management. ConsentHaul charges ~$2.50 per consent. Each CDL driver needs valid limited query consent on file (a blanket consent at hire can cover the full duration of employment per 49 CFR 382.701(b), or carriers can collect per-query).
 
 Analyze this prospect and provide:
 1. ai_summary: A concise description of this carrier and their likely consent needs (1 sentence)

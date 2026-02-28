@@ -302,3 +302,233 @@ export const PRE_EMPLOYMENT_NOTE_ES =
   'y especifico proporcionado directamente a traves del portal del Clearinghouse de la ' +
   'FMCSA (https://clearinghouse.fmcsa.dot.gov). Este consentimiento de consulta limitada ' +
   'no sustituye ese requisito.';
+
+// ---------------------------------------------------------------------------
+// Blanket / Full-query consent text (49 CFR 382.701(a))
+// ---------------------------------------------------------------------------
+
+export const BLANKET_CONSENT_TEXT_EN: ConsentTextBlock = {
+  title: 'FMCSA Drug & Alcohol Clearinghouse — Full Query (Blanket) Consent',
+  body: (
+    driverName: string,
+    companyName: string,
+    startDate: string,
+    endDate: string,
+    frequency: string,
+  ) =>
+    `I, ${driverName}, hereby provide my written consent to ${companyName} ` +
+    `to conduct full queries of the Federal Motor Carrier Safety ` +
+    `Administration (FMCSA) Commercial Driver's License Drug and Alcohol ` +
+    `Clearinghouse (the "Clearinghouse") to obtain detailed information ` +
+    `regarding any drug or alcohol violations associated with me in the ` +
+    `Clearinghouse, in accordance with 49 CFR 382.701(a).\n\n` +
+    `A full query allows ${companyName} to view the complete details of ` +
+    `any violation records in the Clearinghouse associated with me, ` +
+    `including the type of violation, the date of the violation ` +
+    `determination, and information about the substance-abuse professional ` +
+    `(SAP) evaluation and return-to-duty process, if applicable.\n\n` +
+    `This consent authorizes ${companyName} to conduct full queries of ` +
+    `the Clearinghouse on a ${frequency} basis beginning on ${startDate}` +
+    `${endDate ? ` and ending on ${endDate}` : `, and continuing for the duration of my employment with ${companyName}`}.\n\n` +
+    `I understand that:\n\n` +
+    `1. This consent authorizes full queries as defined by ` +
+    `49 CFR 382.701(a). A full query will release the complete details ` +
+    `of any drug and alcohol violation records in the Clearinghouse ` +
+    `associated with me, not merely whether a record exists.\n\n` +
+    `2. The information obtained from the Clearinghouse may include ` +
+    `records of drug and alcohol program violations as defined in ` +
+    `49 CFR Part 40, including positive drug tests, refusals to test, ` +
+    `alcohol confirmation tests at or above 0.04, actual knowledge ` +
+    `violations by the employer, and information about any return-to-duty ` +
+    `(RTD) process and follow-up testing plan.\n\n` +
+    `3. ${companyName} will use the information received from the ` +
+    `Clearinghouse only for the purposes permitted by the FMCSA ` +
+    `Clearinghouse regulations (49 CFR Part 382, Subpart G).\n\n` +
+    `4. I may revoke this consent at any time by providing written notice ` +
+    `to ${companyName}. Revocation of consent will not affect queries ` +
+    `already conducted under this authorization.\n\n` +
+    `5. The FMCSA Clearinghouse retains records for five (5) years from the ` +
+    `date of the violation determination, or until the violation is resolved ` +
+    `through the return-to-duty process, whichever is later.`,
+  acknowledgment:
+    'I acknowledge that I have read and understand the above consent, and I ' +
+    'voluntarily agree to allow full queries of my records in the FMCSA ' +
+    'Drug & Alcohol Clearinghouse as described herein. I understand that a ' +
+    'full query will reveal complete violation details, not merely whether a ' +
+    'record exists.',
+};
+
+export const BLANKET_CONSENT_TEXT_ES: ConsentTextBlock = {
+  title: 'FMCSA Drug & Alcohol Clearinghouse — Consentimiento para Consulta Completa (General)',
+  body: (
+    driverName: string,
+    companyName: string,
+    startDate: string,
+    endDate: string,
+    frequency: string,
+  ) =>
+    `Yo, ${driverName}, por la presente otorgo mi consentimiento escrito a ` +
+    `${companyName} para realizar consultas completas en el Clearinghouse de ` +
+    `Drogas y Alcohol de Licencias de Conducir Comerciales de la ` +
+    `Administracion Federal de Seguridad de Autotransportes (FMCSA) ` +
+    `(el "Clearinghouse") para obtener informacion detallada sobre ` +
+    `cualquier violacion de drogas o alcohol asociada a mi persona en el ` +
+    `Clearinghouse, de conformidad con 49 CFR 382.701(a).\n\n` +
+    `Una consulta completa permite a ${companyName} ver los detalles ` +
+    `completos de cualquier registro de violacion en el Clearinghouse ` +
+    `asociado a mi persona, incluyendo el tipo de violacion, la fecha de ` +
+    `la determinacion de la violacion e informacion sobre la evaluacion ` +
+    `del profesional de abuso de sustancias (SAP) y el proceso de regreso ` +
+    `al servicio, si corresponde.\n\n` +
+    `Este consentimiento autoriza a ${companyName} a realizar consultas ` +
+    `completas en el Clearinghouse de forma ${frequency} a partir del ` +
+    `${startDate}${endDate ? ` y hasta el ${endDate}` : `, y continuando durante la duracion de mi empleo con ${companyName}`}.\n\n` +
+    `Entiendo que:\n\n` +
+    `1. Este consentimiento autoriza consultas completas segun lo definido ` +
+    `por 49 CFR 382.701(a). Una consulta completa divulgara los detalles ` +
+    `completos de cualquier registro de violacion de drogas y alcohol en ` +
+    `el Clearinghouse asociado a mi persona, no simplemente si existe un ` +
+    `registro.\n\n` +
+    `2. La informacion obtenida del Clearinghouse puede incluir registros ` +
+    `de violaciones del programa de drogas y alcohol segun se define en ` +
+    `49 CFR Parte 40, incluyendo pruebas de drogas positivas, negativas ` +
+    `a someterse a pruebas, pruebas de confirmacion de alcohol en o por ` +
+    `encima de 0.04, violaciones por conocimiento real del empleador e ` +
+    `informacion sobre cualquier proceso de regreso al servicio (RTD) y ` +
+    `plan de pruebas de seguimiento.\n\n` +
+    `3. ${companyName} utilizara la informacion recibida del Clearinghouse ` +
+    `unicamente para los fines permitidos por las regulaciones del ` +
+    `Clearinghouse de la FMCSA (49 CFR Parte 382, Subparte G).\n\n` +
+    `4. Puedo revocar este consentimiento en cualquier momento mediante ` +
+    `notificacion escrita a ${companyName}. La revocacion del ` +
+    `consentimiento no afectara las consultas ya realizadas bajo esta ` +
+    `autorizacion.\n\n` +
+    `5. El Clearinghouse de la FMCSA conserva los registros durante cinco ` +
+    `(5) anos a partir de la fecha de la determinacion de la violacion, ` +
+    `o hasta que la violacion se resuelva a traves del proceso de regreso ` +
+    `al servicio, lo que ocurra mas tarde.`,
+  acknowledgment:
+    'Reconozco que he leido y entiendo el consentimiento anterior, y acepto ' +
+    'voluntariamente permitir las consultas completas de mis registros en el ' +
+    'FMCSA Drug & Alcohol Clearinghouse como se describe en este documento. ' +
+    'Entiendo que una consulta completa revelara los detalles completos de ' +
+    'las violaciones, no simplemente si existe un registro.',
+};
+
+// ---------------------------------------------------------------------------
+// Pre-employment consent text (49 CFR 382.701(a))
+// ---------------------------------------------------------------------------
+
+export const PRE_EMPLOYMENT_CONSENT_TEXT_EN: ConsentTextBlock = {
+  title: 'FMCSA Drug & Alcohol Clearinghouse — Pre-Employment Query Consent',
+  body: (
+    driverName: string,
+    companyName: string,
+    startDate: string,
+    endDate: string,
+    _frequency: string,
+  ) =>
+    `I, ${driverName}, hereby provide my written consent to ${companyName} ` +
+    `to conduct a pre-employment query of the Federal Motor Carrier Safety ` +
+    `Administration (FMCSA) Commercial Driver's License Drug and Alcohol ` +
+    `Clearinghouse (the "Clearinghouse") to determine whether drug or ` +
+    `alcohol violation information about me exists in the Clearinghouse, ` +
+    `in accordance with 49 CFR 382.701(a) and 49 CFR 382.701(b).\n\n` +
+    `As part of the pre-employment process, ${companyName} is required by ` +
+    `49 CFR 382.701(a) to query the Clearinghouse before permitting me to ` +
+    `perform safety-sensitive functions, including operating a commercial ` +
+    `motor vehicle (CMV). This consent authorizes ${companyName} to conduct ` +
+    `a pre-employment limited query beginning on ${startDate}` +
+    `${endDate ? ` and valid through ${endDate}` : ''}.\n\n` +
+    `I understand that:\n\n` +
+    `1. This consent authorizes a pre-employment limited query of the ` +
+    `Clearinghouse. A limited query will reveal only whether a record ` +
+    `exists in the Clearinghouse about me, not the details of any such ` +
+    `record.\n\n` +
+    `2. If a limited query indicates that a record exists in the ` +
+    `Clearinghouse about me, ${companyName} will be required to conduct a ` +
+    `full query within 24 hours per 49 CFR 382.701(b)(3). A full query ` +
+    `requires my separate, specific electronic consent provided directly ` +
+    `through the FMCSA Clearinghouse portal per 49 CFR 382.703(b).\n\n` +
+    `3. Per 49 CFR 382.701(a), ${companyName} must also conduct a full ` +
+    `pre-employment query of the Clearinghouse. A full query requires my ` +
+    `separate electronic consent provided through the FMCSA Clearinghouse ` +
+    `portal (https://clearinghouse.fmcsa.dot.gov).\n\n` +
+    `4. The information obtained from the Clearinghouse may pertain to ` +
+    `records of drug and alcohol program violations as defined in ` +
+    `49 CFR Part 40, including positive drug tests, refusals to test, ` +
+    `alcohol confirmation tests at or above 0.04, and other violations.\n\n` +
+    `5. ${companyName} will use the information received from the ` +
+    `Clearinghouse only for the purposes permitted by the FMCSA ` +
+    `Clearinghouse regulations (49 CFR Part 382, Subpart G), specifically ` +
+    `for making a pre-employment determination.\n\n` +
+    `6. The FMCSA Clearinghouse retains records for five (5) years from the ` +
+    `date of the violation determination, or until the violation is resolved ` +
+    `through the return-to-duty process, whichever is later.`,
+  acknowledgment:
+    'I acknowledge that I have read and understand the above consent, and I ' +
+    'voluntarily agree to allow a pre-employment query of my records in the ' +
+    'FMCSA Drug & Alcohol Clearinghouse as described herein. I understand ' +
+    'that a separate full query consent must be provided through the FMCSA ' +
+    'Clearinghouse portal.',
+};
+
+export const PRE_EMPLOYMENT_CONSENT_TEXT_ES: ConsentTextBlock = {
+  title: 'FMCSA Drug & Alcohol Clearinghouse — Consentimiento para Consulta Pre-Empleo',
+  body: (
+    driverName: string,
+    companyName: string,
+    startDate: string,
+    endDate: string,
+    _frequency: string,
+  ) =>
+    `Yo, ${driverName}, por la presente otorgo mi consentimiento escrito a ` +
+    `${companyName} para realizar una consulta pre-empleo en el Clearinghouse ` +
+    `de Drogas y Alcohol de Licencias de Conducir Comerciales de la ` +
+    `Administracion Federal de Seguridad de Autotransportes (FMCSA) ` +
+    `(el "Clearinghouse") para determinar si existe informacion sobre ` +
+    `violaciones de drogas o alcohol sobre mi persona en el Clearinghouse, ` +
+    `de conformidad con 49 CFR 382.701(a) y 49 CFR 382.701(b).\n\n` +
+    `Como parte del proceso de pre-empleo, ${companyName} esta obligado por ` +
+    `49 CFR 382.701(a) a consultar el Clearinghouse antes de permitirme ` +
+    `realizar funciones sensibles de seguridad, incluyendo la operacion de ` +
+    `un vehiculo motorizado comercial (CMV). Este consentimiento autoriza a ` +
+    `${companyName} a realizar una consulta limitada pre-empleo a partir del ` +
+    `${startDate}${endDate ? ` y valida hasta el ${endDate}` : ''}.\n\n` +
+    `Entiendo que:\n\n` +
+    `1. Este consentimiento autoriza una consulta limitada pre-empleo del ` +
+    `Clearinghouse. Una consulta limitada revelara unicamente si existe un ` +
+    `registro en el Clearinghouse sobre mi persona, no los detalles de ` +
+    `dicho registro.\n\n` +
+    `2. Si una consulta limitada indica que existe un registro en el ` +
+    `Clearinghouse sobre mi persona, ${companyName} estara obligado a ` +
+    `realizar una consulta completa dentro de 24 horas segun ` +
+    `49 CFR 382.701(b)(3). Una consulta completa requiere mi ` +
+    `consentimiento electronico separado y especifico proporcionado ` +
+    `directamente a traves del portal del Clearinghouse de la FMCSA ` +
+    `segun 49 CFR 382.703(b).\n\n` +
+    `3. Segun 49 CFR 382.701(a), ${companyName} tambien debe realizar una ` +
+    `consulta completa pre-empleo del Clearinghouse. Una consulta completa ` +
+    `requiere mi consentimiento electronico separado proporcionado a traves ` +
+    `del portal del Clearinghouse de la FMCSA ` +
+    `(https://clearinghouse.fmcsa.dot.gov).\n\n` +
+    `4. La informacion obtenida del Clearinghouse puede estar relacionada ` +
+    `con registros de violaciones del programa de drogas y alcohol segun ` +
+    `se define en 49 CFR Parte 40, incluyendo pruebas de drogas positivas, ` +
+    `negativas a someterse a pruebas, pruebas de confirmacion de alcohol ` +
+    `en o por encima de 0.04, y otras violaciones.\n\n` +
+    `5. ${companyName} utilizara la informacion recibida del Clearinghouse ` +
+    `unicamente para los fines permitidos por las regulaciones del ` +
+    `Clearinghouse de la FMCSA (49 CFR Parte 382, Subparte G), ` +
+    `especificamente para tomar una determinacion pre-empleo.\n\n` +
+    `6. El Clearinghouse de la FMCSA conserva los registros durante cinco ` +
+    `(5) anos a partir de la fecha de la determinacion de la violacion, ` +
+    `o hasta que la violacion se resuelva a traves del proceso de regreso ` +
+    `al servicio, lo que ocurra mas tarde.`,
+  acknowledgment:
+    'Reconozco que he leido y entiendo el consentimiento anterior, y acepto ' +
+    'voluntariamente permitir una consulta pre-empleo de mis registros en el ' +
+    'FMCSA Drug & Alcohol Clearinghouse como se describe en este documento. ' +
+    'Entiendo que se debe proporcionar un consentimiento separado para consulta ' +
+    'completa a traves del portal del Clearinghouse de la FMCSA.',
+};

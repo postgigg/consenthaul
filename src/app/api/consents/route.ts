@@ -120,6 +120,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // A5: Pre-employment enforcement - warn if limited_query used for new hires
+    if (input.consent_type === 'limited_query' && driver.hire_date) {
+      const hireDate = new Date(driver.hire_date);
+      const now = new Date();
+      if (hireDate > now) {
+        // Driver hasn't started yet - pre_employment consent should be used
+        return NextResponse.json(
+          {
+            error: 'Validation Error',
+            message: 'This driver has a future hire date. Pre-employment consent (consent_type: "pre_employment") is required for drivers who have not yet started. Use consent_type "pre_employment" or update the driver\'s hire date.',
+            suggestion: 'pre_employment',
+          },
+          { status: 422 },
+        );
+      }
+    }
+
     // Resolve delivery address — fall back to driver's contact info
     let deliveryAddress = input.delivery_address;
     if (!deliveryAddress) {

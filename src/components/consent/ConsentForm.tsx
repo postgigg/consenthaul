@@ -26,7 +26,7 @@ interface ConsentFormProps {
 
 const CONSENT_TYPES: { value: ConsentType; label: string }[] = [
   { value: 'blanket', label: 'Blanket Consent (Recommended)' },
-  { value: 'limited_query', label: 'Limited Query (Annual)' },
+  { value: 'limited_query', label: 'Limited Query' },
   { value: 'pre_employment', label: 'Pre-Employment' },
 ];
 

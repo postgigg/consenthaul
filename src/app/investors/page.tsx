@@ -171,9 +171,10 @@ export default function InvestorsPage() {
           <section>
             <H2>2. Market Sizing (TAM / SAM / SOM)</H2>
             <p>
-              FMCSA&apos;s Drug &amp; Alcohol Clearinghouse requires every motor carrier to obtain written or
-              electronic consent before running a limited query on a CDL holder. The addressable market
-              is defined by active carrier count and annual consent events.
+              FMCSA&apos;s Drug &amp; Alcohol Clearinghouse requires every motor carrier to have valid written or
+              electronic consent on file before running a limited query on a CDL holder. Under 49 CFR 382.701(b),
+              consent can cover the full duration of employment. The addressable market
+              is defined by active carrier count and annual query volume.
             </p>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">

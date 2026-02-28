@@ -191,13 +191,13 @@ export async function GET(request: NextRequest) {
       ).length,
     };
 
-    // Return JSON or CSV
+    // Return JSON, CSV, or XLSX
     const format = request.nextUrl.searchParams.get('format');
     if (format === 'json') {
       return NextResponse.json({ data: rows, summary });
     }
 
-    // CSV format
+    // CSV/XLSX format
     const csvHeaders = [
       'Last Name',
       'First Name',
@@ -239,9 +239,23 @@ export async function GET(request: NextRequest) {
     );
 
     const dateStr = todayStr.replace(/-/g, '');
-    const csv = [csvHeaders.join(','), ...csvRows].join('\n');
+    const csvContent = [csvHeaders.join(','), ...csvRows].join('\n');
 
-    return new Response(csv, {
+    // XLSX format: CSV with UTF-8 BOM for Excel compatibility
+    if (format === 'xlsx') {
+      const bom = '\uFEFF';
+      const xlsxCsv = bom + csvContent;
+
+      return new Response(xlsxCsv, {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/vnd.ms-excel',
+          'Content-Disposition': `attachment; filename="compliance-report-${dateStr}.xls"`,
+        },
+      });
+    }
+
+    return new Response(csvContent, {
       status: 200,
       headers: {
         'Content-Type': 'text/csv',

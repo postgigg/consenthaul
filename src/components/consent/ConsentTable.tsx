@@ -60,9 +60,26 @@ interface ConsentWithDriver {
 interface ConsentTableProps {
   /** Optional callback when the user clicks "View" on a consent. */
   onView?: (consentId: string) => void;
+  /** External search term (driver name) passed from the parent page filters. */
+  externalSearch?: string;
+  /** External status filter passed from the parent page filters. */
+  externalStatus?: string;
+  /** External consent type filter passed from the parent page filters. */
+  externalType?: string;
+  /** External date-from filter (ISO date string) passed from the parent page filters. */
+  externalDateFrom?: string;
+  /** External date-to filter (ISO date string) passed from the parent page filters. */
+  externalDateTo?: string;
 }
 
-export function ConsentTable({ onView }: ConsentTableProps) {
+export function ConsentTable({
+  onView,
+  externalSearch,
+  externalStatus,
+  externalType,
+  externalDateFrom,
+  externalDateTo,
+}: ConsentTableProps) {
   const [consents, setConsents] = useState<ConsentWithDriver[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -87,6 +104,10 @@ export function ConsentTable({ onView }: ConsentTableProps) {
   const [resendTarget, setResendTarget] = useState<string | null>(null);
   const [resendingIds, setResendingIds] = useState<Set<string>>(new Set());
 
+  // Use external filters when provided, otherwise fall back to internal state
+  const effectiveSearch = externalSearch !== undefined ? externalSearch : search;
+  const effectiveStatus = externalStatus !== undefined ? externalStatus : statusFilter;
+
   const fetchConsents = useCallback(async () => {
     setLoading(true);
     try {
@@ -96,8 +117,11 @@ export function ConsentTable({ onView }: ConsentTableProps) {
         sort: sortField,
         order: sortOrder,
       });
-      if (search.trim()) params.set('search', search.trim());
-      if (statusFilter !== 'all') params.set('status', statusFilter);
+      if (effectiveSearch.trim()) params.set('search', effectiveSearch.trim());
+      if (effectiveStatus !== 'all') params.set('status', effectiveStatus);
+      if (externalType && externalType !== 'all') params.set('consent_type', externalType);
+      if (externalDateFrom) params.set('date_from', externalDateFrom);
+      if (externalDateTo) params.set('date_to', externalDateTo);
 
       const res = await fetch(`/api/consents?${params.toString()}`);
       const data = await res.json();
@@ -113,7 +137,7 @@ export function ConsentTable({ onView }: ConsentTableProps) {
     } finally {
       setLoading(false);
     }
-  }, [page, perPage, sortField, sortOrder, search, statusFilter]);
+  }, [page, perPage, sortField, sortOrder, effectiveSearch, effectiveStatus, externalType, externalDateFrom, externalDateTo]);
 
   useEffect(() => {
     fetchConsents();
@@ -122,7 +146,7 @@ export function ConsentTable({ onView }: ConsentTableProps) {
   // Reset to page 1 when filters change
   useEffect(() => {
     setPage(1);
-  }, [search, statusFilter]);
+  }, [search, statusFilter, externalSearch, externalStatus, externalType, externalDateFrom, externalDateTo]);
 
   function toggleSort(field: string) {
     if (sortField === field) {
