@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 // ---------------------------------------------------------------------------
 // GET /api/notifications/preferences — Get notification preferences
 // ---------------------------------------------------------------------------
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     const supabase = createClient();
     const {

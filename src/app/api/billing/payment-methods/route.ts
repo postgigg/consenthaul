@@ -40,7 +40,7 @@ async function getOrgStripeCustomer(supabase: ReturnType<typeof createClient>) {
 // ---------------------------------------------------------------------------
 // GET /api/billing/payment-methods — List Stripe payment methods
 // ---------------------------------------------------------------------------
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     const supabase = createClient();
     const ctx = await getOrgStripeCustomer(supabase);
@@ -100,7 +100,7 @@ export async function GET(_request: NextRequest) {
 // ---------------------------------------------------------------------------
 // POST /api/billing/payment-methods — Create a SetupIntent for adding a card
 // ---------------------------------------------------------------------------
-export async function POST(_request: NextRequest) {
+export async function POST() {
   try {
     const supabase = createClient();
     const ctx = await getOrgStripeCustomer(supabase);

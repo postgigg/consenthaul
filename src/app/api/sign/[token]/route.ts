@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { submitSignatureSchema } from '@/lib/validators';
 import { hashSignature } from '@/lib/tokens';
 import { generateConsentPDF } from '@/lib/pdf/generate-consent-pdf';
+import type { Json } from '@/types/database';
 import { createHash } from 'crypto';
 import { signLimiter } from '@/lib/rate-limiters';
 import { getClientIp } from '@/lib/rate-limit';
@@ -282,9 +283,9 @@ export async function POST(
         signature_hash: sigHash,
         signer_ip: signerIp,
         signer_user_agent: signerUserAgent,
-        driver_snapshot: driverSnapshot,
-        organization_snapshot: organizationSnapshot,
-        ...(templateSnapshot ? { template_snapshot: templateSnapshot } : {}),
+        driver_snapshot: driverSnapshot as unknown as Json,
+        organization_snapshot: organizationSnapshot as unknown as Json,
+        ...(templateSnapshot ? { template_snapshot: templateSnapshot as unknown as Json } : {}),
       })
       .eq('id', consent.id);
 

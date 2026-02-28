@@ -32,7 +32,7 @@ const US_STATES = [
   'DC',
 ] as const;
 
-interface StepProps {
+interface _StepProps {
   onNext: () => void;
   onBack?: () => void;
 }

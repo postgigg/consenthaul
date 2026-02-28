@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
 
   const supabase = createAdminClient();
 
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from('team_invites')
     .delete()
     .lt('expires_at', new Date().toISOString())

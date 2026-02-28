@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
 }
 
 // PUT to accept the transfer
-export async function PUT(request: NextRequest) {
+export async function PUT() {
   const supabase = createClient();
   const admin = createAdminClient();
   const { data: { user } } = await supabase.auth.getUser();

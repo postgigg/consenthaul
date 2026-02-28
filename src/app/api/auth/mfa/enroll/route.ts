@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 // ---------------------------------------------------------------------------
 // POST /api/auth/mfa/enroll -- Start MFA enrollment (TOTP)
 // ---------------------------------------------------------------------------
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const supabase = createClient();
     const {

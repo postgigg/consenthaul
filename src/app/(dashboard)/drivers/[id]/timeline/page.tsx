@@ -13,7 +13,7 @@ type DriverRow = Database['public']['Tables']['drivers']['Row'];
 type ConsentRow = Database['public']['Tables']['consents']['Row'];
 
 interface AuditLogEntry {
-  id: string;
+  id: number;
   action: string;
   actor_type: string;
   actor_id: string | null;

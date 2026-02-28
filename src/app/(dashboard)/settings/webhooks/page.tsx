@@ -8,9 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
 } from '@/components/ui/card';
 import {
   Table,
@@ -74,10 +71,10 @@ interface WebhookEndpoint {
 
 interface WebhookDelivery {
   id: string;
-  webhook_endpoint_id: string;
+  endpoint_id: string;
   event_type: string;
-  status_code: number | null;
-  success: boolean;
+  status: string;
+  response_status: number | null;
   created_at: string;
   response_body: string | null;
 }
@@ -87,6 +84,7 @@ export default function WebhooksSettingsPage() {
   const [endpoints, setEndpoints] = useState<WebhookEndpoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [orgId, setOrgId] = useState('');
+  const [userId, setUserId] = useState('');
 
   // Create / edit dialog
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -135,6 +133,7 @@ export default function WebhooksSettingsPage() {
       if (!profile) return;
 
       setOrgId(profile.organization_id);
+      setUserId(user.id);
 
       const { data } = await supabase
         .from('webhook_endpoints')
@@ -233,6 +232,7 @@ export default function WebhooksSettingsPage() {
             events: selectedEvents,
             secret,
             is_active: true,
+            created_by: userId,
           });
 
         if (error) {
@@ -312,9 +312,9 @@ export default function WebhooksSettingsPage() {
       const to = from + perPage - 1;
 
       const { data, count } = await supabase
-        .from('webhook_deliveries')
+        .from('webhook_events')
         .select('*', { count: 'exact' })
-        .eq('webhook_endpoint_id', endpointId)
+        .eq('endpoint_id', endpointId)
         .order('created_at', { ascending: false })
         .range(from, to);
 
@@ -658,7 +658,7 @@ export default function WebhooksSettingsPage() {
                   className="flex items-center justify-between border border-[#e8e8e3] px-3 py-2"
                 >
                   <div className="flex items-center gap-3">
-                    {delivery.success ? (
+                    {delivery.status === 'delivered' ? (
                       <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
                     ) : (
                       <XCircle className="h-4 w-4 text-red-500 shrink-0" />
@@ -676,9 +676,9 @@ export default function WebhooksSettingsPage() {
                     </div>
                   </div>
                   <Badge
-                    variant={delivery.success ? 'success' : 'destructive'}
+                    variant={delivery.status === 'delivered' ? 'success' : 'destructive'}
                   >
-                    {delivery.status_code ?? 'ERR'}
+                    {delivery.response_status ?? 'ERR'}
                   </Badge>
                 </div>
               ))}

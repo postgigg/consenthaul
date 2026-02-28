@@ -177,12 +177,13 @@ export async function POST(
 
     // Send email notifications (fire-and-forget)
     // Fetch consent with driver email and org name for notification
-    supabase
-      .from('consents')
-      .select('driver:drivers(first_name, last_name, email), organization:organizations(name, logo_url, settings)')
-      .eq('id', consent.id)
-      .single()
-      .then(({ data: consentWithDetails }) => {
+    Promise.resolve(
+      supabase
+        .from('consents')
+        .select('driver:drivers(first_name, last_name, email), organization:organizations(name, logo_url, settings)')
+        .eq('id', consent.id)
+        .single()
+    ).then(({ data: consentWithDetails }) => {
         if (!consentWithDetails) return;
 
         const driver = consentWithDetails.driver as unknown as {
@@ -212,11 +213,12 @@ export async function POST(
           : undefined;
 
         // Fetch org member emails for notification
-        supabase
-          .from('profiles')
-          .select('email')
-          .eq('organization_id', consent.organization_id)
-          .then(({ data: profiles }) => {
+        Promise.resolve(
+          supabase
+            .from('profiles')
+            .select('email')
+            .eq('organization_id', consent.organization_id)
+        ).then(({ data: profiles }) => {
             const orgMemberEmails = (profiles ?? [])
               .map((p: { email: string | null }) => p.email)
               .filter((e): e is string => !!e);

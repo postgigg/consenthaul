@@ -151,6 +151,7 @@ export default function TemplatesPage() {
             is_active: true,
             organization_id: '', // RLS will fill this via get_user_org_id()
             created_by: '', // RLS will fill this
+            parent_template_id: null,
           });
 
         if (insertError) {

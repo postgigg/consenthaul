@@ -31,8 +31,8 @@ export async function GET(request: NextRequest) {
   let failed = 0;
 
   for (const consent of consents ?? []) {
-    const driver = consent.driver as { first_name: string; last_name: string; phone: string | null; email: string | null };
-    const org = consent.organization as { name: string };
+    const driver = consent.driver as unknown as { first_name: string; last_name: string; phone: string | null; email: string | null };
+    const org = consent.organization as unknown as { name: string };
     const signingUrl = `${process.env.NEXT_PUBLIC_APP_URL}/sign/${consent.signing_token}`;
     const driverName = `${driver.first_name} ${driver.last_name}`;
 

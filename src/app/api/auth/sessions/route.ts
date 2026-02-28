@@ -5,7 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 // ---------------------------------------------------------------------------
 // GET /api/auth/sessions -- List active sessions for the authenticated user
 // ---------------------------------------------------------------------------
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = createClient();
     const {
