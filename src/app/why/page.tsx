@@ -929,7 +929,7 @@ export default function WhyConsentHaulPage() {
                 ConsentHaul is not affiliated with, endorsed by, or sponsored by the Federal Motor Carrier Safety Administration (FMCSA) or the U.S. Department of Transportation. &quot;FMCSA Clearinghouse&quot; is a registered trademark of the U.S. Department of Transportation.
               </p>
               <p className="text-[0.7rem] leading-relaxed text-[#8b919a]">
-                ConsentHaul provides a digital platform for collecting electronic consent signatures as permitted under 49 CFR Part 40. It is the responsibility of the employer/carrier to ensure compliance with all applicable federal and state regulations. Electronic signatures comply with the ESIGN Act and UETA. Signed documents are retained for the FMCSA-required minimum of three (3) years.
+                ConsentHaul provides a digital platform for collecting electronic consent signatures as permitted under 49 CFR Part 382. Consent retention complies with &sect; 382.703(a) (3-year minimum). It is the responsibility of the employer/carrier to ensure compliance with all applicable federal and state regulations. Electronic signatures comply with the ESIGN Act and UETA. Signed documents are retained for the FMCSA-required minimum of three (3) years.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">

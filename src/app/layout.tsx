@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     template: '%s | ConsentHaul',
   },
   description:
-    'Collect FMCSA consent forms online from CDL drivers in 60 seconds. ConsentHaul is a digital Clearinghouse limited query consent platform for motor carriers. Send a DOT consent form via SMS or email, drivers sign electronically on their phone, and you receive a compliant FMCSA consent PDF — stored for 3 years per 49 CFR Part 40. Bilingual English/Spanish support included.',
+    'Collect FMCSA consent forms online from CDL drivers in 60 seconds. ConsentHaul is a digital Clearinghouse limited query consent platform for motor carriers. Send a DOT consent form via SMS or email, drivers sign electronically on their phone, and you receive a compliant FMCSA consent PDF — stored for 3 years per 49 CFR § 382.703. Bilingual English/Spanish support included.',
   keywords: [
     'FMCSA consent form',
     'digital DOT consent',
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
     'trucking carrier compliance',
     'CDL drug test consent',
     'driver e-signature platform',
-    'FMCSA 49 CFR Part 40',
+    'FMCSA 49 CFR Part 382',
     'limited query authorization',
     'fleet safety compliance',
     'mobile driver consent',
@@ -151,8 +151,9 @@ const jsonLd = {
       applicationCategory: 'BusinessApplication',
       operatingSystem: 'Web',
       description:
-        'Digital FMCSA Clearinghouse limited query consent form platform for motor carriers. Send DOT consent links to CDL drivers via SMS, WhatsApp, or email. Collect electronic FMCSA consent signatures on mobile devices. Automatically generate and retain compliant signed consent PDFs for 3 years per 49 CFR Part 40.',
+        'Digital FMCSA Clearinghouse limited query consent form platform for motor carriers. Send DOT consent links to CDL drivers via SMS, WhatsApp, or email. Collect electronic FMCSA consent signatures on mobile devices. Automatically generate and retain compliant signed consent PDFs for 3 years per 49 CFR § 382.703.',
       url: SITE_URL,
+      termsOfService: `${SITE_URL}/terms`,
       author: {
         '@type': 'Organization',
         name: 'Workbird LLC',
@@ -215,7 +216,7 @@ const jsonLd = {
         'FMCSA pre-employment consent collection',
         'Carrier Clearinghouse consent compliance tools',
         'FMCSA consent form WhatsApp delivery',
-        '49 CFR Part 40 compliant consent forms',
+        '49 CFR Part 382 compliant consent forms',
         'Online limited query authorization forms',
         'FMCSA consent automation for fleets',
         'Stripe-powered secure payments',
@@ -229,12 +230,22 @@ const jsonLd = {
       url: SITE_URL,
       logo: `${SITE_URL}/logo.png`,
       description:
-        'ConsentHaul is operated by Workbird LLC. We provide a digital FMCSA consent form platform for motor carriers and fleet operators to collect DOT Clearinghouse limited query authorization from CDL drivers electronically, in compliance with 49 CFR Part 40. Our DOT consent management system supports SMS, WhatsApp, and email delivery.',
-      contactPoint: {
-        '@type': 'ContactPoint',
-        contactType: 'customer support',
-        availableLanguage: ['English', 'Spanish'],
-      },
+        'ConsentHaul is operated by Workbird LLC. We provide a digital FMCSA consent form platform for motor carriers and fleet operators to collect DOT Clearinghouse limited query authorization from CDL drivers electronically, in compliance with 49 CFR Part 382. Our DOT consent management system supports SMS, WhatsApp, and email delivery.',
+      email: 'support@consenthaul.com',
+      contactPoint: [
+        {
+          '@type': 'ContactPoint',
+          contactType: 'customer support',
+          email: 'support@consenthaul.com',
+          availableLanguage: ['English', 'Spanish'],
+        },
+        {
+          '@type': 'ContactPoint',
+          contactType: 'sales',
+          email: 'partnerships@consenthaul.com',
+          availableLanguage: ['English'],
+        },
+      ],
       sameAs: [],
     },
     {
@@ -268,7 +279,7 @@ const jsonLd = {
           name: 'Is ConsentHaul FMCSA compliant?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'ConsentHaul generates consent forms compliant with 49 CFR Part 40 and FMCSA Clearinghouse regulations. Electronic signatures comply with the ESIGN Act and UETA. Signed documents are automatically retained for the FMCSA-required minimum of 3 years.',
+            text: 'ConsentHaul generates consent forms compliant with 49 CFR Part 382 and FMCSA Clearinghouse regulations. Electronic signatures comply with the ESIGN Act and UETA. Signed documents are automatically retained for the FMCSA-required minimum of 3 years.',
           },
         },
         {
@@ -380,7 +391,7 @@ const jsonLd = {
         {
           '@type': 'HowToStep',
           name: 'Compliant FMCSA consent PDF is filed automatically',
-          text: 'Once signed, ConsentHaul generates a compliant FMCSA consent PDF with the driver\'s electronic signature, timestamp, IP address, and device data. The signed DOT consent form is stored securely and retained for 3 years per 49 CFR Part 40 requirements.',
+          text: 'Once signed, ConsentHaul generates a compliant FMCSA consent PDF with the driver\'s electronic signature, timestamp, IP address, and device data. The signed DOT consent form is stored securely and retained for 3 years per 49 CFR § 382.703 requirements.',
         },
       ],
     },

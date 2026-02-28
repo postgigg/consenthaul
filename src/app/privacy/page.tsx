@@ -98,7 +98,7 @@ export default function PrivacyPage() {
             <h2 className="text-lg font-bold text-[#0c0f14] tracking-tight mb-3" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>3. How We Use Your Information</h2>
             <ul className="list-none space-y-2 pl-0">
               <li className="flex gap-3"><span className="text-[#C8A75E] font-bold shrink-0">—</span> <strong>Service delivery:</strong> To process consent forms, authenticate users, and manage accounts</li>
-              <li className="flex gap-3"><span className="text-[#C8A75E] font-bold shrink-0">—</span> <strong>Compliance:</strong> To maintain records required by FMCSA regulations (49 CFR Part 40)</li>
+              <li className="flex gap-3"><span className="text-[#C8A75E] font-bold shrink-0">—</span> <strong>Compliance:</strong> To maintain records required by FMCSA regulations (49 CFR Part 382)</li>
               <li className="flex gap-3"><span className="text-[#C8A75E] font-bold shrink-0">—</span> <strong>Communication:</strong> To send consent form notifications, account updates, and service announcements</li>
               <li className="flex gap-3"><span className="text-[#C8A75E] font-bold shrink-0">—</span> <strong>Payment processing:</strong> To process credit purchases and manage billing</li>
               <li className="flex gap-3"><span className="text-[#C8A75E] font-bold shrink-0">—</span> <strong>Security:</strong> To detect fraud, prevent abuse, and ensure platform integrity</li>

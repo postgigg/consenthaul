@@ -3,10 +3,13 @@ import type { Metadata } from 'next';
 import { LogoFull } from '@/components/brand/Logo';
 import { LandingNav } from '@/components/landing/LandingNav';
 
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://consenthaul.com';
+
 export const metadata: Metadata = {
   title: 'Migration API Documentation — ConsentHaul TMS Partners',
   description:
     'Dedicated secure API for migrating carrier and driver data into ConsentHaul. Full endpoint documentation, data schemas, CSV templates, and cURL examples.',
+  alternates: { canonical: `${SITE_URL}/tms/migration-api` },
 };
 
 // ---------------------------------------------------------------------------

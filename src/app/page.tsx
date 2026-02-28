@@ -12,7 +12,7 @@ import { ComingSoonBanner } from '@/components/landing/ComingSoonBanner';
 export const metadata: Metadata = {
   title: 'FMCSA Consent Form Online — Digital Clearinghouse Limited Query Consent | ConsentHaul',
   description:
-    'Collect FMCSA Clearinghouse limited query consent forms from CDL drivers online. Send a digital DOT consent form via SMS or email — drivers sign electronically in 60 seconds. Compliant FMCSA consent PDFs generated and retained for 3 years per 49 CFR Part 40.',
+    'Collect FMCSA Clearinghouse limited query consent forms from CDL drivers online. Send a digital DOT consent form via SMS or email — drivers sign electronically in 60 seconds. Compliant FMCSA consent PDFs generated and retained for 3 years per 49 CFR § 382.703.',
 };
 
 // ---------------------------------------------------------------------------
@@ -33,7 +33,7 @@ const STEPS = [
   {
     num: '03',
     title: 'Driver signs, PDF filed',
-    desc: 'Driver taps the link, reviews, signs with their finger. Compliant FMCSA consent PDF generated instantly — stored for 3 years per 49 CFR Part 40.',
+    desc: 'Driver taps the link, reviews, signs with their finger. Compliant FMCSA consent PDF generated instantly — stored for 3 years per 49 CFR § 382.703.',
   },
 ];
 
@@ -51,7 +51,7 @@ const FAQS = [
   },
   {
     q: 'Is ConsentHaul FMCSA compliant?',
-    a: 'Yes. ConsentHaul generates consent forms that comply with 49 CFR Part 40 and FMCSA Clearinghouse regulations. Electronic signatures are valid under the ESIGN Act and UETA. All signed documents are automatically retained for the FMCSA-required minimum of 3 years.',
+    a: 'Yes. ConsentHaul generates consent forms that comply with 49 CFR Part 382 and FMCSA Clearinghouse regulations. Electronic signatures are valid under the ESIGN Act and UETA. All signed documents are automatically retained for the FMCSA-required minimum of 3 years.',
   },
   {
     q: 'How much does it cost?',
@@ -110,7 +110,7 @@ const FEATURES = [
   },
   {
     title: 'Compliance on Autopilot',
-    desc: 'Every signed consent PDF is stored for 3 years per 49 CFR Part 40. No filing cabinets, no scanning, no manual tracking.',
+    desc: 'Every signed consent PDF is stored for 3 years per 49 CFR § 382.703. No filing cabinets, no scanning, no manual tracking.',
   },
   {
     title: 'Built for the Truck Stop',
@@ -561,7 +561,7 @@ export default function LandingPage() {
                 ConsentHaul is not affiliated with, endorsed by, or sponsored by the Federal Motor Carrier Safety Administration (FMCSA) or the U.S. Department of Transportation. &quot;FMCSA Clearinghouse&quot; is a registered trademark of the U.S. Department of Transportation.
               </p>
               <p className="text-[0.7rem] leading-relaxed text-[#8b919a]">
-                ConsentHaul provides a digital platform for collecting electronic consent signatures as permitted under 49 CFR Part 40. It is the responsibility of the employer/carrier to ensure compliance with all applicable federal and state regulations. Electronic signatures comply with the ESIGN Act and UETA. Signed documents are retained for the FMCSA-required minimum of three (3) years.
+                ConsentHaul provides a digital platform for collecting electronic consent signatures as permitted under 49 CFR Part 382. Consent retention complies with &sect; 382.703(a) (3-year minimum). It is the responsibility of the employer/carrier to ensure compliance with all applicable federal and state regulations. Electronic signatures comply with the ESIGN Act and UETA. Signed documents are retained for the FMCSA-required minimum of three (3) years.
               </p>
             </div>
 

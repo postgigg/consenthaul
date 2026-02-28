@@ -5,10 +5,13 @@ import { SigningDemo } from '@/components/landing/SigningDemo';
 import { ApiWorkflowDemo } from '@/components/landing/ApiWorkflowDemo';
 import { AiAgentDemo } from '@/components/landing/AiAgentDemo';
 
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://consenthaul.com';
+
 export const metadata: Metadata = {
   title: 'Interactive Signing Demo — ConsentHaul',
   description:
     'Try the exact FMCSA consent signing experience a CDL driver goes through. Draw your signature and generate a real compliant PDF.',
+  alternates: { canonical: `${SITE_URL}/demo` },
 };
 
 export default function DemoPage() {

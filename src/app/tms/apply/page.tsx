@@ -2,10 +2,13 @@ import type { Metadata } from 'next';
 import { LandingNav } from '@/components/landing/LandingNav';
 import { PartnerApplicationWizard } from '@/components/tms/PartnerApplicationWizard';
 
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://consenthaul.com';
+
 export const metadata: Metadata = {
   title: 'Apply for TMS Partner Account | ConsentHaul',
   description:
     'Apply to become a ConsentHaul TMS partner. Embed FMCSA consent collection into your platform with volume pricing starting at $0.29/consent.',
+  alternates: { canonical: `${SITE_URL}/tms/apply` },
 };
 
 export default function TMSApplyPage() {

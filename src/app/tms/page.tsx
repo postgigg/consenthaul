@@ -9,10 +9,13 @@ import { TerminalTyping } from '@/components/landing/TerminalTyping';
 // Metadata
 // ---------------------------------------------------------------------------
 
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://consenthaul.com';
+
 export const metadata: Metadata = {
   title: 'TMS Partner Integration — Embed FMCSA Consent into Your Platform | ConsentHaul',
   description:
     'Integrate FMCSA Clearinghouse consent collection into your TMS with 4 API calls. Your carriers send a link, drivers sign in 60 seconds, signed PDF filed automatically. Credit packs starting at $0.50/consent.',
+  alternates: { canonical: `${SITE_URL}/tms` },
 };
 
 // ---------------------------------------------------------------------------
@@ -101,7 +104,7 @@ const FEATURES = [
   },
   {
     title: 'FMCSA-Compliant PDFs',
-    desc: 'Signed PDFs with signature, timestamp, IP, device metadata. 49 CFR Part 40 compliant. Audit-ready on day one.',
+    desc: 'Signed PDFs with signature, timestamp, IP, device metadata. 49 CFR Part 382 compliant. Audit-ready on day one.',
   },
   {
     title: '3-Year Retention',
@@ -882,7 +885,7 @@ export default function TMSPartnerPage() {
                 ConsentHaul is not affiliated with, endorsed by, or sponsored by the Federal Motor Carrier Safety Administration (FMCSA) or the U.S. Department of Transportation. &quot;FMCSA Clearinghouse&quot; is a registered trademark of the U.S. Department of Transportation.
               </p>
               <p className="text-[0.7rem] leading-relaxed text-[#8b919a]">
-                ConsentHaul provides a digital platform for collecting electronic consent signatures as permitted under 49 CFR Part 40. It is the responsibility of the employer/carrier to ensure compliance with all applicable federal and state regulations. Electronic signatures comply with the ESIGN Act and UETA. Signed documents are retained for the FMCSA-required minimum of three (3) years.
+                ConsentHaul provides a digital platform for collecting electronic consent signatures as permitted under 49 CFR Part 382. Consent retention complies with &sect; 382.703(a) (3-year minimum). It is the responsibility of the employer/carrier to ensure compliance with all applicable federal and state regulations. Electronic signatures comply with the ESIGN Act and UETA. Signed documents are retained for the FMCSA-required minimum of three (3) years.
               </p>
             </div>
 

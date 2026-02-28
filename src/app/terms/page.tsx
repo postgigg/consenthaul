@@ -7,7 +7,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://consenthaul.com';
 export const metadata: Metadata = {
   title: 'Terms of Service — FMCSA Clearinghouse Consent Platform | ConsentHaul',
   description:
-    'ConsentHaul Terms of Service — governing the use of our digital FMCSA consent form platform for motor carriers. Covers electronic DOT consent signatures, Clearinghouse limited query authorization, credit-based pricing, and data retention under 49 CFR Part 40.',
+    'ConsentHaul Terms of Service — governing the use of our digital FMCSA consent form platform for motor carriers. Covers electronic DOT consent signatures, Clearinghouse limited query authorization, credit-based pricing, and data retention under 49 CFR Part 382.',
   alternates: {
     canonical: `${SITE_URL}/terms`,
   },
@@ -58,7 +58,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-bold text-[#0c0f14] tracking-tight mb-3" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>2. Description of Service</h2>
             <p>
-              ConsentHaul is a digital platform that facilitates the collection and management of electronic consent signatures required for FMCSA Drug &amp; Alcohol Clearinghouse queries under 49 CFR Part 40. The Service enables motor carriers and their authorized representatives to send, collect, store, and manage consent forms from commercial driver&apos;s license (CDL) holders electronically.
+              ConsentHaul is a digital platform that facilitates the collection and management of electronic consent signatures required for FMCSA Drug &amp; Alcohol Clearinghouse queries under 49 CFR Part 382. The Service enables motor carriers and their authorized representatives to send, collect, store, and manage consent forms from commercial driver&apos;s license (CDL) holders electronically.
             </p>
             <p className="mt-3">
               ConsentHaul is <strong>not affiliated with, endorsed by, or sponsored by the Federal Motor Carrier Safety Administration (FMCSA)</strong> or the U.S. Department of Transportation. We are an independent third-party platform that assists carriers in complying with Clearinghouse consent requirements.
@@ -91,7 +91,7 @@ export default function TermsPage() {
               Electronic signatures collected through ConsentHaul are intended to comply with the Electronic Signatures in Global and National Commerce Act (ESIGN Act, 15 U.S.C. &sect; 7001 et seq.) and the Uniform Electronic Transactions Act (UETA). The Service captures signature data, timestamp, IP address, device information, and geolocation (when available) to establish the authenticity and integrity of each signed consent.
             </p>
             <p className="mt-3">
-              <strong>It is the sole responsibility of the employer/carrier</strong> to ensure that consent forms are used in compliance with all applicable federal and state regulations, including but not limited to 49 CFR Part 40, 49 CFR Part 382, and FMCSA Clearinghouse requirements. ConsentHaul does not provide legal advice.
+              <strong>It is the sole responsibility of the employer/carrier</strong> to ensure that consent forms are used in compliance with all applicable federal and state regulations, including but not limited to 49 CFR Part 382 and 49 CFR Part 40, and FMCSA Clearinghouse requirements. ConsentHaul does not provide legal advice.
             </p>
           </section>
 
